@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/ucloud/ucloud-sdk-go/services/uhost"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -78,11 +79,12 @@ func resourceUCloudInstance() *schema.Resource {
 				ValidateFunc: validateDataDiskSize(20, 100),
 			},
 
-			"data_disk_category": &schema.Schema{
+			"boot_disk_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "LocalDisk",
-				ValidateFunc: validateStringInChoices([]string{"LocalDisk", "Disk"}),
+				ForceNew:     true,
+				Default:      "LOCAL_NORMAL",
+				ValidateFunc: validateStringInChoices([]string{"LOCAL_NORMAL", "LOCAL_SSD", "CLOUD_NORMAL", "CLOUD_SSD"}),
 			},
 
 			"data_disk_size": &schema.Schema{
@@ -90,6 +92,14 @@ func resourceUCloudInstance() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateDataDiskSize(0, 2000),
+			},
+
+			"data_disk_type": &schema.Schema{
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "LOCAL_NORMAL",
+				ValidateFunc: validateStringInChoices([]string{"LOCAL_NORMAL", "LOCAL_SSD"}),
 			},
 
 			"remark": &schema.Schema{
@@ -165,18 +175,13 @@ func resourceUCloudInstance() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"internet_type": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
 						"ip": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"bandwidth": &schema.Schema{
-							Type:     schema.TypeInt,
+						"type": &schema.Schema{
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -212,7 +217,6 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	req.Password = ucloud.String(d.Get("root_password").(string))
 	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
-	req.StorageType = ucloud.String(uDiskMap.convert(d.Get("data_disk_category").(string)))
 	req.Name = ucloud.String(d.Get("name").(string))
 
 	// skip error because it has been validated by schema
@@ -220,10 +224,25 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	req.CPU = ucloud.Int(t.CPU)
 	req.Memory = ucloud.Int(t.Memory)
 
+	imageResp, err := client.DescribeImageById(d.Get("image_id").(string))
+	if err != nil {
+		return fmt.Errorf("do %s failed in create instance, %s", "DescribeImage", err)
+	}
+
+	bootDisk := uhost.UHostDisk{}
+	bootDisk.IsBoot = ucloud.Bool(true)
+	bootDisk.Size = ucloud.Int(imageResp.ImageSize)
+	bootDisk.Type = ucloud.String(d.Get("boot_disk_type").(string))
+
+	req.Disks = append(req.Disks, bootDisk)
+
 	if val, ok := d.GetOk("data_disk_size"); ok {
-		if t.HostType == "n" {
-			req.DiskSpace = ucloud.Int(val.(int))
-		}
+		dataDisk := uhost.UHostDisk{}
+		dataDisk.IsBoot = ucloud.Bool(false)
+		dataDisk.Type = ucloud.String(d.Get("data_disk_type").(string))
+		dataDisk.Size = ucloud.Int(d.Get("data_disk_size").(int))
+
+		req.Disks = append(req.Disks, dataDisk)
 	}
 
 	if val, ok := d.GetOk("tag"); ok {
@@ -239,17 +258,12 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if val, ok := d.GetOk("security_group"); ok {
-		conn := client.unetconn
-		reqfw := conn.NewDescribeFirewallRequest()
-		reqfw.FWId = ucloud.String(val.(string))
-
-		resp, err := conn.DescribeFirewall(reqfw)
-
+		resp, err := client.describeFirewallById(val.(string))
 		if err != nil {
 			return fmt.Errorf("do %s failed in create instance, %s", "DescribeFirewall", err)
 		}
 
-		req.SecurityGroupId = ucloud.String(resp.DataSet[0].GroupId)
+		req.SecurityGroupId = ucloud.String(resp.GroupId)
 	}
 
 	resp, err := conn.CreateUHostInstance(req)
@@ -378,16 +392,12 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("boot_disk_size") && !d.IsNewResource() {
 		d.SetPartial("boot_disk_size")
-		oldSize, newSize := d.GetChange("boot_disk_size")
-		if oldSize.(int) > newSize.(int) {
-			return fmt.Errorf("boot disk does not support shrinkage, new value %d passed in should be greater than the old value %d allocated by the system", newSize.(int), oldSize.(int))
-		}
-		resizeReq.BootDiskSpace = ucloud.Int(newSize.(int))
+		resizeReq.BootDiskSpace = ucloud.Int(d.Get("boot_disk_size").(int))
 		resizeNeedUpdate = true
 	}
 
 	passwordNeedUpdate := false
-	if d.HasChange("`root_password`") && !d.IsNewResource() {
+	if d.HasChange("root_password") && !d.IsNewResource() {
 		instance, err := client.describeInstanceById(d.Id())
 
 		if err != nil {
@@ -526,10 +536,7 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("instance_type", d.Get("instance_type").(string))
 	d.Set("root_password", d.Get("root_password").(string))
 	d.Set("security_group", d.Get("security_group").(string))
-	d.Set("vpc_id", d.Get("vpc_id").(string))
-	d.Set("subnet_id", d.Get("subnet_id").(string))
 	d.Set("tag", instance.Tag)
-	d.Set("data_disk_category", uDiskMap.unconvert(instance.StorageType))
 	d.Set("cpu", instance.CPU)
 	d.Set("memory", instance.Memory)
 	d.Set("state", instance.State)
@@ -541,9 +548,8 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	ipSet := []map[string]interface{}{}
 	for _, item := range instance.IPSet {
 		ipSet = append(ipSet, map[string]interface{}{
-			"ip":            item.IP,
-			"internet_type": item.Type,
-			"bandwidth":     item.Bandwidth,
+			"ip":   item.IP,
+			"type": item.Type,
 		})
 	}
 	d.Set("ip_set", ipSet)
@@ -555,7 +561,16 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 			"size":    item.Size,
 			"disk_id": item.DiskId,
 		})
+
+		if item.IsBoot == "True" {
+			d.Set("boot_disk_size", item.Size)
+		}
+
+		if item.IsBoot == "False" && checkStringIn(item.DiskType, []string{"LOCAL_NORMAL", "LOCAL_SSD"}) == nil {
+			d.Set("data_disk_size", item.Size)
+		}
 	}
+
 	d.Set("disk_set", diskSet)
 
 	return nil
