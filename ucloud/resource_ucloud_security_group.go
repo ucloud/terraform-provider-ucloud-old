@@ -144,7 +144,13 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("do %s failed in update security group %s, %s", "UpdateFirewall", d.Id(), err)
 		}
 
-		time.Sleep(3 * time.Second)
+		// after update security group rule, we need to wait it completed
+		stateConf := securityWaitForState(client, d.Id())
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("wait for security group rule failed in update security group %s, %s", d.Id(), err)
+		}
 	}
 
 	isChanged := false
@@ -176,12 +182,12 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("do %s failed in update security group %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
 
-		// after update security group, we need to wait it initialized
+		// after update security group attribute, we need to wait it completed
 		stateConf := securityWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for security group initialize failed in update security group %s, %s", d.Id(), err)
+			return fmt.Errorf("wait for security group attribute failed in update security group %s, %s", d.Id(), err)
 		}
 	}
 
@@ -282,9 +288,9 @@ func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChan
 	return &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
-		Delay:      3 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Timeout:    5 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			sgSet, err := client.describeFirewallById(sgId)
 			if err != nil {

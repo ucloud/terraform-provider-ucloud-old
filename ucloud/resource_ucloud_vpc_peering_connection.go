@@ -73,9 +73,9 @@ func resourceUCloudVPCPeeringConnectionCreate(d *schema.ResourceData, meta inter
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
+		Timeout:    5 * time.Minute,
 		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			vpcPCSet, err := client.describeVPCIntercomById(vpcId, peerVpcId, peerRegion, peerProjectId)
 			if err != nil {

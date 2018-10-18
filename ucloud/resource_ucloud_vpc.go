@@ -101,9 +101,9 @@ func resourceUCloudVPCCreate(d *schema.ResourceData, meta interface{}) error {
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
+		Timeout:    5 * time.Minute,
 		Delay:      2 * time.Second,
-		MinTimeout: 3 * time.Second,
+		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			vpcSet, err := client.describeVPCById(d.Id())
 			if err != nil {

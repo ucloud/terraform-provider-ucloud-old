@@ -269,7 +269,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 		Target:     []string{"running"},
 		Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
-		Delay:      10 * time.Second,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
@@ -378,7 +378,11 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("boot_disk_size") && !d.IsNewResource() {
 		d.SetPartial("boot_disk_size")
-		resizeReq.BootDiskSpace = ucloud.Int(d.Get("boot_disk_size").(int))
+		oldSize, newSize := d.GetChange("boot_disk_size")
+		if oldSize.(int) > newSize.(int) {
+			return fmt.Errorf("boot disk does not support shrinkage, new value %d passed in should be greater than the old value %d allocated by the system", newSize.(int), oldSize.(int))
+		}
+		resizeReq.BootDiskSpace = ucloud.Int(newSize.(int))
 		resizeNeedUpdate = true
 	}
 
@@ -424,12 +428,13 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 				return fmt.Errorf("do %s failed in update instance %s, %s", "StopUHostInstance", d.Id(), err)
 			}
 
+			// after stop instance, we need to wait it stopped
 			stateConf := &resource.StateChangeConf{
 				Pending:    []string{"pending"},
 				Target:     []string{"stopped"},
 				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 				Timeout:    d.Timeout(schema.TimeoutUpdate),
-				Delay:      10 * time.Second,
+				Delay:      5 * time.Second,
 				MinTimeout: 3 * time.Second,
 			}
 
@@ -464,7 +469,7 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			Target:     []string{"stopped"},
 			Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      10 * time.Second,
+			Delay:      5 * time.Second,
 			MinTimeout: 3 * time.Second,
 		}
 
@@ -485,7 +490,7 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			Target:     []string{"running"},
 			Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      10 * time.Second,
+			Delay:      5 * time.Second,
 			MinTimeout: 3 * time.Second,
 		}
 
@@ -566,7 +571,7 @@ func resourceUCloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 	deleReq := conn.NewTerminateUHostInstanceRequest()
 	deleReq.UHostId = ucloud.String(d.Id())
 
-	return resource.Retry(5*time.Minute, func() *resource.RetryError {
+	return resource.Retry(15*time.Minute, func() *resource.RetryError {
 		instance, err := client.describeInstanceById(d.Id())
 		if err != nil {
 			if isNotFoundError(err) {
@@ -585,7 +590,7 @@ func resourceUCloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 				Target:     []string{"stopped"},
 				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 				Timeout:    d.Timeout(schema.TimeoutDelete),
-				Delay:      10 * time.Second,
+				Delay:      5 * time.Second,
 				MinTimeout: 3 * time.Second,
 			}
 

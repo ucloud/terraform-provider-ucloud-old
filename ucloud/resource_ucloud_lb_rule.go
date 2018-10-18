@@ -132,13 +132,13 @@ func resourceUCloudLBRuleUpdate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("do %s failed in update lb rule %s, %s", "UpdatePolicy", d.Id(), err)
 		}
 
-		// after update lb rule, we need to wait it initialized
+		// after update lb rule, we need to wait it completed
 		stateConf := lbRuleWaitForState(client, lbId, listenerId, d.Id())
 
 		_, err = stateConf.WaitForState()
 
 		if err != nil {
-			return fmt.Errorf("wait for lb rule initialize failed in update lb rule %s, %s", d.Id(), err)
+			return fmt.Errorf("wait for update lb rule failed in update lb rule %s, %s", d.Id(), err)
 		}
 	}
 
@@ -207,9 +207,9 @@ func lbRuleWaitForState(client *UCloudClient, lbId, listenerId, policyId string)
 	return &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Timeout:    5 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			policySet, err := client.describePolicyById(lbId, listenerId, policyId)
 			if err != nil {

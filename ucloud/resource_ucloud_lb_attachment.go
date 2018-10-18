@@ -87,7 +87,7 @@ func resourceUCloudLBAttachmentCreate(d *schema.ResourceData, meta interface{}) 
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
 		Timeout:    10 * time.Minute,
-		Delay:      10 * time.Second,
+		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			backendSet, err := client.describeBackendById(lbId, listenerId, d.Id())

@@ -129,12 +129,12 @@ func resourceUCloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("do %s failed in update subnet %s, %s", "UpdateSubnetAttribute", d.Id(), err)
 		}
 
-		// after update subnet, we need to wait it initialized
+		// after update subnet attribute, we need to wait it completed
 		stateConf := subnetWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for subnet initialize failed in update subnet %s, %s", d.Id(), err)
+			return fmt.Errorf("wait for update subnet attribute failed in update subnet %s, %s", d.Id(), err)
 		}
 	}
 
@@ -194,9 +194,9 @@ func subnetWaitForState(client *UCloudClient, subnetId string) *resource.StateCh
 	return &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
-		Delay:      3 * time.Second,
-		MinTimeout: 3 * time.Second,
+		Timeout:    5 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			subnetSet, err := client.describeSubnetById(subnetId)
 			if err != nil {
