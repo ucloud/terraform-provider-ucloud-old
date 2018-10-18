@@ -2,6 +2,7 @@ package ucloud
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -108,9 +109,9 @@ func resourceUCloudDiskAttachmentDelete(d *schema.ResourceData, meta interface{}
 		}
 
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"Detaching"},
-			Target:     []string{"Available"},
-			Refresh:    diskStateRefreshFunc(client, attach.PrimaryId, "Available"),
+			Pending:    []string{"detaching"},
+			Target:     []string{"available"},
+			Refresh:    diskStateRefreshFunc(client, attach.PrimaryId, "available"),
 			Timeout:    20 * time.Minute,
 			Delay:      10 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -118,9 +119,9 @@ func resourceUCloudDiskAttachmentDelete(d *schema.ResourceData, meta interface{}
 
 		if _, err = stateConf.WaitForState(); err != nil {
 			if _, ok := err.(*resource.TimeoutError); ok {
-				return resource.RetryableError(fmt.Errorf("wait for disk detach faild %s, %s", d.Id(), err))
+				return resource.RetryableError(fmt.Errorf("wait for disk detach faild, in delete disk attachment %s, %s", d.Id(), err))
 			}
-			return resource.NonRetryableError(fmt.Errorf("wait for disk detach faild %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("wait for disk detach faild, in delete disk attachment %s, %s", d.Id(), err))
 		}
 
 		return nil
@@ -133,6 +134,6 @@ func diskStateRefreshFunc(client *UCloudClient, diskId, target string) resource.
 			return nil, "", err
 		}
 
-		return diskSet, diskSet.Status, nil
+		return diskSet, strings.ToLower(diskSet.Status), nil
 	}
 }

@@ -93,7 +93,8 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 }
 
 func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*UCloudClient).unetconn
+	client := meta.(*UCloudClient)
+	conn := client.unetconn
 
 	req := conn.NewCreateFirewallRequest()
 	req.Name = ucloud.String(d.Get("name").(string))
@@ -115,13 +116,20 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(resp.FWId)
 
-	time.Sleep(3 * time.Second)
+	// after create security group, we need to wait it initialized
+	stateConf := securityWaitForState(client, d.Id())
+
+	_, err = stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("wait for security group initialize failed in create security group %s, %s", d.Id(), err)
+	}
 
 	return resourceUCloudSecurityGroupUpdate(d, meta)
 }
 
 func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*UCloudClient).unetconn
+	client := meta.(*UCloudClient)
+	conn := client.unetconn
 
 	d.Partial(true)
 
@@ -168,7 +176,13 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("do %s failed in update security group %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
 
-		time.Sleep(3 * time.Second)
+		// after update security group, we need to wait it initialized
+		stateConf := securityWaitForState(client, d.Id())
+
+		_, err = stateConf.WaitForState()
+		if err != nil {
+			return fmt.Errorf("wait for security group initialize failed in update security group %s, %s", d.Id(), err)
+		}
 	}
 
 	d.Partial(false)
@@ -262,4 +276,25 @@ func buildRuleParameter(iface interface{}) []string {
 		rules = append(rules, s)
 	}
 	return rules
+}
+
+func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChangeConf {
+	return &resource.StateChangeConf{
+		Pending:    []string{"pending"},
+		Target:     []string{"initialized"},
+		Timeout:    10 * time.Minute,
+		Delay:      3 * time.Second,
+		MinTimeout: 3 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			sgSet, err := client.describeFirewallById(sgId)
+			if err != nil {
+				if isNotFoundError(err) {
+					return nil, "pending", nil
+				}
+				return nil, "", err
+			}
+
+			return sgSet, "initialized", nil
+		},
+	}
 }

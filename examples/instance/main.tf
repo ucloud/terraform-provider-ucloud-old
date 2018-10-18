@@ -7,10 +7,17 @@ provider "ucloud" {
 data "ucloud_zones" "default" {
 }
 
+# bulid instance type
+data "ucloud_instance_types" "default" {
+	cpu = 1
+	memory = 4
+}
+
 # Query image
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	os_type = "Linux"
+	name_regex = "^CentOS 7.[1-2] 64"
+	image_type =  "Base"
 }
 
 # Create security group
@@ -61,7 +68,7 @@ resource "ucloud_instance" "web" {
     tag               = "tf-example"
     availability_zone = "${data.ucloud_zones.default.zones.0.id}"
     image_id          = "${data.ucloud_images.default.images.0.id}"
-    instance_type     = "n-standard-1"
+    instance_type     = "${data.ucloud_instance_types.default.instance_types.0.id}"
 
     # use cloud disk as data disk
     data_disk_size     = 50

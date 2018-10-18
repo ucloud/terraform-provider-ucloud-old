@@ -8,7 +8,7 @@ description: |-
 
 # ucloud_instances
 
-This data source providers a list UHost instance resources according to their availability zone, instance ID and tag.
+This data source providers a list of UHost instance resources according to their availability zone, instance ID and tag.
 
 ## Example Usage
 
@@ -26,7 +26,7 @@ output "first" {
 
 The following arguments are supported:
 
-* `availability_zone` - (Optional) Availability zone where instances are located. such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
+* `availability_zone` - (Optional) Availability zone where instances are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
 * `ids` - (Optional) The group of IDs of instances that require to be retrieved, all the instances belongs to the defined region will be retrieved if this argument is "".
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
 * `tags` - (Optional) A mapping of tags to assign to instance.

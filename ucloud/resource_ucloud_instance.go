@@ -2,6 +2,7 @@ package ucloud
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -264,9 +265,9 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 
 	// after instance created, we need to wait it started
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Pending"},
-		Target:     []string{"Running"},
-		Refresh:    instanceStateRefreshFunc(client, d.Id(), "Running"),
+		Pending:    []string{"pending"},
+		Target:     []string{"running"},
+		Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -424,9 +425,9 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			}
 
 			stateConf := &resource.StateChangeConf{
-				Pending:    []string{"Pending"},
-				Target:     []string{"Stopped"},
-				Refresh:    instanceStateRefreshFunc(client, d.Id(), "Stopped"),
+				Pending:    []string{"pending"},
+				Target:     []string{"stopped"},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 				Timeout:    d.Timeout(schema.TimeoutUpdate),
 				Delay:      10 * time.Second,
 				MinTimeout: 3 * time.Second,
@@ -459,9 +460,9 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		// instance stopped means instance update complete
 		stateConf := &resource.StateChangeConf{
-			Pending:    []string{"Pending"},
-			Target:     []string{"Stopped"},
-			Refresh:    instanceStateRefreshFunc(client, d.Id(), "Stopped"),
+			Pending:    []string{"pending"},
+			Target:     []string{"stopped"},
+			Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
 			Delay:      10 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -480,9 +481,9 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		stateConf = &resource.StateChangeConf{
-			Pending:    []string{"Pending"},
-			Target:     []string{"Running"},
-			Refresh:    instanceStateRefreshFunc(client, d.Id(), "Running"),
+			Pending:    []string{"pending"},
+			Target:     []string{"running"},
+			Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
 			Delay:      10 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -580,9 +581,9 @@ func resourceUCloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 			}
 
 			stateConf := &resource.StateChangeConf{
-				Pending:    []string{"Pending"},
-				Target:     []string{"Stopped"},
-				Refresh:    instanceStateRefreshFunc(client, d.Id(), "Stopped"),
+				Pending:    []string{"pending"},
+				Target:     []string{"stopped"},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
 				Timeout:    d.Timeout(schema.TimeoutDelete),
 				Delay:      10 * time.Second,
 				MinTimeout: 3 * time.Second,
@@ -613,12 +614,15 @@ func instanceStateRefreshFunc(client *UCloudClient, instanceId, target string) r
 	return func() (interface{}, string, error) {
 		instance, err := client.describeInstanceById(instanceId)
 		if err != nil {
+			if isNotFoundError(err) {
+				return nil, "pending", nil
+			}
 			return nil, "", err
 		}
 
-		state := instance.State
+		state := strings.ToLower(instance.State)
 		if state != target {
-			state = "Pending"
+			state = "pending"
 		}
 
 		return instance, state, nil
