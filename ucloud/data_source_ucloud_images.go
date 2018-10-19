@@ -178,7 +178,6 @@ func dataSourceUCloudImagesRead(d *schema.ResourceData, meta interface{}) error 
 		r := regexp.MustCompile(nameRegex.(string))
 		totalCount = 0
 		for _, image := range images {
-
 			if r.MatchString(image.ImageName) && image.State == "Available" {
 				filteredImages = append(filteredImages, image)
 				totalCount++

@@ -76,21 +76,18 @@ clean:
 
 mac:
 	GOOS=darwin GOARCH=amd64 go build -o bin/terraform-provider-ucloud
-	cd bin/
-	chmod +x ./terraform-provider-ucloud
-	tar czvf ./terraform-provider-ucloud_darwin-amd64.tgz ./terraform-provider-ucloud
-	rm -rf ./terraform-provider-ucloud
+	chmod +x bin/terraform-provider-ucloud
+	cd bin/ && tar czvf ./terraform-provider-ucloud_darwin-amd64.tgz ./terraform-provider-ucloud
+	rm -rf ./bin/terraform-provider-ucloud
 
 windows:
 	GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-ucloud.exe
-	cd bin/
-	chmod +x ./terraform-provider-ucloud.exe
-	tar czvf ./terraform-provider-ucloud_windows-amd64.tgz ./terraform-provider-ucloud.exe
-	rm -rf ./terraform-provider-ucloud.exe
+	chmod +x bin/terraform-provider-ucloud.exe
+	cd bin/ && tar czvf ./terraform-provider-ucloud_windows-amd64.tgz ./terraform-provider-ucloud.exe
+	rm -rf ./bin/terraform-provider-ucloud.exe
 
 linux:
 	GOOS=linux GOARCH=amd64 go build -o bin/terraform-provider-ucloud
-	cd bin/
-	chmod +x ./terraform-provider-ucloud
-	tar czvf ./terraform-provider-ucloud_linux-amd64.tgz ./terraform-provider-ucloud
-	rm -rf ./terraform-provider-ucloud
+	chmod +x bin/terraform-provider-ucloud
+	cd bin/ && tar czvf ./terraform-provider-ucloud_linux-amd64.tgz ./terraform-provider-ucloud
+	rm -rf ./bin/terraform-provider-ucloud
