@@ -152,7 +152,7 @@ func resourceUCloudInstance() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"type": &schema.Schema{
+						"disk_type": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -163,6 +163,11 @@ func resourceUCloudInstance() *schema.Resource {
 						},
 
 						"disk_id": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"is_boot": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -230,7 +235,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	bootDisk := uhost.UHostDisk{}
-	bootDisk.IsBoot = ucloud.Bool(true)
+	bootDisk.IsBoot = ucloud.String("True")
 	bootDisk.Size = ucloud.Int(imageResp.ImageSize)
 	bootDisk.Type = ucloud.String(d.Get("boot_disk_type").(string))
 
@@ -238,9 +243,9 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if val, ok := d.GetOk("data_disk_size"); ok {
 		dataDisk := uhost.UHostDisk{}
-		dataDisk.IsBoot = ucloud.Bool(false)
+		dataDisk.IsBoot = ucloud.String("False")
 		dataDisk.Type = ucloud.String(d.Get("data_disk_type").(string))
-		dataDisk.Size = ucloud.Int(d.Get("data_disk_size").(int))
+		dataDisk.Size = ucloud.Int(val.(int))
 
 		req.Disks = append(req.Disks, dataDisk)
 	}
@@ -386,13 +391,21 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("data_disk_size") && !d.IsNewResource() {
 		d.SetPartial("data_disk_size")
-		resizeReq.DiskSpace = ucloud.Int(d.Get("data_disk_size").(int))
+		oldSize, newSize := d.GetChange("data_disk_size")
+		if oldSize.(int) > newSize.(int) {
+			return fmt.Errorf("reduce data disk size is not supported, new value %d should be larger than the old value %d", newSize.(int), oldSize.(int))
+		}
+		resizeReq.DiskSpace = ucloud.Int(newSize.(int))
 		resizeNeedUpdate = true
 	}
 
 	if d.HasChange("boot_disk_size") && !d.IsNewResource() {
 		d.SetPartial("boot_disk_size")
-		resizeReq.BootDiskSpace = ucloud.Int(d.Get("boot_disk_size").(int))
+		oldSize, newSize := d.GetChange("boot_disk_size")
+		if oldSize.(int) > newSize.(int) {
+			return fmt.Errorf("reduce boot disk size is not supported, new value %d by user set should be larger than the old value %d allocated by the system", newSize.(int), oldSize.(int))
+		}
+		resizeReq.BootDiskSpace = ucloud.Int(newSize.(int))
 		resizeNeedUpdate = true
 	}
 
@@ -557,9 +570,10 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	diskSet := []map[string]interface{}{}
 	for _, item := range instance.DiskSet {
 		diskSet = append(diskSet, map[string]interface{}{
-			"type":    udiskMap.unconvert(item.Type),
-			"size":    item.Size,
-			"disk_id": item.DiskId,
+			"disk_type": item.DiskType,
+			"size":      item.Size,
+			"disk_id":   item.DiskId,
+			"is_boot":   item.IsBoot,
 		})
 
 		if item.IsBoot == "True" {
