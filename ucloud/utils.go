@@ -81,7 +81,7 @@ func checkStringIn(val string, avaliables []string) error {
 		}
 	}
 
-	return fmt.Errorf("got %s, should be one of %s", val, strings.Join(avaliables, ","))
+	return fmt.Errorf("should be one of %s, got %s", strings.Join(avaliables, ","), val)
 }
 
 func timestampToString(ts int) string {

@@ -29,7 +29,26 @@ func validateStringInChoices(choices []string) schema.SchemaValidateFunc {
 		err := checkStringIn(v.(string), choices)
 
 		if err != nil {
-			errors = append(errors, fmt.Errorf("%q is invalid, got error %s", k, err))
+			errors = append(errors, fmt.Errorf("%q is invalid, %s", k, err))
+		}
+
+		return
+	}
+}
+
+// validateIntInChoices is a common factory to create validator to validate int by enum values
+func validateIntInChoices(choices []int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(int)
+		exist := false
+		for _, i := range choices {
+			if i == value {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			errors = append(errors, fmt.Errorf("%q is invalid, should be one of %#v, got %q", k, choices, value))
 		}
 
 		return

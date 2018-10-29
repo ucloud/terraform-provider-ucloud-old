@@ -36,6 +36,7 @@ func resourceUCloudLBRule() *schema.Resource {
 				},
 				Required: true,
 				ForceNew: true,
+				Set:      schema.HashString,
 			},
 
 			"domain": &schema.Schema{
