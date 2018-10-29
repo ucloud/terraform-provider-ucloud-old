@@ -12,12 +12,6 @@ data "ucloud_instance_types" "default" {
   memory = 4
 }
 
-# bulid instance type
-data "ucloud_instance_types" "default" {
-	cpu = 1
-	memory = 4
-}
-
 # Query image
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
