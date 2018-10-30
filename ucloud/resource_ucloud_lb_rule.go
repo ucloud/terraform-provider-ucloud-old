@@ -30,7 +30,7 @@ func resourceUCloudLBRule() *schema.Resource {
 			},
 
 			"backend_ids": &schema.Schema{
-				Type: schema.TypeList,
+				Type: schema.TypeSet,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

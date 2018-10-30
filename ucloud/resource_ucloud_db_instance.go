@@ -43,7 +43,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 
 			"engine_version": &schema.Schema{
 				Type:         schema.TypeString,
-				ValidateFunc: validateStringInChoices([]string{"5.1", "5.5", "5.6", "5.7", "9.4", "9. 6", "10.4"}),
+				ValidateFunc: validateStringInChoices([]string{"5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4"}),
 				ForceNew:     true,
 				Required:     true,
 			},
@@ -51,13 +51,13 @@ func resourceUCloudDBInstance() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateInstanceName,
+				ValidateFunc: validateDBInstanceName,
 			},
 
 			"port": &schema.Schema{
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIntegerInRange(1, 65535),
+				ValidateFunc: validateIntegerInRange(3306, 65535),
 			},
 
 			"instance_storage": &schema.Schema{
@@ -67,7 +67,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"param_group_id": &schema.Schema{
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Required: true,
 			},
 
@@ -75,6 +75,11 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validateIntInChoices([]int{1000, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 96000}),
+			},
+
+			"instance_type": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"instance_charge_type": &schema.Schema{
@@ -137,6 +142,8 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	conn := client.udbconn
 
 	req := conn.NewCreateUDBInstanceRequest()
+	req.InstanceMode = ucloud.String("HA")
+	req.Name = ucloud.String(d.Get("name").(string))
 	req.AdminPassword = ucloud.String(d.Get("password").(string))
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	engine := d.Get("engine").(string)
@@ -144,11 +151,15 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
 	req.Port = ucloud.Int(d.Get("port").(int))
 	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-	req.ParamGroupId = ucloud.String(d.Get("param_group_id").(string))
+	req.ParamGroupId = ucloud.Int(d.Get("param_group_id").(int))
 	req.MemoryLimit = ucloud.Int(d.Get("memory_limit").(int))
 	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
 	req.AdminUser = ucloud.String(d.Get("username").(string))
+
+	if val, ok := d.GetOk("instance_type"); ok {
+		req.InstanceType = ucloud.String(val.(string))
+	}
 
 	if val, ok := d.GetOk("vpc_id"); ok {
 		req.VPCId = ucloud.String(val.(string))
@@ -255,7 +266,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 
-	db, err := client.describeDbInstanceById(d.Id())
+	db, err := client.describeDBInstanceById(d.Id())
 	if err != nil {
 		if isNotFoundError(err) {
 			d.SetId("")
@@ -288,7 +299,7 @@ func resourceUCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) er
 	stopReq.DBId = ucloud.String(d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		db, err := client.describeDbInstanceById(d.Id())
+		db, err := client.describeDBInstanceById(d.Id())
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
@@ -313,7 +324,7 @@ func resourceUCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) er
 			return resource.NonRetryableError(fmt.Errorf("error in delete db %s, %s", d.Id(), err))
 		}
 
-		if _, err := client.describeDbInstanceById(d.Id()); err != nil {
+		if _, err := client.describeDBInstanceById(d.Id()); err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
@@ -329,10 +340,10 @@ func dbWaitForState(client *UCloudClient, dbId, target string) *resource.StateCh
 		Pending:    []string{"pending"},
 		Target:     []string{target},
 		Timeout:    5 * time.Minute,
-		Delay:      2 * time.Second,
-		MinTimeout: 1 * time.Second,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			db, err := client.describeDbInstanceById(dbId)
+			db, err := client.describeDBInstanceById(dbId)
 			if err != nil {
 				if isNotFoundError(err) {
 					return nil, "pending", nil

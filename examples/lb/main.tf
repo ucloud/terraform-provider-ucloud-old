@@ -49,7 +49,7 @@ resource "ucloud_instance" "web" {
   image_id      = "${data.ucloud_images.default.images.0.id}"
   root_password = "${var.instance_password}"
 
-  # this ecurity group to allow HTTP and HTTPS access
+  # this security group allows HTTP and HTTPS access
   security_group = "${ucloud_security_group.default.id}"
 
   name = "tf-example-lb-${format(var.count_format, count.index+1)}"

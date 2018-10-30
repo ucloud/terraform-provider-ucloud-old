@@ -225,3 +225,15 @@ func validateImageNameRegex(v interface{}, k string) (ws []string, errors []erro
 	}
 	return
 }
+
+var dbInstanceNamePattern = regexp.MustCompile(`^[A-Za-z0-9\p{Han}-_.,\[\]:]{6,63}$`)
+
+func validateDBInstanceName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !dbInstanceNamePattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have 6 - 63 characters and only support chinese, english, numbers, '-', '_', '.', ',', '[', ']', ':', got %q", k, value))
+	}
+
+	return
+}
