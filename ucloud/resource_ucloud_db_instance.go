@@ -27,11 +27,39 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"backup_zone": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"is_slave": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"master_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"is_lock": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"is_force": &schema.Schema{
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"password": &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				Sensitive:    true,
-				ValidateFunc: validateInstancePassword,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validateInstancePassword,
+				ConflictsWith: []string{"is_slave"},
 			},
 
 			"engine": &schema.Schema{
@@ -68,13 +96,13 @@ func resourceUCloudDBInstance() *schema.Resource {
 
 			"param_group_id": &schema.Schema{
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 			},
 
-			"memory_limit": &schema.Schema{
+			"memory": &schema.Schema{
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateIntInChoices([]int{1000, 2000, 4000, 6000, 8000, 12000, 16000, 24000, 32000, 48000, 64000, 96000}),
+				ValidateFunc: validateIntInChoices([]int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128}),
 			},
 
 			"instance_type": &schema.Schema{
@@ -114,6 +142,27 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"backup_time": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1,
+			},
+
+			"backup_date": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"backup_id": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
+			"black_list": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -141,46 +190,105 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
-	req := conn.NewCreateUDBInstanceRequest()
-	req.InstanceMode = ucloud.String("HA")
-	req.Name = ucloud.String(d.Get("name").(string))
-	req.AdminPassword = ucloud.String(d.Get("password").(string))
-	req.Zone = ucloud.String(d.Get("availability_zone").(string))
-	engine := d.Get("engine").(string)
-	engineVersion := d.Get("engine_version").(string)
-	req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
-	req.Port = ucloud.Int(d.Get("port").(int))
-	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-	req.ParamGroupId = ucloud.Int(d.Get("param_group_id").(int))
-	req.MemoryLimit = ucloud.Int(d.Get("memory_limit").(int))
-	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
-	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
-	req.AdminUser = ucloud.String(d.Get("username").(string))
+	isSlave := d.Get("is_slave").(bool)
+	if !isSlave {
+		req := conn.NewCreateUDBInstanceRequest()
+		req.InstanceMode = ucloud.String("HA")
+		req.Name = ucloud.String(d.Get("name").(string))
+		req.AdminPassword = ucloud.String(d.Get("password").(string))
+		req.Zone = ucloud.String(d.Get("availability_zone").(string))
+		engine := d.Get("engine").(string)
+		engineVersion := d.Get("engine_version").(string)
+		req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
+		req.Port = ucloud.Int(d.Get("port").(int))
+		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
+		req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
+		req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
+		req.AdminUser = ucloud.String(d.Get("username").(string))
 
-	if val, ok := d.GetOk("instance_type"); ok {
-		req.InstanceType = ucloud.String(val.(string))
-	}
+		if val, ok := d.GetOk("backup_id"); ok {
+			req.BackupId = ucloud.Int(val.(int))
+		}
 
-	if val, ok := d.GetOk("vpc_id"); ok {
-		req.VPCId = ucloud.String(val.(string))
-	}
+		if val, ok := d.GetOk("instance_type"); ok {
+			req.InstanceType = ucloud.String(val.(string))
+		}
 
-	if val, ok := d.GetOk("subnet_id"); ok {
-		req.SubnetId = ucloud.String(val.(string))
-	}
+		if val, ok := d.GetOk("vpc_id"); ok {
+			req.VPCId = ucloud.String(val.(string))
+		}
 
-	resp, err := conn.CreateUDBInstance(req)
-	if err != nil {
-		return fmt.Errorf("error in create db instance, %s", err)
-	}
+		if val, ok := d.GetOk("subnet_id"); ok {
+			req.SubnetId = ucloud.String(val.(string))
+		}
 
-	d.SetId(resp.DBId)
+		if val, ok := d.GetOk("param_group_id"); ok {
+			req.ParamGroupId = ucloud.Int(val.(int))
+		} else {
+			pgReq := conn.NewDescribeUDBParamGroupRequest()
+			pgReq.Zone = ucloud.String(d.Get("availability_zone").(string))
+			pgReq.Offset = ucloud.Int(0)
+			pgReq.Limit = ucloud.Int(1000)
+			pgReq.RegionFlag = ucloud.Bool(false)
+			resp, err := conn.DescribeUDBParamGroup(pgReq)
+			if err != nil {
+				return fmt.Errorf("do %s failed in create db instance, %s", "DescribeUDBParamGroup", err)
+			}
 
-	// after create db, we need to wait it initialized
-	stateConf := dbWaitForState(client, d.Id(), "Running")
+			for _, dataSet := range resp.DataSet {
+				if dataSet.DBTypeId == strings.Join([]string{engine, engineVersion}, "-") {
+					req.ParamGroupId = ucloud.Int(dataSet.GroupId)
+				}
+			}
+		}
 
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("wait for db initialize failed in create db %s, %s", d.Id(), err)
+		resp, err := conn.CreateUDBInstance(req)
+		if err != nil {
+			return fmt.Errorf("error in create db instance, %s", err)
+		}
+
+		d.SetId(resp.DBId)
+
+		// after create db, we need to wait it initialized
+		stateConf := dbWaitForState(client, d.Id(), "Running")
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("wait for db initialize failed in create db %s, %s", d.Id(), err)
+		}
+	} else {
+		req := conn.NewCreateUDBSlaveRequest()
+
+		req.InstanceMode = ucloud.String("HA")
+		req.SrcId = ucloud.String(d.Get("master_id").(string))
+		req.Name = ucloud.String(d.Get("name").(string))
+		req.Port = ucloud.Int(d.Get("port").(int))
+		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
+
+		if val, ok := d.GetOk("instance_type"); ok {
+			req.InstanceType = ucloud.String(val.(string))
+		}
+
+		if val, ok := d.GetOk("is_lock"); ok {
+			req.IsLock = ucloud.Bool(val.(bool))
+		}
+
+		resp, err := conn.CreateUDBSlave(req)
+
+		if err != nil {
+			return fmt.Errorf("error in create slave db, %s", err)
+		}
+
+		d.SetId(resp.DBId)
+
+		// after create db, we need to wait it initialized
+		stateConf := dbWaitForState(client, d.Id(), "Running")
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("wait for slave db initialize failed in create slave db %s, %s", d.Id(), err)
+		}
+
 	}
 
 	return resourceUCloudDBInstanceUpdate(d, meta)
@@ -232,9 +340,9 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	req := conn.NewResizeUDBInstanceRequest()
 	req.DBId = ucloud.String(d.Id())
 
-	if d.HasChange("memory_limit") && !d.IsNewResource() {
-		d.SetPartial("memory_limit")
-		req.MemoryLimit = ucloud.Int(d.Get("memory_limit").(int))
+	if d.HasChange("memory") && !d.IsNewResource() {
+		d.SetPartial("memory")
+		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
 		isChanged = true
 	}
 
@@ -255,6 +363,69 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for resize db instance failed in update db %s, %s", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("is_slave") && !d.IsNewResource() {
+		_, new := d.GetChange("is_slave")
+		if new.(bool) {
+			return fmt.Errorf("the primary db cannot be reduced to the slave db")
+		} else {
+			d.SetPartial("is_slave")
+			req := conn.NewPromoteUDBSlaveRequest()
+			req.DBId = ucloud.String(d.Id())
+			req.IsForce = ucloud.Bool(d.Get("is_force").(bool))
+
+			if _, err := conn.PromoteUDBSlave(req); err != nil {
+				return fmt.Errorf("do %s failed in update db %s, %s", "PromoteUDBSlave", d.Id(), err)
+			}
+
+			// after promote slave db to primary db, we need to wait it completed
+			stateConf := dbWaitForState(client, d.Id(), "Running")
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("wait for promote slave db failed in update db %s, %s", d.Id(), err)
+			}
+		}
+	}
+
+	backupChanged := false
+	buReq := conn.NewUpdateUDBInstanceBackupStrategyRequest()
+	buReq.DBId = ucloud.String(d.Id())
+
+	if d.HasChange("backup_date") {
+		d.SetPartial("backup_count")
+		buReq.BackupDate = ucloud.String(d.Get("backup_count").(string))
+		backupChanged = true
+	}
+
+	if d.HasChange("backup_time") {
+		d.SetPartial("backup_time")
+		buReq.BackupTime = ucloud.Int(d.Get("backup_time").(int))
+		backupChanged = true
+	}
+
+	if backupChanged {
+		if _, err := conn.UpdateUDBInstanceBackupStrategy(buReq); err != nil {
+			return fmt.Errorf("do %s failed in update db %s, %s", "UpdateUDBInstanceBackupStrategy", d.Id(), err)
+		}
+
+		// after update db backup strategy, we need to wait it completed
+		stateConf := dbWaitForState(client, d.Id(), "Running")
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("wait for update db backup strategy failed in update db %s, %s", d.Id(), err)
+		}
+	}
+
+	if d.HasChange("black_list") {
+		d.SetPartial("black_list")
+		req := conn.NewEditUDBBackupBlacklistRequest()
+		req.Blacklist = ucloud.String(d.Get("black_list").(string))
+		req.DBId = ucloud.String(d.Id())
+
+		if _, err := conn.EditUDBBackupBlacklist(req); err != nil {
+			return fmt.Errorf("do %s failed in update db %s, %s", "EditUDBBackupBlacklist", d.Id(), err)
 		}
 	}
 

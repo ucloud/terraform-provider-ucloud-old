@@ -31,7 +31,7 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-basic"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory_limit", "1000"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory", "1"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.5"),
 				),
@@ -45,7 +45,7 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-basicUpdate"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "50"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory_limit", "2000"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory", "2"),
 				),
 			},
 		},
@@ -122,7 +122,7 @@ resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-basic"
 	instance_storage = 30
-	memory_limit = 1000
+	memory = 1
 	engine = "mysql"
 	engine_version = "5.5"
 	password = "2018_UClou"
@@ -138,7 +138,7 @@ resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-basicUpdate"
 	instance_storage = 50
-	memory_limit = 2000
+	memory = 2
 	engine = "mysql"
 	engine_version = "5.5"
 	password = "2018_UClou"
