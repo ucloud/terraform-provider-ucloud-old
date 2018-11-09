@@ -175,7 +175,7 @@ func dataSourceUCloudInstancesRead(d *schema.ResourceData, meta interface{}) err
 
 	var fetched []uhost.UHostInstanceSet
 	var limit int = 100
-	var offset int
+	var offset int = 0
 	for {
 		req.Limit = ucloud.Int(limit)
 		req.Offset = ucloud.Int(offset)
@@ -207,7 +207,7 @@ func dataSourceUCloudInstancesRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		instances = append(instances, item)
-		totalCount = totalCount + 1
+		totalCount++
 	}
 
 	d.Set("total_count", totalCount)

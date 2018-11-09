@@ -76,6 +76,7 @@ func Provider() terraform.ResourceProvider {
 			"ucloud_disk_attachment":        resourceUCloudDiskAttachment(),
 			"ucloud_security_group":         resourceUCloudSecurityGroup(),
 			"ucloud_db_instance":            resourceUCloudDBInstance(),
+			"ucloud_db_param_group":         resourceUCloudDBParamGroup(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 )
 
-// ifaceToStringSlice used for converting terraform attribute of TypeString embeded in TypeList to a string slice.
+// ifaceToStringSlice used for converting terraform attribute of TypeString embedded in TypeList to a string slice.
 // it expected interface{} type as []interface{}, usually get the value from `d.Get` of terraform resource data.
 func ifaceToStringSlice(iface interface{}) []string {
 	s := []string{}
@@ -74,14 +74,14 @@ func writeToFile(filePath string, data interface{}) error {
 	return nil
 }
 
-func checkStringIn(val string, avaliables []string) error {
-	for _, choice := range avaliables {
+func checkStringIn(val string, availables []string) error {
+	for _, choice := range availables {
 		if val == choice {
 			return nil
 		}
 	}
 
-	return fmt.Errorf("should be one of %s, got %s", strings.Join(avaliables, ","), val)
+	return fmt.Errorf("should be one of %s, got %s", strings.Join(availables, ","), val)
 }
 
 func timestampToString(ts int) string {

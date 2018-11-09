@@ -277,7 +277,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(resp.UHostIds) != 1 {
-		return fmt.Errorf("error in create instance, expect extactly one instance, got %v", len(resp.UHostIds))
+		return fmt.Errorf("error in create instance, expect exactly one instance, got %v", len(resp.UHostIds))
 	}
 
 	d.SetId(resp.UHostIds[0])

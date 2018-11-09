@@ -33,7 +33,7 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory", "1"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.5"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 				),
 			},
 
@@ -124,10 +124,11 @@ resource "ucloud_db_instance" "foo" {
 	instance_storage = 30
 	memory = 1
 	engine = "mysql"
-	engine_version = "5.5"
+	engine_version = "5.7"
 	password = "2018_UClou"
 	port = 3306
-	param_group_id = 2
+	param_group_id = "18"
+	instance_type = "SATA_SSD"
 }
 `
 const testAccDBInstanceConfigTwo = `
@@ -140,9 +141,10 @@ resource "ucloud_db_instance" "foo" {
 	instance_storage = 50
 	memory = 2
 	engine = "mysql"
-	engine_version = "5.5"
+	engine_version = "5.7"
 	password = "2018_UClou"
 	port = 3306
-	param_group_id = 2
+	param_group_id = "18"
+	instance_type = "SATA_SSD"
 }
 `

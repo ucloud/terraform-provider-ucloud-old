@@ -2,6 +2,7 @@ package ucloud
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -95,8 +96,8 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"param_group_id": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"memory": &schema.Schema{
@@ -223,25 +224,11 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 			req.SubnetId = ucloud.String(val.(string))
 		}
 
-		if val, ok := d.GetOk("param_group_id"); ok {
-			req.ParamGroupId = ucloud.Int(val.(int))
-		} else {
-			pgReq := conn.NewDescribeUDBParamGroupRequest()
-			pgReq.Zone = ucloud.String(d.Get("availability_zone").(string))
-			pgReq.Offset = ucloud.Int(0)
-			pgReq.Limit = ucloud.Int(1000)
-			pgReq.RegionFlag = ucloud.Bool(false)
-			resp, err := conn.DescribeUDBParamGroup(pgReq)
-			if err != nil {
-				return fmt.Errorf("do %s failed in create db instance, %s", "DescribeUDBParamGroup", err)
-			}
-
-			for _, dataSet := range resp.DataSet {
-				if dataSet.DBTypeId == strings.Join([]string{engine, engineVersion}, "-") {
-					req.ParamGroupId = ucloud.Int(dataSet.GroupId)
-				}
-			}
+		pgId, err := strconv.Atoi(d.Get("param_group_id").(string))
+		if err != nil {
+			return err
 		}
+		req.ParamGroupId = ucloud.Int(pgId)
 
 		resp, err := conn.CreateUDBInstance(req)
 		if err != nil {
