@@ -121,7 +121,7 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	dbPg, err := client.describeDBParamGroupById(d.Get("src_group_id").(string))
+	dbPg, err := client.describeDBParamGroupByIdAndZone(d.Get("src_group_id").(string), zone)
 	if err != nil {
 		return fmt.Errorf("do %s failed in create param group, %s", "DescribeUDBParamGroup", err)
 	}
@@ -172,19 +172,22 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		content := []string{}
-		if dbPg.DBTypeId == "mysql" || dbPg.DBTypeId == "percona" {
+		if strings.Contains(dbPg.DBTypeId, "mysql") || strings.Contains(dbPg.DBTypeId, "percona") {
 			content = append(content, "[mysqld]")
-		} else if dbPg.DBTypeId == "postgresql" {
+		} else if strings.Contains(dbPg.DBTypeId, "postgresql") {
 			content = append(content, "postgresql")
 		}
 
 		for key, value := range member {
-			content = append(content, fmt.Sprintf("%s = %s", key, value))
+			if value != "" {
+				content = append(content, fmt.Sprintf("%s = %s", key, value))
+			}
 		}
 
 		contented := base64.StdEncoding.EncodeToString([]byte(strings.Join(content, "\n")))
 
 		upReq := conn.NewUploadUDBParamGroupRequest()
+		upReq.Zone = ucloud.String(d.Get("availability_zone").(string))
 		upReq.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
 		upReq.GroupName = ucloud.String(d.Get("name").(string))
 		if val, ok := d.GetOk("description"); ok {
@@ -209,7 +212,7 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 func resourceUCloudDBParamGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 
-	dbPg, err := client.describeDBParamGroupById(d.Id())
+	dbPg, err := client.describeDBParamGroupByIdAndZone(d.Id(), d.Get("availability_zone").(string))
 	if err != nil {
 		if isNotFoundError(err) {
 			d.SetId("")
@@ -240,6 +243,7 @@ func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
+	zone := d.Get("availability_zone").(string)
 	req := conn.NewDeleteUDBParamGroupRequest()
 	groupId, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -247,12 +251,13 @@ func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	req.GroupId = ucloud.Int(groupId)
+	req.Zone = ucloud.String(zone)
 	if val, ok := d.GetOk("region_flag"); ok {
 		req.RegionFlag = ucloud.Bool(val.(bool))
 	}
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := client.describeDBParamGroupById(d.Id())
+		_, err := client.describeDBParamGroupByIdAndZone(d.Id(), zone)
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
@@ -264,7 +269,7 @@ func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) 
 			return resource.NonRetryableError(fmt.Errorf("error in delete db param group %s, %s", d.Id(), err))
 		}
 
-		if _, err := client.describeDBParamGroupById(d.Id()); err != nil {
+		if _, err := client.describeDBParamGroupByIdAndZone(d.Id(), zone); err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}

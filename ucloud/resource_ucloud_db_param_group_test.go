@@ -43,7 +43,7 @@ func TestAccUCloudDBParamGroup_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDBParamGroupExists("ucloud_db_param_group.foo", &dbPg),
 					testAccCheckDBParamGroupAttributes(&dbPg),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParamGroup-basic"),
+					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParamGroup-basicUpdate"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "description", "this is a test"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "src_group_id", "18"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine", "mysql"),
@@ -69,7 +69,7 @@ func testAccCheckDBParamGroupExists(n string, dbPg *udb.UDBParamGroupSet) resour
 
 		client := testAccProvider.Meta().(*UCloudClient)
 		zone := rs.Primary.Attributes["availability_zone"]
-		ptr, err := client.describeDBParamGroupById(rs.Primary.ID, zone)
+		ptr, err := client.describeDBParamGroupByIdAndZone(rs.Primary.ID, zone)
 
 		log.Printf("[INFO] db param group id %#v", rs.Primary.ID)
 
@@ -100,7 +100,7 @@ func testAccCheckDBParamGroupDestroy(s *terraform.State) error {
 
 		client := testAccProvider.Meta().(*UCloudClient)
 		zone := rs.Primary.Attributes["availability_zone"]
-		d, err := client.describeDBParamGroupById(rs.Primary.ID, zone)
+		d, err := client.describeDBParamGroupByIdAndZone(rs.Primary.ID, zone)
 
 		// Verify the error is what we want
 		if err != nil {
@@ -144,33 +144,12 @@ resource "ucloud_db_param_group" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	parameter_input {
-		key = max_connections
-		value = 3000
+		key = "max_connections"
+		value = "3000"
 	}
 	parameter_input {
-		key = slow_query_log
-		value = 1
+		key = "slow_query_log"
+		value = "1"
 	}
 }
 `
-
-func Test_replaceConfigContent(t *testing.T) {
-	type args struct {
-		content string
-		data    map[string]string
-	}
-	tests := []struct {
-		name string
-		args args
-		want string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := replaceConfigContent(tt.args.content, tt.args.data); got != tt.want {
-				t.Errorf("replaceConfigContent() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
