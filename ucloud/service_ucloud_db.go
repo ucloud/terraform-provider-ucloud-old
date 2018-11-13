@@ -28,8 +28,9 @@ func (client *UCloudClient) describeDBInstanceById(dbInstanceId string) (*udb.UD
 	return &resp.DataSet[0], nil
 }
 
-func (client *UCloudClient) describeDBParamGroupById(paramGroupId string) (*udb.UDBParamGroupSet, error) {
+func (client *UCloudClient) describeDBParamGroupByIdAndZone(paramGroupId, zone string) (*udb.UDBParamGroupSet, error) {
 	req := client.udbconn.NewDescribeUDBParamGroupRequest()
+	req.Zone = ucloud.String(zone)
 	pgId, err := strconv.Atoi(paramGroupId)
 	if err != nil {
 		return nil, fmt.Errorf("transform param group id %s to int failed, %s", paramGroupId, err)

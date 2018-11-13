@@ -34,11 +34,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"is_slave": &schema.Schema{
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"master_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -56,11 +51,10 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"password": &schema.Schema{
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ValidateFunc:  validateInstancePassword,
-				ConflictsWith: []string{"is_slave"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validateInstancePassword,
 			},
 
 			"engine": &schema.Schema{
@@ -85,7 +79,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 
 			"port": &schema.Schema{
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateIntegerInRange(3306, 65535),
 			},
 
@@ -124,13 +118,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Default:  1,
 			},
 
-			"username": &schema.Schema{
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "root",
-				ValidateFunc: validateInstanceName,
-			},
-
 			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -159,7 +146,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Optional: true,
 			},
 
-			"black_list": &schema.Schema{
+			"backup_black_list": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -183,6 +170,11 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"role": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -191,8 +183,8 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
-	isSlave := d.Get("is_slave").(bool)
-	if !isSlave {
+	masterId, slaveOk := d.Get("master_id").(string)
+	if !slaveOk {
 		req := conn.NewCreateUDBInstanceRequest()
 		req.InstanceMode = ucloud.String("HA")
 		req.Name = ucloud.String(d.Get("name").(string))
@@ -201,12 +193,22 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		engine := d.Get("engine").(string)
 		engineVersion := d.Get("engine_version").(string)
 		req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
-		req.Port = ucloud.Int(d.Get("port").(int))
 		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
 		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
 		req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 		req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
-		req.AdminUser = ucloud.String(d.Get("username").(string))
+		req.AdminUser = ucloud.String("root")
+
+		if val, ok := d.GetOk("port"); ok {
+			req.Port = ucloud.Int(val.(int))
+		} else {
+			if engine == "mysql" {
+				req.Port = ucloud.Int(3306)
+			}
+			if engine == "postgresql" {
+				req.Port = ucloud.Int(5432)
+			}
+		}
 
 		if val, ok := d.GetOk("backup_id"); ok {
 			req.BackupId = ucloud.Int(val.(int))
@@ -247,7 +249,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		req := conn.NewCreateUDBSlaveRequest()
 
 		req.InstanceMode = ucloud.String("HA")
-		req.SrcId = ucloud.String(d.Get("master_id").(string))
+		req.SrcId = ucloud.String(masterId)
 		req.Name = ucloud.String(d.Get("name").(string))
 		req.Port = ucloud.Int(d.Get("port").(int))
 		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
@@ -353,26 +355,29 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("is_slave") && !d.IsNewResource() {
-		_, new := d.GetChange("is_slave")
-		if new.(bool) {
-			return fmt.Errorf("the primary db cannot be reduced to the slave db")
-		} else {
-			d.SetPartial("is_slave")
-			req := conn.NewPromoteUDBSlaveRequest()
-			req.DBId = ucloud.String(d.Id())
-			req.IsForce = ucloud.Bool(d.Get("is_force").(bool))
+	if d.HasChange("master_id") && !d.IsNewResource() {
+		old, new := d.GetChange("master_id")
+		if old.(string) == "" {
+			return fmt.Errorf("the master db cannot be reduced to the slave db")
+		}
 
-			if _, err := conn.PromoteUDBSlave(req); err != nil {
-				return fmt.Errorf("do %s failed in update db %s, %s", "PromoteUDBSlave", d.Id(), err)
-			}
+		if new.(string) != "" {
+			return fmt.Errorf("the master id can only be updated to %s, got %s", "", new.(string))
+		}
 
-			// after promote slave db to primary db, we need to wait it completed
-			stateConf := dbWaitForState(client, d.Id(), "Running")
+		req := conn.NewPromoteUDBSlaveRequest()
+		req.DBId = ucloud.String(d.Id())
+		req.IsForce = ucloud.Bool(d.Get("is_force").(bool))
 
-			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("wait for promote slave db failed in update db %s, %s", d.Id(), err)
-			}
+		if _, err := conn.PromoteUDBSlave(req); err != nil {
+			return fmt.Errorf("do %s failed in update db %s, %s", "PromoteUDBSlave", d.Id(), err)
+		}
+
+		// after promote slave db to master db, we need to wait it completed
+		stateConf := dbWaitForState(client, d.Id(), "Running")
+
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("wait for promote slave db failed in update db %s, %s", d.Id(), err)
 		}
 	}
 
@@ -405,10 +410,10 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if d.HasChange("black_list") {
-		d.SetPartial("black_list")
+	if d.HasChange("backup_black_list") {
+		d.SetPartial("backup_black_list")
 		req := conn.NewEditUDBBackupBlacklistRequest()
-		req.Blacklist = ucloud.String(d.Get("black_list").(string))
+		req.Blacklist = ucloud.String(d.Get("backup_black_list").(string))
 		req.DBId = ucloud.String(d.Id())
 
 		if _, err := conn.EditUDBBackupBlacklist(req); err != nil {
@@ -440,6 +445,14 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("param_group_id", db.ParamGroupId)
 	d.Set("port", db.Port)
 	d.Set("status", db.State)
+	d.Set("instance_charge_type", db.ChargeType)
+	d.Set("memory", db.MemoryLimit)
+	d.Set("instance_storage", db.DiskSpace)
+	d.Set("role", db.Role)
+	d.Set("backup_zone", db.BackupZone)
+	d.Set("availability_zone", db.Zone)
+	d.Set("instance_charge_type", db.ChargeType)
+
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
