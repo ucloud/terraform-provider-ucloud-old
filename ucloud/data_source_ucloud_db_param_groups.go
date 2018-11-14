@@ -127,21 +127,6 @@ func dataSourceUCloudDBParamGroups() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-
-									"apply_type": &schema.Schema{
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
-									"modifiable": &schema.Schema{
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-
-									"format_type": &schema.Schema{
-										Type:     schema.TypeString,
-										Computed: true,
-									},
 								},
 							},
 						},
@@ -247,7 +232,11 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 func dataSourceUCloudDBParamGroupsSave(d *schema.ResourceData, paramGroups []udb.UDBParamGroupSet) error {
 	ids := []string{}
 	data := []map[string]interface{}{}
-
+	valueType := make(map[int]string)
+	valueType[0] = "unknown"
+	valueType[10] = "int"
+	valueType[20] = "string"
+	valueType[30] = "bool"
 	for _, paramGroup := range paramGroups {
 		ids = append(ids, strconv.Itoa(paramGroup.GroupId))
 		paramMember := []map[string]interface{}{}
@@ -255,11 +244,8 @@ func dataSourceUCloudDBParamGroupsSave(d *schema.ResourceData, paramGroups []udb
 			paramMember = append(paramMember, map[string]interface{}{
 				"key":           item.Key,
 				"value":         item.Value,
-				"value_type":    item.ValueType,
+				"value_type":    valueType[item.ValueType],
 				"allowed_value": item.AllowedVal,
-				"apply_type":    item.ApplyType,
-				"modifiable":    item.Modifiable,
-				"format_type":   item.FormatType,
 			})
 		}
 
