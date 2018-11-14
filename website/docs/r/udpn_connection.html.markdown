@@ -17,7 +17,7 @@ UDPN (UCloud Dedicated Private Network)，提供各个数据中心之间的，�
 ## Example Usage
 
 ```hcl
-resource "ucloud_dpn" "example" {
+resource "ucloud_udpn_connection" "example" {
     bandwidth = 2
 }
 ```
