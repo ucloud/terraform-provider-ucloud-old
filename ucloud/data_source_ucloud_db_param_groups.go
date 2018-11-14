@@ -83,7 +83,12 @@ func dataSourceUCloudDBParamGroups() *schema.Resource {
 							Computed: true,
 						},
 
-						"db_type": &schema.Schema{
+						"engine": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"engine_version": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -258,13 +263,16 @@ func dataSourceUCloudDBParamGroupsSave(d *schema.ResourceData, paramGroups []udb
 			})
 		}
 
+		arr := strings.Split(paramGroup.DBTypeId, "-")
 		data = append(data, map[string]interface{}{
-			"id":           paramGroup.GroupId,
-			"name":         paramGroup.GroupName,
-			"db_type":      paramGroup.DBTypeId,
-			"description":  paramGroup.Description,
-			"modifiable":   paramGroup.Modifiable,
-			"param_member": paramMember,
+			"id":             paramGroup.GroupId,
+			"name":           paramGroup.GroupName,
+			"engine":         arr[0],
+			"engine_version": arr[1],
+			"db_type":        paramGroup.DBTypeId,
+			"description":    paramGroup.Description,
+			"modifiable":     paramGroup.Modifiable,
+			"param_member":   paramMember,
 		})
 	}
 
