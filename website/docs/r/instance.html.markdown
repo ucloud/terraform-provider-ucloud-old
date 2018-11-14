@@ -69,7 +69,7 @@ resource "ucloud_instance" "web" {
     vpc_id    = "${ucloud_vpc.default.id}"
     subnet_id = "${ucloud_subnet.default.id}"
 
-    # this ecurity group to allow HTTP and HTTPS access
+    # this security group to allow HTTP and HTTPS access
     security_group = "${ucloud_security_group.default.id}"
 }
 
