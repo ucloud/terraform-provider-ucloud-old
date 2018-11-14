@@ -130,6 +130,20 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"backup_count": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  7,
+				ForceNew: true,
+			},
+
+			"backup_duration": &schema.Schema{
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  24,
+				ForceNew: true,
+			},
+
 			"backup_time": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -142,8 +156,9 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"backup_id": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"backup_black_list": &schema.Schema{
@@ -183,7 +198,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
-	masterId, slaveOk := d.Get("master_id").(string)
+	masterId, slaveOk := d.GetOk("master_id")
 	if !slaveOk {
 		req := conn.NewCreateUDBInstanceRequest()
 		req.InstanceMode = ucloud.String("HA")
@@ -210,8 +225,24 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 
+		if val, ok := d.GetOk("backup_count"); ok {
+			req.BackupCount = ucloud.Int(val.(int))
+		}
+
+		if val, ok := d.GetOk("backup_time"); ok {
+			req.BackupTime = ucloud.Int(val.(int))
+		}
+
+		if val, ok := d.GetOk("backup_duration"); ok {
+			req.BackupDuration = ucloud.Int(val.(int))
+		}
+
 		if val, ok := d.GetOk("backup_id"); ok {
-			req.BackupId = ucloud.Int(val.(int))
+			backupId, err := strconv.Atoi(val.(string))
+			if err != nil {
+				return err
+			}
+			req.BackupId = ucloud.Int(backupId)
 		}
 
 		if val, ok := d.GetOk("instance_type"); ok {
@@ -249,7 +280,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		req := conn.NewCreateUDBSlaveRequest()
 
 		req.InstanceMode = ucloud.String("HA")
-		req.SrcId = ucloud.String(masterId)
+		req.SrcId = ucloud.String(masterId.(string))
 		req.Name = ucloud.String(d.Get("name").(string))
 		req.Port = ucloud.Int(d.Get("port").(int))
 		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
@@ -356,6 +387,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if d.HasChange("master_id") && !d.IsNewResource() {
+		d.SetPartial("master_id")
 		old, new := d.GetChange("master_id")
 		if old.(string) == "" {
 			return fmt.Errorf("the master db cannot be reduced to the slave db")
@@ -391,7 +423,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		backupChanged = true
 	}
 
-	if d.HasChange("backup_time") {
+	if d.HasChange("backup_time") && !d.IsNewResource() {
 		d.SetPartial("backup_time")
 		buReq.BackupTime = ucloud.Int(d.Get("backup_time").(int))
 		backupChanged = true
@@ -442,11 +474,11 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", db.Name)
 	d.Set("engine", arr[0])
 	d.Set("engine_version", arr[1])
-	d.Set("param_group_id", db.ParamGroupId)
+	d.Set("param_group_id", strconv.Itoa(db.ParamGroupId))
 	d.Set("port", db.Port)
 	d.Set("status", db.State)
 	d.Set("instance_charge_type", db.ChargeType)
-	d.Set("memory", db.MemoryLimit)
+	d.Set("memory", db.MemoryLimit/1000)
 	d.Set("instance_storage", db.DiskSpace)
 	d.Set("role", db.Role)
 	d.Set("backup_zone", db.BackupZone)

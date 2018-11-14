@@ -144,12 +144,12 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 	var filtered []udb.UDBParamGroupSet
 	var paramGroups []udb.UDBParamGroupSet
 	var totalCount int
+	var zone string
 	limit := 100
 	offset := 0
-	zone := d.Get("availability_zone").(string)
 	if ids, ok := d.GetOk("ids"); ok && len(ids.([]interface{})) > 0 {
 		if val, ok := d.GetOk("availability_zone"); ok {
-			zone = (val.(string))
+			zone = val.(string)
 		} else {
 			return fmt.Errorf("availability zone must be set when look up param groups  by ids")
 		}
@@ -167,7 +167,6 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 			req := conn.NewDescribeUDBParamGroupRequest()
 			req.Limit = ucloud.Int(limit)
 			req.Offset = ucloud.Int(offset)
-			req.Zone = ucloud.String(zone)
 			if val, ok := d.GetOk("availability_zone"); ok {
 				req.Zone = ucloud.String(val.(string))
 			}

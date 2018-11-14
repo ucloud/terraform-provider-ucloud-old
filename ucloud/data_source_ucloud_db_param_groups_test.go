@@ -17,7 +17,7 @@ func TestAccUCloudDBParamGroupsDataSource(t *testing.T) {
 				Config: testAccDataDBParamGroupsConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIDExists("data.ucloud_db_param_groups.foo"),
-					resource.TestCheckResourceAttr("data.ucloud_db_param_groups.foo", "instances.#", "2"),
+					resource.TestCheckResourceAttr("data.ucloud_db_param_groups.foo", "param_groups.#", "2"),
 				),
 			},
 		},
