@@ -11,7 +11,7 @@ description: |-
 UDPN (UCloud Dedicated Private Network)，提供各个数据中心之间的，低延迟、高质量的内网数据传输服务。常用于跨地域的集群内网互通，
 UDPN (UCloud Dedicated Private Network)，you can use Dedicated Private Network to achieve high-speed, stable, secure, and dedicated communications between different data centers. The most frequent scenario is to create network connection of clusters across regions.
 ~> **与 VPC 产品的关联** 跨地域的 VPC 对等连接，必须先在两个地域之间创建 DPN，以保证专有网络之间的内网联通性。
-~> **VPC interconnection** The cross-region Dedicated Private Network must be established if the two VPCs of different regions are expected to be connected.
+~> **VPC interconnection** The cross-region Dedicated Private Network must be established if the two VPCs located in different regions are expected to be connected.
 ~> **注意事项** UDPN高速通道使用隧道封装技术，会产生数据包头的额外开销，且计算进数据包的总长度中。由于隧道的包头字节数固定， 数据报文越大，隧道所占的开销占比越小。
 ~> **Note** The addtional packet head will be added and included in the overall length of packet due to the tunneling UDPN adopted. Since the number of the bytes of packet head is fixed, the bigger data packet is, the less usage will be taken for the packet head.
 ## Example Usage
