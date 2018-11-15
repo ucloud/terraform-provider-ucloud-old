@@ -31,7 +31,7 @@ The following arguments are supported:
 * `duration` - (Optional) The duration that you will buy the resource, the default value is "1". It is not required when "Dynamic" (pay by hour), the value is "0" when pay by month and the instance will be vaild till the last day of that month.
 * `charge_type` - (Optional) Charge type. Possible values are: "Year" as pay by year, "Month" as pay by month, "Dynamic" as pay by hour. The default value is "Month".
 * `peer_region` - (Optional) 专线对端地域，请 [参考地域与可用区列表](https://docs.ucloud.cn/api/summary/regionlist) 和 [UDPN 线路价格列表](https://docs.ucloud.cn/network/udpn/udpn_price)
-* `peer_region` - (Optional) The correspondent region of dedicated connection ，please refer to the region and availability zone list (https://docs.ucloud.cn/api/summary/regionlist) and UDPN price list (https://docs.ucloud.cn/network/udpn/udpn_price)
+* `peer_region` - (Optional) The correspondent region of dedicated connection, please refer to the region and availability zone list (https://docs.ucloud.cn/api/summary/regionlist) and UDPN price list (https://docs.ucloud.cn/network/udpn/udpn_price)
 
 ## Attributes Reference
 
