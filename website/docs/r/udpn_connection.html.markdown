@@ -13,7 +13,7 @@ UDPN (UCloud Dedicated Private Network)，you can use Dedicated Private Network 
 ~> **与 VPC 产品的关联** 跨地域的 VPC 对等连接，必须先在两个地域之间创建 DPN，以保证专有网络之间的内网联通性。
 ~> **VPC interconnection** The cross-region Dedicated Private Network must be established if the two VPCs of different regions are expected to be connected.
 ~> **注意事项** UDPN高速通道使用隧道封装技术，会产生数据包头的额外开销，且计算进数据包的总长度中。由于隧道的包头字节数固定， 数据报文越大，隧道所占的开销占比越小。
-~> **Note** The addtional packet head will be added and included in the overall length of packet due to the tunneling UDPN adopted. since the number of the bytes of packet head is fixed, the bigger data packet, the less uaage taken for the packet head.
+~> **Note** The addtional packet head will be added and included in the overall length of packet due to the tunneling UDPN adopted. Since the number of the bytes of packet head is fixed, the bigger data packet is, the less usage will be taken for the packet head.
 ## Example Usage
 
 ```hcl
