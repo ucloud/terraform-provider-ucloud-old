@@ -17,7 +17,7 @@ func TestAccUCloudDBInstancesDataSource(t *testing.T) {
 				Config: testAccDataDBInstancesConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIDExists("data.ucloud_db_instances.foo"),
-					resource.TestCheckResourceAttr("data.ucloud_db_instances.foo", "db_instances.#", "2"),
+					resource.TestCheckResourceAttr("data.ucloud_db_instances.foo", "db_instances.#", "1"),
 				),
 			},
 		},
@@ -26,7 +26,6 @@ func TestAccUCloudDBInstancesDataSource(t *testing.T) {
 
 const testAccDataDBInstancesConfig = `
 resource "ucloud_db_instance" "foo" {
-	count = 2
 
 	availability_zone = "cn-sh2-02"
 	name = "testAccDBInstances"

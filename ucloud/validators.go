@@ -237,3 +237,15 @@ func validateDBInstanceName(v interface{}, k string) (ws []string, errors []erro
 
 	return
 }
+
+var dbParamGroupNamePattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,63}$`)
+
+func validateDBParamGroupName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !dbParamGroupNamePattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have 6 - 63 characters and only support english, numbers, '-', '_', got %q", k, value))
+	}
+
+	return
+}

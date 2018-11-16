@@ -87,3 +87,11 @@ func checkStringIn(val string, availables []string) error {
 func timestampToString(ts int) string {
 	return time.Unix(int64(ts), 0).Format(time.RFC3339)
 }
+
+func stringToTimestamp(ts string) (int, error) {
+	t, err := time.Parse(time.RFC3339, ts)
+	if err != nil {
+		return 0, err
+	}
+	return int(t.Unix()), nil
+}

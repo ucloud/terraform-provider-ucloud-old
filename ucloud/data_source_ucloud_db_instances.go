@@ -395,9 +395,9 @@ func dataSourceUCloudDBInstancesSave(d *schema.ResourceData, dbInstances []udb.U
 				"backup_date":          item.BackupDate,
 				"instance_mode":        item.InstanceMode,
 				"status":               item.State,
-				"create_time":          item.CreateTime,
-				"expire_time":          item.ExpiredTime,
-				"modify_time":          item.ModifyTime,
+				"create_time":          timestampToString(item.CreateTime),
+				"expire_time":          timestampToString(item.ExpiredTime),
+				"modify_time":          timestampToString(item.ModifyTime),
 				"ip_set":               ipSetSlave,
 			})
 		}
@@ -426,16 +426,16 @@ func dataSourceUCloudDBInstancesSave(d *schema.ResourceData, dbInstances []udb.U
 			"backup_date":          dbInstance.BackupDate,
 			"instance_mode":        dbInstance.InstanceMode,
 			"status":               dbInstance.State,
-			"create_time":          dbInstance.CreateTime,
-			"expire_time":          dbInstance.ExpiredTime,
-			"modify_time":          dbInstance.ModifyTime,
+			"create_time":          timestampToString(dbInstance.CreateTime),
+			"expire_time":          timestampToString(dbInstance.ExpiredTime),
+			"modify_time":          timestampToString(dbInstance.ModifyTime),
 			"ip_set":               ipSetMaster,
 			"slave_instances":      slaveInstances,
 		})
 	}
 
 	d.SetId(hashStringArray(ids))
-	if err := d.Set("param_groups", data); err != nil {
+	if err := d.Set("db_instances", data); err != nil {
 		return err
 	}
 

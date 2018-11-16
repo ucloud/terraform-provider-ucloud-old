@@ -77,12 +77,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ValidateFunc: validateDBInstanceName,
 			},
 
-			"port": &schema.Schema{
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validateIntegerInRange(3306, 65535),
-			},
-
 			"instance_storage": &schema.Schema{
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -98,6 +92,12 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validateIntInChoices([]int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128}),
+			},
+
+			"port": &schema.Schema{
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validateIntegerInRange(3306, 65535),
 			},
 
 			"instance_type": &schema.Schema{

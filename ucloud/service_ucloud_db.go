@@ -51,3 +51,24 @@ func (client *UCloudClient) describeDBParamGroupByIdAndZone(paramGroupId, zone s
 
 	return &resp.DataSet[0], nil
 }
+
+func (client *UCloudClient) describeDBBackupByIdAndZone(backupId, zone string) (*udb.UDBBackupSet, error) {
+	req := client.udbconn.NewDescribeUDBBackupRequest()
+	req.Zone = ucloud.String(zone)
+	buId, err := strconv.Atoi(backupId)
+	if err != nil {
+		return nil, fmt.Errorf("transform backup id %s to int failed, %s", backupId, err)
+	}
+	req.BackupId = ucloud.Int(buId)
+
+	resp, err := client.udbconn.DescribeUDBBackup(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(resp.DataSet) < 1 {
+		return nil, newNotFoundError(getNotFoundMessage("db_backup", backupId))
+	}
+
+	return &resp.DataSet[0], nil
+}

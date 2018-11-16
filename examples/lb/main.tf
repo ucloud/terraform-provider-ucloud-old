@@ -52,8 +52,8 @@ resource "ucloud_instance" "web" {
   # this security group allows HTTP and HTTPS access
   security_group = "${ucloud_security_group.default.id}"
 
-  name = "tf-example-lb-${format(var.count_format, count.index+1)}"
-  tag  = "tf-example"
+  name  = "tf-example-lb-${format(var.count_format, count.index+1)}"
+  tag   = "tf-example"
   count = "${var.count}"
 }
 

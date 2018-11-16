@@ -34,7 +34,7 @@ func resourceUCloudDBParamGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDBInstanceName,
+				ValidateFunc: validateDBParamGroupName,
 			},
 
 			"description": &schema.Schema{

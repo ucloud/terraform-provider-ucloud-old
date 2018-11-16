@@ -62,6 +62,7 @@ func Provider() terraform.ResourceProvider {
 			"ucloud_instance_types":  dataSourceUCloudInstanceTypes(),
 			"ucloud_db_param_groups": dataSourceUCloudDBParamGroups(),
 			"ucloud_db_instances":    dataSourceUCloudDBInstances(),
+			"ucloud_db_backups":      dataSourceUCloudDBBackups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ucloud_instance":               resourceUCloudInstance(),

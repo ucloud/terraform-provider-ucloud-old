@@ -38,6 +38,7 @@ resource "ucloud_db_param_group" "foo" {
 }
 
 data "ucloud_db_param_groups" "foo" {
+	availability_zone = "cn-sh2-02"
 	ids = ["${ucloud_db_param_group.foo.*.id}"]
 }
 `

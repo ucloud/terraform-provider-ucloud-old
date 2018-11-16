@@ -144,10 +144,10 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 	var filtered []udb.UDBParamGroupSet
 	var paramGroups []udb.UDBParamGroupSet
 	var totalCount int
-	var zone string
 	limit := 100
 	offset := 0
 	if ids, ok := d.GetOk("ids"); ok && len(ids.([]interface{})) > 0 {
+		var zone string
 		if val, ok := d.GetOk("availability_zone"); ok {
 			zone = val.(string)
 		} else {
@@ -250,11 +250,10 @@ func dataSourceUCloudDBParamGroupsSave(d *schema.ResourceData, paramGroups []udb
 
 		arr := strings.Split(paramGroup.DBTypeId, "-")
 		data = append(data, map[string]interface{}{
-			"id":             paramGroup.GroupId,
+			"id":             strconv.Itoa(paramGroup.GroupId),
 			"name":           paramGroup.GroupName,
 			"engine":         arr[0],
 			"engine_version": arr[1],
-			"db_type":        paramGroup.DBTypeId,
 			"description":    paramGroup.Description,
 			"modifiable":     paramGroup.Modifiable,
 			"param_member":   paramMember,
