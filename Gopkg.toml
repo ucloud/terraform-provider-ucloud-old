@@ -166,10 +166,6 @@
   version = "1.1.2"
 
 [[constraint]]
-  name = "github.com/ucloud/ucloud-sdk-go"
-  version = "0.5.1"
-
-[[constraint]]
   name = "github.com/ulikunitz/xz"
   version = "0.5.4"
 
@@ -200,3 +196,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/ucloud/ucloud-sdk-go"
+  version = "0.6.2"

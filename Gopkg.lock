@@ -420,12 +420,14 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:16a4f174e150b12758188687fe19d29f856e5e697a3baa0b7d7ca6ebc4fb4f5e"
+  digest = "1:81371b4ab7717455654d1d7e72776a53a44b795059a6ea0cf38f1fc45d88d1f3"
   name = "github.com/ucloud/ucloud-sdk-go"
   packages = [
+    ".",
     "private/protocol/http",
     "private/utils",
     "services/uaccount",
+    "services/udb",
     "services/udisk",
     "services/uhost",
     "services/ulb",
@@ -440,8 +442,8 @@
     "ucloud/version",
   ]
   pruneopts = "UT"
-  revision = "ae92fcdf66a5f34c27d8ae1f81b10033648275f4"
-  version = "v0.5.7"
+  revision = "d223288f6fc1d6c7bbd148d887d7fb1719b5adc1"
+  version = "v0.6.2"
 
 [[projects]]
   digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
@@ -597,7 +599,9 @@
     "github.com/hashicorp/terraform/helper/schema",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
+    "github.com/ucloud/ucloud-sdk-go",
     "github.com/ucloud/ucloud-sdk-go/services/uaccount",
+    "github.com/ucloud/ucloud-sdk-go/services/udb",
     "github.com/ucloud/ucloud-sdk-go/services/udisk",
     "github.com/ucloud/ucloud-sdk-go/services/uhost",
     "github.com/ucloud/ucloud-sdk-go/services/ulb",
