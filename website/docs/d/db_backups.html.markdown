@@ -45,7 +45,7 @@ The attribute (`db_backups`) support the following:
 * `id` - The ID of db backup.
 * `zone` - Availability zone where db instances are located.
 * `backup_zone` - 跨可用区高可用备库所在可用区
-* `backup_zone` - Availability zone where db backup instances are located. The cross-region diaster can be recovered by deploying the high availibility DB instance.
+* `backup_zone` - Availability zone where db backup instances are located. The disater recovery can be done by deploying the high availibility DB instance.
 * `name` - 备份名称
 * `name` - The name of the backups.
 * `backup_size` - 备份文件大小(字节)
