@@ -28,7 +28,7 @@ The following arguments are supported:
 * `backup_type` - (Optional) 备份类型,取值为0或1，0表示自动，1表示手动
 * `backup_type` - (Optional) The type of backup, Possible values are "0" as automated DB and "1" as manual DB.
 * `begin_time` - (Optional) 过滤条件:起始时间
-* `begin_time` - (Optional) The time wphen start the backup.
+* `begin_time` - (Optional) The time when start the backup.
 * `end_time` - (Optional) 过滤条件:结束时间
 * `end_time` - (Optional) The time when finsih the backup.
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
@@ -57,6 +57,6 @@ The attribute (`db_backups`) support the following:
 * `db_instance_name` - 	对应的db实例名称
 * `db_instance_name` - The name of the DB instance.
 * `backup_begin_time` - 备份开始时间
-* `backup_begin_time` - The time wphen start the backup.
+* `backup_begin_time` - The time when start the backup.
 * `backup_end_time` - 备份完成时间
 * `backup_end_time` - The time when finsih the backup.
