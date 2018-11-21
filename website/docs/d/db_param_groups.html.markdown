@@ -12,7 +12,7 @@ This data source providers a list of DB param groups resources according to thei
 
 ~> **使用限制** 当通过 DB param group id来查询配置参数时，availability zone 参数必填; 对于单可用区配置文件ParamGroupId只在当前可用区唯一，多可用区配置文件在当前region唯一。
 ~> **Note** The "availability zone" is mandatory required when querying parameter group via calling "ParamGroupId"；the "ParamGroupId" is 
-unique in the current availability zone for single availability zone param groups, and in the current region for cross availability zone param groups.
+unique in the current availability zone for single availability zone param groups, and it is also unique in the current region for cross availability zone param groups.
 ## Example Usage
 
 ## Argument Reference
