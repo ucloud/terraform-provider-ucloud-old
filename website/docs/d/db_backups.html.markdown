@@ -26,7 +26,7 @@ The following arguments are supported:
 * `class_type` - (Optional) DB种类，分为sql和postgresql,其中，sql代表mysql和percona,
 * `class_type` - (Optional) The type of engine, Possible values are "sql" and "postgresql", "sql" stands for mysql and percona.
 * `backup_type` - (Optional) 备份类型,取值为0或1，0表示自动，1表示手动
-* `backup_type` - (Optional) The type of backup, Possible values are "0" as automated DB and "1" as manual DB.
+* `backup_type` - (Optional) The type of backup, Possible values are "0" as automated backups and "1" as manual backups.
 * `begin_time` - (Optional) 过滤条件:起始时间
 * `begin_time` - (Optional) The time when start the backup.
 * `end_time` - (Optional) 过滤条件:结束时间
