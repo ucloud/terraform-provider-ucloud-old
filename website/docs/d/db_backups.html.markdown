@@ -11,7 +11,7 @@ description: |-
 This data source providers a list of DB backup resources according to their db backup id, availability zone, DB instance ID, class type, backup type, begin time, end time.
 
 ~> **使用限制** 当通过 DB backup id来查询备份时，availability zone 参数必填
-~> **Note** The "availablity zone" is a mandatory argument when querying snapshot via "DB backup id".
+~> **Note** The "availablity zone" is mandatory required when querying backups via "DB backup id".
 ## Example Usage
 
 ## Argument Reference
@@ -19,7 +19,7 @@ This data source providers a list of DB backup resources according to their db b
 The following arguments are supported:
 
 * `availability_zone` - (Optional) Availability zone where db backups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)当通过id来查询备份时，此参数必填
-* `availability_zone` - (Optional) Availability zone where db backups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist). It is a mandatory argument when querying snapshot through "DB backuo id".
+* `availability_zone` - (Optional) Availability zone where db backups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist). It is mandatory required when querying snapshot via "DB backup id".
 * `ids` - (Optional) The group of IDs of db backups that require to be retrieved.
 * `db_instance_id` - (Optional) DB实例Id，如果指定，则只获取该db的备份信息 该值可以通过DescribeUDBInstance获取
 * `db_instance_id` - (Optional) The ID of Database instance, the corresponding backup will be retrieved upon the specific argumnet defined, this argument can be retrieved via calling "DescribeUDBInstance".
