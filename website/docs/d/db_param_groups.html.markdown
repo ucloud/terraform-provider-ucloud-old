@@ -19,8 +19,8 @@ unique in the current availability zone for single availability zone param group
 
 The following arguments are supported:
 
-* `availability_zone` - (Optional) Availability zone where db param groups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)/summary/regionlist)当通过id来查询备份时，此参数必填
-* `availability_zone` - (Optional) Availability zone where db param groups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)/summary/regionlist), this is mandatory required when quering parameter group via calling "ParamGroupId".
+* `availability_zone` - (Optional) Availability zone where db param groups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)当通过id来查询备份时，此参数必填
+* `availability_zone` - (Optional) Availability zone where db param groups are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist), this is mandatory required when quering parameter group via calling "ParamGroupId".
 * `ids` - (Optional) The group of IDs of db param groups that require to be retrieved.
 * `engine` - Database type, possible values are: "mysql", "percona", "postgresql".
 * `engine_version` - The database engine version, possible values are: "5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4".
