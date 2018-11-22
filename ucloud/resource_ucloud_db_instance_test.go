@@ -31,9 +31,8 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-basic"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory", "1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "param_group_id", "18"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 				),
 			},
@@ -46,8 +45,7 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-basicUpdate"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "param_group_id", "18"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "memory", "2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-2"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 				),
@@ -81,9 +79,8 @@ func TestAccUCloudDBInstance_slave(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "name", "tf-testDBInstance-slave"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "memory", "1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "param_group_id", "18"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine_version", "5.7"),
 				),
 			},
@@ -99,15 +96,13 @@ func TestAccUCloudDBInstance_slave(t *testing.T) {
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "name", "tf-testDBInstance-promote"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "memory", "1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "param_group_id", "18"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine_version", "5.7"),
 				),
 			},
 		},
 	})
-
 }
 
 func testAccCheckDBInstanceExists(n string, db *udb.UDBInstanceSet) resource.TestCheckFunc {
@@ -175,93 +170,110 @@ const testAccDBInstanceConfig = `
 data "ucloud_zones" "default" {
 }
 
+data "ucloud_db_param_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-basic"
 	instance_storage = 20
-	memory = 1
+	instance_type = "mysql-ha-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigTwo = `
 data "ucloud_zones" "default" {
 }
 
+data "ucloud_db_param_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-basicUpdate"
 	instance_storage = 30
-	memory = 2
+	instance_type = "mysql-ha-2"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigSlave = `
 data "ucloud_zones" "default" {
 }
 
+data "ucloud_db_param_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-master"
 	instance_storage = 20
-	memory = 1
+	instance_type = "mysql-ha-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 
 resource "ucloud_db_instance" "bar" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-slave"
 	instance_storage = 20
-	memory = 1
+	instance_type = "mysql-basic-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 	master_id = "${ucloud_db_instance.foo.id}"
 }
 `
 const testAccDBInstanceConfigSlavePromote = `
 data "ucloud_zones" "default" {
 }
+
+data "ucloud_db_param_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-master"
 	instance_storage = 20
-	memory = 1
+	instance_type = "mysql-ha-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 
 resource "ucloud_db_instance" "bar" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-promote"
 	instance_storage = 20
-	memory = 1
+	instance_type = "mysql-basic-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	port = 3306
-	param_group_id = "18"
-	instance_type = "SATA_SSD"
+	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `

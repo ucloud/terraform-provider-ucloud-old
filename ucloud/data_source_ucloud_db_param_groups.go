@@ -30,13 +30,6 @@ func dataSourceUCloudDBParamGroups() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"class_type": &schema.Schema{
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateStringInChoices([]string{"sql", "nosql", "postgresql"}),
-			},
-
 			"engine": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -173,10 +166,6 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 
 			if val, ok := d.GetOk("region_flag"); ok {
 				req.RegionFlag = ucloud.Bool(val.(bool))
-			}
-
-			if val, ok := d.GetOk("class_type"); ok {
-				req.ClassType = ucloud.String(val.(string))
 			}
 
 			resp, err := conn.DescribeUDBParamGroup(req)

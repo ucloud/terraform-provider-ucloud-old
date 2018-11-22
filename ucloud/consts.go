@@ -56,3 +56,9 @@ var udiskMap converter = map[string]string{
 var ulbMap converter = map[string]string{
 	"lb": "ulb",
 }
+
+//dbMap is used to covert basic to Normal and convert ha to HA
+var dbMap converter = map[string]string{
+	"basic": "Normal",
+	"ha":    "HA",
+}

@@ -66,6 +66,17 @@ func validateInstanceType(v interface{}, k string) (ws []string, errors []error)
 	return
 }
 
+func validateDBInstanceType(v interface{}, k string) (ws []string, errors []error) {
+	dbInstanceType := v.(string)
+
+	_, err := parseDBInstanceType(dbInstanceType)
+	if err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
 var instanceNamePattern = regexp.MustCompile(`^[A-Za-z0-9\p{Han}-_.]{1,63}$`)
 
 func validateInstanceName(v interface{}, k string) (ws []string, errors []error) {

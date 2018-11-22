@@ -39,7 +39,7 @@ func dataSourceUCloudDBBackups() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateStringInChoices([]string{"sql", "nosql", "postgresql"}),
+				ValidateFunc: validateStringInChoices([]string{"sql", "postgresql"}),
 			},
 
 			"backup_type": &schema.Schema{

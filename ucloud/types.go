@@ -251,3 +251,45 @@ func (c transformer) transform(src int) string {
 	}
 	return string(src)
 }
+
+type dbInstanceType struct {
+	Engine string
+	Type   string
+	Memory int
+}
+
+var availableDBEngine = []string{"mysql", "percona", "postgresql"}
+var availableDBTypes = []string{"basic", "ha"}
+var availableDBMemory = []int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128}
+
+func parseDBInstanceType(s string) (*dbInstanceType, error) {
+	splited := strings.Split(s, "-")
+	if len(splited) != 3 {
+		return nil, fmt.Errorf("db instance type is invalid, got %s", s)
+	}
+	engine := splited[0]
+	if err := checkStringIn(engine, availableDBEngine); err != nil {
+		return nil, err
+	}
+
+	dbType := splited[1]
+	if err := checkStringIn(dbType, availableDBTypes); err != nil {
+		return nil, err
+	}
+
+	memory, err := strconv.Atoi(splited[2])
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checkIntIn(memory, availableDBMemory); err != nil {
+		return nil, err
+	}
+
+	t := &dbInstanceType{}
+	t.Engine = engine
+	t.Type = dbType
+	t.Memory = memory
+
+	return t, nil
+}

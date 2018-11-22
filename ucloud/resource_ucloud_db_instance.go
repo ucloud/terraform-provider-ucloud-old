@@ -88,21 +88,17 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Required: true,
 			},
 
-			"memory": &schema.Schema{
-				Type:         schema.TypeInt,
+			"instance_type": &schema.Schema{
+				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateIntInChoices([]int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128}),
+				ValidateFunc: validateDBInstanceType,
 			},
 
 			"port": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateIntegerInRange(3306, 65535),
-			},
-
-			"instance_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
 			},
 
 			"instance_charge_type": &schema.Schema{
@@ -198,26 +194,37 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
+	engine := d.Get("engine").(string)
+	// skip error because it has been validated by schema
+	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
+	if dbType.Engine != engine {
+		return fmt.Errorf("error in create db instance, engine of instance type %s must be same as engine %s", dbType.Engine, engine)
+	}
+
+	if dbType.Engine == "postgresql" && dbType.Type == "ha" {
+		return fmt.Errorf("error in create db instance, high availability of postgresql is not supported at this time")
+	}
+
 	masterId, slaveOk := d.GetOk("master_id")
 	if !slaveOk {
 		req := conn.NewCreateUDBInstanceRequest()
-		req.InstanceMode = ucloud.String("HA")
 		req.Name = ucloud.String(d.Get("name").(string))
 		req.AdminPassword = ucloud.String(d.Get("password").(string))
 		req.Zone = ucloud.String(d.Get("availability_zone").(string))
-		engine := d.Get("engine").(string)
 		engineVersion := d.Get("engine_version").(string)
 		req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
 		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
 		req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 		req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
 		req.AdminUser = ucloud.String("root")
+		req.InstanceType = ucloud.String("SATA_SSD")
+		req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
+		req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
 
 		if val, ok := d.GetOk("port"); ok {
 			req.Port = ucloud.Int(val.(int))
 		} else {
-			if engine == "mysql" {
+			if engine == "mysql" || engine == "percona" {
 				req.Port = ucloud.Int(3306)
 			}
 			if engine == "postgresql" {
@@ -243,10 +250,6 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 				return err
 			}
 			req.BackupId = ucloud.Int(backupId)
-		}
-
-		if val, ok := d.GetOk("instance_type"); ok {
-			req.InstanceType = ucloud.String(val.(string))
 		}
 
 		if val, ok := d.GetOk("vpc_id"); ok {
@@ -279,15 +282,22 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	} else {
 		req := conn.NewCreateUDBSlaveRequest()
 
-		req.InstanceMode = ucloud.String("HA")
+		req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
 		req.SrcId = ucloud.String(masterId.(string))
 		req.Name = ucloud.String(d.Get("name").(string))
-		req.Port = ucloud.Int(d.Get("port").(int))
 		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
+		req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
+		req.InstanceType = ucloud.String("SATA_SSD")
 
-		if val, ok := d.GetOk("instance_type"); ok {
-			req.InstanceType = ucloud.String(val.(string))
+		if val, ok := d.GetOk("port"); ok {
+			req.Port = ucloud.Int(val.(int))
+		} else {
+			if engine == "mysql" || engine == "percona" {
+				req.Port = ucloud.Int(3306)
+			}
+			if engine == "postgresql" {
+				req.Port = ucloud.Int(5432)
+			}
 		}
 
 		if val, ok := d.GetOk("is_lock"); ok {
@@ -360,9 +370,27 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	req := conn.NewResizeUDBInstanceRequest()
 	req.DBId = ucloud.String(d.Id())
 
-	if d.HasChange("memory") && !d.IsNewResource() {
-		d.SetPartial("memory")
-		req.MemoryLimit = ucloud.Int(d.Get("memory").(int) * 1000)
+	if d.HasChange("instance_type") && !d.IsNewResource() {
+		d.SetPartial("instance_type")
+		engine := d.Get("engine").(string)
+		old, new := d.GetChange("instance_type")
+
+		oldType, _ := parseDBInstanceType(old.(string))
+
+		newType, _ := parseDBInstanceType(new.(string))
+
+		if newType.Engine != engine {
+			return fmt.Errorf("error in update db instance, engine of instance type %s must be same as engine %s", newType.Engine, engine)
+		}
+
+		if newType.Engine == "postgresql" && newType.Type == "ha" {
+			return fmt.Errorf("error in update db instance, high availability of postgresql is not supported at this time")
+		}
+
+		if oldType.Memory != newType.Memory {
+			req.MemoryLimit = ucloud.Int(newType.Memory * 1000)
+		}
+
 		isChanged = true
 	}
 
@@ -478,16 +506,20 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("port", db.Port)
 	d.Set("status", db.State)
 	d.Set("instance_charge_type", db.ChargeType)
-	d.Set("memory", db.MemoryLimit/1000)
 	d.Set("instance_storage", db.DiskSpace)
 	d.Set("role", db.Role)
 	d.Set("backup_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
 	d.Set("instance_charge_type", db.ChargeType)
-
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
+	var dbType dbInstanceType
+	dbType.Memory = db.MemoryLimit / 1000
+	dbType.Engine = arr[0]
+	dbType.Type = dbMap.unconvert(db.InstanceMode)
+
+	d.Set("instance_type", fmt.Sprintf("%s-%s-%d", dbType.Engine, dbType.Type, dbType.Memory))
 
 	return nil
 }
