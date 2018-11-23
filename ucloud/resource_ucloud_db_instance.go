@@ -504,6 +504,15 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("instance_storage", db.DiskSpace)
 	d.Set("backup_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
+	d.Set("backup_count", db.BackupCount)
+	d.Set("backup_duration", db.BackupDuration)
+	d.Set("backup_begin_time", db.BackupBeginTime)
+	d.Set("backup_date", db.BackupDate)
+	d.Set("black_list", db.BackupBlacklist)
+	d.Set("backup_zone", db.BackupZone)
+	// d.Set("vpc_id", db.VPCId)
+	// d.Set("subnet_id", db.SubnetId)
+
 	//d.Set("tag", db.Tag)
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
@@ -512,7 +521,6 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	dbType.Memory = db.MemoryLimit / 1000
 	dbType.Engine = arr[0]
 	dbType.Type = dbMap.unconvert(db.InstanceMode)
-
 	d.Set("instance_type", fmt.Sprintf("%s-%s-%d", dbType.Engine, dbType.Type, dbType.Memory))
 
 	return nil
