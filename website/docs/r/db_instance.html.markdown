@@ -10,7 +10,7 @@ description: |-
 
 Provides a Database instance resource.
 
-~> **使用限制** 注意，当创建从库时主库id必传，且从库的参数与主库的参数一致，对于已创建的从库，如果此参数置空，则将当前从库提升为主库，与原主库分离。
+~> **使用限制** 注意，普通版数据库配置升降级时，大约需要关闭实例5分钟，请提前安排好您的业务！为避免数据丢失。重置密码时，请先确认是否有待提交事务，重置密码会立即生效，请谨慎操作。
 ## Example Usage
 
 ## Argument Reference
@@ -18,17 +18,14 @@ Provides a Database instance resource.
 The following arguments are supported:
 
 * `availability_zone` - (Optional) Availability zone where database instances are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
-* `backup_zone` - (Optional) 跨可用区高可用备库所在可用区
-* `master_id` - (Optional) 主库实例的id，当创建从库时必传；对于已创建的从库，如果此参数置空，则将当前从库提升为主库，与原主库分离
-* `is_lock` - (Optional) 当创建从库时是否锁主库，默认为true，代表锁主库
-* `is_force` - (Optional) 是否强制(如果从库落后可能会禁止提升)，如果落后情况下，强制提升丢失数, 默认false 
-* `password` - (Optional) 管理员密码.
+* `backup_zone` - (Optional) 跨可用区高可用备库所在可用区；单可用区高可用实例可以承受服务器和机架级别的故障；跨可用区高可用实例可以承受机房级别的故障；注意：因为多可用区之间存在一定的网络延迟，对于单个更新的响应时间会比单可用区高可用实例长
+* `password` - (Optional) 管理员密码.The password for the database instance, should have between 8-30 characters.It must contain least 3 items of Capital letters, small letter, numbers and special characters. The special characters incloud <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code> When it is changed, the instance will reboot to make the change take effect.
 * `engine` - (Required) Database type, possible values are: "mysql", "percona", "postgresql".
-* `engine_version` - (Required) The database engine version, possible values are: "5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4".
-* `name` - (Optional)  实例名称
-* `instance_storage` - (Optional) 磁盘空间(GB), 暂时支持20G - 3000G
-* `param_group_id` - (Optional) DB实例使用的配置参数组id.
-* `instance_class` - (Required) 数据库机型.基本格式为"engine-type-memory",其中 engine 可以为"mysql","percona","postgresql"；type可以为"basic","ha",分别代表普通版和高可用版，高可用版实例采用双主热备架构，可以彻底解决因宕机或硬件故障造成的数据库不可用，mysql与percona只支持高可用版，postgresql现只支持普通版；memory可以为1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64,单位GB
+* `engine_version` - (Required) The database engine version, possible values are: "5.5", "5.6", "5.7", "9.4", "9.6".其中"mysql"和"percona"只支持 "5.5", "5.6", "5.7"，且"5.5"版本不支持创建从库，postgresql只支持"9.4", "9.6"版本
+* `name` - (Optional)  实例名称，should have 1 - 63 characters and only support chinese, english, numbers, '-', '_', '.'.
+* `instance_storage` - (Optional) 磁盘空间(GB), 暂时支持20G - 3000G；硬盘步长10G。SSD机型：内存8G及以下时硬盘容量上限为500G，内存12~24G时硬盘容量上限为1000G，内存32G时硬盘容量上限为2000G，内存48G及以上时硬盘容量上限为3000G。
+* `parameter_group_id` - (Optional) DB实例使用的配置参数组id.注意：对于跨可用区高可用实例，需要传入跨可用区配置参数组id
+* `instance_type` - (Required) 数据库机型.基本格式为"engine-type-memory",其中 engine 可以为"mysql","percona","postgresql"；type可以为"basic","ha",分别代表普通版和高可用版，高可用版实例采用双主热备架构，可以彻底解决因宕机或硬件故障造成的数据库不可用，mysql与percona只支持高可用版，postgresql现只支持普通版；memory可以为1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64,单位GB
 * `port` - (Optional) 端口号，mysql与percona默认3306，postgresql默认5432
 * `instance_charge_type` - (Optional) The charge type of database instance, possible values are: "Year", "Month" and "Dynamic" as pay by hour (specific permission required). the dafault is "Month".
 * `instance_duration` - (Optional) The duration that you will buy the resource, the default value is "1". It is not required when "Dynamic" (pay by hour), the value is "0" when pay by month and the instance will be vaild till the last day of that month.
@@ -49,4 +46,3 @@ In addition to all arguments above, the following attributes are exported:
 * `create_time` - DB实例创建时间，采用unix计时时间戳
 * `expire_time` - DB实例修改时间，采用unix计时时间戳
 * `modify_time` - DB实例过期时间，采用unix计时时间戳
-* `role` - DB实例角色，区分master/slave
