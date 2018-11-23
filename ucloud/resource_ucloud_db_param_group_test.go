@@ -10,7 +10,7 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/services/udb"
 )
 
-func TestAccUCloudDBParamGroup_basic(t *testing.T) {
+func TestAccUCloudDBParameterGroup_basic(t *testing.T) {
 	var dbPg udb.UDBParamGroupSet
 
 	resource.Test(t, resource.TestCase{
@@ -20,16 +20,16 @@ func TestAccUCloudDBParamGroup_basic(t *testing.T) {
 
 		IDRefreshName: "ucloud_db_param_group.foo",
 		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckDBParamGroupDestroy,
+		CheckDestroy:  testAccCheckDBParameterGroupDestroy,
 
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccDBParamGroupConfigBasic,
+				Config: testAccDBParameterGroupConfigBasic,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBParamGroupExists("ucloud_db_param_group.foo", &dbPg),
-					testAccCheckDBParamGroupAttributes(&dbPg),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParamGroup-basic"),
+					testAccCheckDBParameterGroupExists("ucloud_db_param_group.foo", &dbPg),
+					testAccCheckDBParameterGroupAttributes(&dbPg),
+					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParameterGroup-basic"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "description", "this is a test"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine", "mysql"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine_version", "5.7"),
@@ -39,7 +39,7 @@ func TestAccUCloudDBParamGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccUCloudDBParamGroup_key(t *testing.T) {
+func TestAccUCloudDBParameterGroup_key(t *testing.T) {
 	var dbPg udb.UDBParamGroupSet
 
 	resource.Test(t, resource.TestCase{
@@ -49,16 +49,16 @@ func TestAccUCloudDBParamGroup_key(t *testing.T) {
 
 		IDRefreshName: "ucloud_db_param_group.foo",
 		Providers:     testAccProviders,
-		CheckDestroy:  testAccCheckDBParamGroupDestroy,
+		CheckDestroy:  testAccCheckDBParameterGroupDestroy,
 
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccDBParamGroupConfigKey,
+				Config: testAccDBParameterGroupConfigKey,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBParamGroupExists("ucloud_db_param_group.foo", &dbPg),
-					testAccCheckDBParamGroupAttributes(&dbPg),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParamGroup-key"),
+					testAccCheckDBParameterGroupExists("ucloud_db_param_group.foo", &dbPg),
+					testAccCheckDBParameterGroupAttributes(&dbPg),
+					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParameterGroup-key"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "description", "this is a test"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine", "mysql"),
 					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine_version", "5.7"),
@@ -69,7 +69,7 @@ func TestAccUCloudDBParamGroup_key(t *testing.T) {
 
 }
 
-func testAccCheckDBParamGroupExists(n string, dbPg *udb.UDBParamGroupSet) resource.TestCheckFunc {
+func testAccCheckDBParameterGroupExists(n string, dbPg *udb.UDBParamGroupSet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -78,14 +78,14 @@ func testAccCheckDBParamGroupExists(n string, dbPg *udb.UDBParamGroupSet) resour
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("db param group id is empty")
+			return fmt.Errorf("db parameter group id is empty")
 		}
 
 		client := testAccProvider.Meta().(*UCloudClient)
 		zone := rs.Primary.Attributes["availability_zone"]
-		ptr, err := client.describeDBParamGroupByIdAndZone(rs.Primary.ID, zone)
+		ptr, err := client.describeDBParameterGroupByIdAndZone(rs.Primary.ID, zone)
 
-		log.Printf("[INFO] db param group id %#v", rs.Primary.ID)
+		log.Printf("[INFO] db parameter group id %#v", rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -96,16 +96,16 @@ func testAccCheckDBParamGroupExists(n string, dbPg *udb.UDBParamGroupSet) resour
 	}
 }
 
-func testAccCheckDBParamGroupAttributes(dbPg *udb.UDBParamGroupSet) resource.TestCheckFunc {
+func testAccCheckDBParameterGroupAttributes(dbPg *udb.UDBParamGroupSet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if dbPg.GroupId == 0 {
-			return fmt.Errorf("db param group id is empty")
+			return fmt.Errorf("db parameter group id is empty")
 		}
 		return nil
 	}
 }
 
-func testAccCheckDBParamGroupDestroy(s *terraform.State) error {
+func testAccCheckDBParameterGroupDestroy(s *terraform.State) error {
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "ucloud_db_param_group" {
@@ -114,7 +114,7 @@ func testAccCheckDBParamGroupDestroy(s *terraform.State) error {
 
 		client := testAccProvider.Meta().(*UCloudClient)
 		zone := rs.Primary.Attributes["availability_zone"]
-		d, err := client.describeDBParamGroupByIdAndZone(rs.Primary.ID, zone)
+		d, err := client.describeDBParameterGroupByIdAndZone(rs.Primary.ID, zone)
 
 		// Verify the error is what we want
 		if err != nil {
@@ -125,14 +125,14 @@ func testAccCheckDBParamGroupDestroy(s *terraform.State) error {
 		}
 
 		if d.GroupId != 0 {
-			return fmt.Errorf("udb param group still exist")
+			return fmt.Errorf("db parameter group still exist")
 		}
 	}
 
 	return nil
 }
 
-const testAccDBParamGroupConfigBasic = `
+const testAccDBParameterGroupConfigBasic = `
 data "ucloud_zones" "default" {
 }
 
@@ -145,7 +145,7 @@ data "ucloud_db_param_groups" "default" {
 
 resource "ucloud_db_param_group" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBParamGroup-basic"
+	name = "tf-testDBParameterGroup-basic"
 	src_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 	description = "this is a test"
 	engine = "mysql"
@@ -153,7 +153,7 @@ resource "ucloud_db_param_group" "foo" {
 } 
 `
 
-const testAccDBParamGroupConfigKey = `
+const testAccDBParameterGroupConfigKey = `
 data "ucloud_zones" "default" {
 }
 
@@ -166,7 +166,7 @@ data "ucloud_db_param_groups" "default" {
 
 resource "ucloud_db_param_group" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBParamGroup-key"
+	name = "tf-testDBParameterGroup-key"
 	description = "this is a test"
 	src_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 	engine = "mysql"

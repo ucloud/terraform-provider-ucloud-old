@@ -10,9 +10,9 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
-func dataSourceUCloudDBParamGroups() *schema.Resource {
+func dataSourceUCloudDBParameterGroups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceUCloudDBParamGroupsRead,
+		Read: dataSourceUCloudDBParameterGroupsRead,
 
 		Schema: map[string]*schema.Schema{
 			"availability_zone": &schema.Schema{
@@ -61,7 +61,7 @@ func dataSourceUCloudDBParamGroups() *schema.Resource {
 				Computed: true,
 			},
 
-			"param_groups": &schema.Schema{
+			"parameter_groups": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -130,7 +130,7 @@ func dataSourceUCloudDBParamGroups() *schema.Resource {
 	}
 }
 
-func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 	var fetched []udb.UDBParamGroupSet
@@ -144,10 +144,10 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 		if val, ok := d.GetOk("availability_zone"); ok {
 			zone = val.(string)
 		} else {
-			return fmt.Errorf("availability zone must be set when look up param groups  by ids")
+			return fmt.Errorf("availability zone must be set when look up parameter groups  by ids")
 		}
 		for _, id := range ifaceToStringSlice(ids) {
-			dbPg, err := client.describeDBParamGroupByIdAndZone(id, zone)
+			dbPg, err := client.describeDBParameterGroupByIdAndZone(id, zone)
 			if err != nil {
 				return fmt.Errorf("error in read db param group %s, %s", id, err)
 			}
@@ -170,7 +170,7 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 
 			resp, err := conn.DescribeUDBParamGroup(req)
 			if err != nil {
-				return fmt.Errorf("error in read db param groups, %s", err)
+				return fmt.Errorf("error in read db parameter groups, %s", err)
 			}
 
 			if resp == nil || len(resp.DataSet) < 1 {
@@ -209,15 +209,15 @@ func dataSourceUCloudDBParamGroupsRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("total_count", totalCount)
 
-	err := dataSourceUCloudDBParamGroupsSave(d, paramGroups)
+	err := dataSourceUCloudDBParameterGroupsSave(d, paramGroups)
 	if err != nil {
-		return fmt.Errorf("error in read param groups, %s", err)
+		return fmt.Errorf("error in read parameter groups, %s", err)
 	}
 
 	return nil
 }
 
-func dataSourceUCloudDBParamGroupsSave(d *schema.ResourceData, paramGroups []udb.UDBParamGroupSet) error {
+func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, paramGroups []udb.UDBParamGroupSet) error {
 	ids := []string{}
 	data := []map[string]interface{}{}
 	valueType := make(map[int]string)

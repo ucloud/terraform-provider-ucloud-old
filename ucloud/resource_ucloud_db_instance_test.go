@@ -163,7 +163,7 @@ const testAccDBInstanceConfig = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
@@ -178,14 +178,14 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigTwo = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
@@ -200,14 +200,14 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigPgsql = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "postgresql"
@@ -222,14 +222,14 @@ resource "ucloud_db_instance" "foo" {
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigPgsqlTwo = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "postgresql"
@@ -244,6 +244,6 @@ resource "ucloud_db_instance" "foo" {
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 `

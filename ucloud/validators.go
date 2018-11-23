@@ -249,12 +249,12 @@ func validateDBInstanceName(v interface{}, k string) (ws []string, errors []erro
 	return
 }
 
-var dbParamGroupNamePattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,63}$`)
+var dbParameterGroupNamePattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,63}$`)
 
-func validateDBParamGroupName(v interface{}, k string) (ws []string, errors []error) {
+func validateDBParameterGroupName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
-	if !dbParamGroupNamePattern.MatchString(value) {
+	if !dbParameterGroupNamePattern.MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q is invalid, should have 6 - 63 characters and only support english, numbers, '-', '_', got %q", k, value))
 	}
 
@@ -267,7 +267,7 @@ func validateDBInstanceBlackList(v interface{}, k string) (ws []string, errors [
 	value := v.(string)
 
 	if !dbInstanceBlackListPattern.MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q is invalid, should like 'db.%' or 'dbname.tablename', got %q", k, value))
+		errors = append(errors, fmt.Errorf("%q is invalid, should like %q or %q, got %q", k, "db.%", "dbname.tablename", value))
 	}
 
 	return

@@ -14,11 +14,11 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
-func resourceUCloudDBParamGroup() *schema.Resource {
+func resourceUCloudDBParameterGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceUCloudDBParamGroupCreate,
-		Read:   resourceUCloudDBParamGroupRead,
-		Delete: resourceUCloudDBParamGroupDelete,
+		Create: resourceUCloudDBParameterGroupCreate,
+		Read:   resourceUCloudDBParameterGroupRead,
+		Delete: resourceUCloudDBParameterGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,7 +34,7 @@ func resourceUCloudDBParamGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateDBParamGroupName,
+				ValidateFunc: validateDBParameterGroupName,
 			},
 
 			"description": &schema.Schema{
@@ -109,7 +109,7 @@ func resourceUCloudDBParamGroup() *schema.Resource {
 	}
 }
 
-func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
@@ -121,9 +121,9 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return err
 	}
-	dbPg, err := client.describeDBParamGroupByIdAndZone(d.Get("src_group_id").(string), zone)
+	dbPg, err := client.describeDBParameterGroupByIdAndZone(d.Get("src_group_id").(string), zone)
 	if err != nil {
-		return fmt.Errorf("do %s failed in create param group, %s", "DescribeUDBParamGroup", err)
+		return fmt.Errorf("do %s failed in create db parameter group, %s", "DescribeUDBParamGroup", err)
 	}
 
 	if dbPg.DBTypeId != dbType {
@@ -148,7 +148,7 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 
 		resp, err := conn.CreateUDBParamGroup(req)
 		if err != nil {
-			return fmt.Errorf("error in create db param group, %s", err)
+			return fmt.Errorf("error in create db parameter group, %s", err)
 		}
 
 		d.SetId(strconv.Itoa(resp.GroupId))
@@ -206,19 +206,19 @@ func resourceUCloudDBParamGroupCreate(d *schema.ResourceData, meta interface{}) 
 		d.SetId(strconv.Itoa(upResp.GroupId))
 	}
 
-	return resourceUCloudDBParamGroupRead(d, meta)
+	return resourceUCloudDBParameterGroupRead(d, meta)
 }
 
-func resourceUCloudDBParamGroupRead(d *schema.ResourceData, meta interface{}) error {
+func resourceUCloudDBParameterGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 
-	dbPg, err := client.describeDBParamGroupByIdAndZone(d.Id(), d.Get("availability_zone").(string))
+	dbPg, err := client.describeDBParameterGroupByIdAndZone(d.Id(), d.Get("availability_zone").(string))
 	if err != nil {
 		if isNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read param group, %s", "DescribeUDBParamGroup", err)
+		return fmt.Errorf("do %s failed in read db parameter group, %s", "DescribeUDBParamGroup", err)
 	}
 
 	arr := strings.Split(dbPg.DBTypeId, "-")
@@ -239,7 +239,7 @@ func resourceUCloudDBParamGroupRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceUCloudDBParameterGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 	conn := client.udbconn
 
@@ -257,7 +257,7 @@ func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := client.describeDBParamGroupByIdAndZone(d.Id(), zone)
+		_, err := client.describeDBParameterGroupByIdAndZone(d.Id(), zone)
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
@@ -266,17 +266,17 @@ func resourceUCloudDBParamGroupDelete(d *schema.ResourceData, meta interface{}) 
 		}
 
 		if _, err := conn.DeleteUDBParamGroup(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete db param group %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error in delete db parameter group %s, %s", d.Id(), err))
 		}
 
-		if _, err := client.describeDBParamGroupByIdAndZone(d.Id(), zone); err != nil {
+		if _, err := client.describeDBParameterGroupByIdAndZone(d.Id(), zone); err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete db param group %s, %s", "DescribeUDBInstance", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete db parameter group %s, %s", "DescribeUDBInstance", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete db param group but it still exists"))
+		return resource.RetryableError(fmt.Errorf("delete db parameter group but it still exists"))
 	})
 }
 

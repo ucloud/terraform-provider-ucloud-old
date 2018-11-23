@@ -30,7 +30,7 @@ func (client *UCloudClient) describeDBInstanceById(dbInstanceId string) (*udb.UD
 	return &resp.DataSet[0], nil
 }
 
-func (client *UCloudClient) describeDBParamGroupByIdAndZone(paramGroupId, zone string) (*udb.UDBParamGroupSet, error) {
+func (client *UCloudClient) describeDBParameterGroupByIdAndZone(paramGroupId, zone string) (*udb.UDBParamGroupSet, error) {
 	req := client.udbconn.NewDescribeUDBParamGroupRequest()
 	req.Zone = ucloud.String(zone)
 	pgId, err := strconv.Atoi(paramGroupId)
