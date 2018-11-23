@@ -1,9 +1,9 @@
 ---
 layout: "ucloud"
-page_title: "UCloud: ucloud_kvstore_instance"
-sidebar_current: "docs-ucloud-resource-kvstore-instance"
+page_title: "UCloud: ucloud_kvstore_slave"
+sidebar_current: "docs-ucloud-resource-kvstore-slave"
 description: |-
-  Provides an KVStore Instance resource.
+  Provides an KVStore slave resource.
 ---
 
 # ucloud_kvstore_slave
