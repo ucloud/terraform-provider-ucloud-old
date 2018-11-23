@@ -3,7 +3,9 @@ package ucloud
 import (
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/ucloud/ucloud-sdk-go/services/udb"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 	uerr "github.com/ucloud/ucloud-sdk-go/ucloud/error"
@@ -71,4 +73,30 @@ func (client *UCloudClient) describeDBBackupByIdAndZone(backupId, zone string) (
 	}
 
 	return &resp.DataSet[0], nil
+}
+
+func (client *UCloudClient) dbWaitForState(dbId, target string) *resource.StateChangeConf {
+	return &resource.StateChangeConf{
+		Pending:    []string{"pending"},
+		Target:     []string{target},
+		Timeout:    5 * time.Minute,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			db, err := client.describeDBInstanceById(dbId)
+			if err != nil {
+				if isNotFoundError(err) {
+					return nil, "pending", nil
+				}
+				return nil, "", err
+			}
+
+			state := db.State
+			if state != target {
+				state = "pending"
+			}
+
+			return db, state, nil
+		},
+	}
 }

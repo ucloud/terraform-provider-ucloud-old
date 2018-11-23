@@ -117,7 +117,7 @@ func dataSourceUCloudDBBackups() *schema.Resource {
 							Computed: true,
 						},
 
-						"backup_time": &schema.Schema{
+						"backup_begin_time": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -248,17 +248,17 @@ func dataSourceUCloudDBBackupsSave(d *schema.ResourceData, backups []udb.UDBBack
 	for _, backup := range backups {
 		ids = append(ids, strconv.Itoa(backup.BackupId))
 		data = append(data, map[string]interface{}{
-			"id":              backup.BackupId,
-			"name":            backup.BackupName,
-			"backup_size":     backup.BackupSize,
-			"backup_type":     backup.BackupType,
-			"status":          backup.State,
-			"db_id":           backup.DBId,
-			"db_name":         backup.DBName,
-			"zone":            backup.Zone,
-			"backup_zone":     backup.BackupZone,
-			"backup_time":     timestampToString(backup.BackupTime),
-			"backup_end_time": timestampToString(backup.BackupEndTime),
+			"id":                backup.BackupId,
+			"name":              backup.BackupName,
+			"backup_size":       backup.BackupSize,
+			"backup_type":       backup.BackupType,
+			"status":            backup.State,
+			"db_id":             backup.DBId,
+			"db_name":           backup.DBName,
+			"zone":              backup.Zone,
+			"backup_zone":       backup.BackupZone,
+			"backup_begin_time": timestampToString(backup.BackupTime),
+			"backup_end_time":   timestampToString(backup.BackupEndTime),
 		})
 	}
 

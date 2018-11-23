@@ -80,6 +80,7 @@ func Provider() terraform.ResourceProvider {
 			"ucloud_security_group":         resourceUCloudSecurityGroup(),
 			"ucloud_db_instance":            resourceUCloudDBInstance(),
 			"ucloud_db_param_group":         resourceUCloudDBParamGroup(),
+			"ucloud_db_slave":               resourceUCloudDBSlave(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

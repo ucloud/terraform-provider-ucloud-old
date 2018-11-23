@@ -54,9 +54,8 @@ func TestAccUCloudDBInstance_basic(t *testing.T) {
 	})
 }
 
-func TestAccUCloudDBInstance_slave(t *testing.T) {
+func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 	var db udb.UDBInstanceSet
-	var dbTwo udb.UDBInstanceSet
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -69,36 +68,30 @@ func TestAccUCloudDBInstance_slave(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccDBInstanceConfigSlave,
+				Config: testAccDBInstanceConfigPgsql,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &dbTwo),
-					testAccCheckDBInstanceAttributes(&dbTwo),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-master"),
-					testAccCheckDBInstanceExists("ucloud_db_instance.bar", &db),
+					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "name", "tf-testDBInstance-slave"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsql"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
 			},
 
 			resource.TestStep{
-				Config: testAccDBInstanceConfigSlavePromote,
+				Config: testAccDBInstanceConfigPgsqlTwo,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &dbTwo),
-					testAccCheckDBInstanceAttributes(&dbTwo),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-master"),
-					testAccCheckDBInstanceExists("ucloud_db_instance.bar", &db),
+					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "name", "tf-testDBInstance-promote"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.bar", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsqlUpdate"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
 			},
 		},
@@ -159,7 +152,7 @@ func testAccCheckDBInstanceDestroy(s *terraform.State) error {
 		}
 
 		if d.DBId != "" {
-			return fmt.Errorf("udb instance still exist")
+			return fmt.Errorf("db instance still exist")
 		}
 	}
 
@@ -185,7 +178,7 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `
 const testAccDBInstanceConfigTwo = `
@@ -207,73 +200,50 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `
-const testAccDBInstanceConfigSlave = `
+const testAccDBInstanceConfigPgsql = `
 data "ucloud_zones" "default" {
 }
 
 data "ucloud_db_param_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
-	engine = "mysql"
-	engine_version = "5.7"
+	engine = "postgresql"
+	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBInstance-master"
+	name = "tf-testDBInstance-pgsql"
 	instance_storage = 20
-	instance_type = "mysql-ha-1"
-	engine = "mysql"
-	engine_version = "5.7"
+	instance_type = "postgresql-basic-1"
+	engine = "postgresql"
+	engine_version = "9.6"
 	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
-}
-
-resource "ucloud_db_instance" "bar" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBInstance-slave"
-	instance_storage = 20
-	instance_type = "mysql-basic-1"
-	engine = "mysql"
-	engine_version = "5.7"
-	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
-	master_id = "${ucloud_db_instance.foo.id}"
+	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `
-const testAccDBInstanceConfigSlavePromote = `
+const testAccDBInstanceConfigPgsqlTwo = `
 data "ucloud_zones" "default" {
 }
 
 data "ucloud_db_param_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
-	engine = "mysql"
-	engine_version = "5.7"
+	engine = "postgresql"
+	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBInstance-master"
-	instance_storage = 20
-	instance_type = "mysql-ha-1"
-	engine = "mysql"
-	engine_version = "5.7"
+	name = "tf-testDBInstance-pgsqlUpdate"
+	instance_storage = 30
+	instance_type = "postgresql-basic-2"
+	engine = "postgresql"
+	engine_version = "9.6"
 	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
-}
-
-resource "ucloud_db_instance" "bar" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-testDBInstance-promote"
-	instance_storage = 20
-	instance_type = "mysql-basic-1"
-	engine = "mysql"
-	engine_version = "5.7"
-	password = "2018_UClou"
-	param_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
 }
 `

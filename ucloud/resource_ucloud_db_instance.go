@@ -34,22 +34,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"master_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"is_lock": &schema.Schema{
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"is_force": &schema.Schema{
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"password": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -66,7 +50,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 
 			"engine_version": &schema.Schema{
 				Type:         schema.TypeString,
-				ValidateFunc: validateStringInChoices([]string{"5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4"}),
+				ValidateFunc: validateStringInChoices([]string{"5.5", "5.6", "5.7", "9.4", "9.6"}),
 				ForceNew:     true,
 				Required:     true,
 			},
@@ -83,7 +67,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ValidateFunc: validateDataDiskSize(20, 3000),
 			},
 
-			"param_group_id": &schema.Schema{
+			"parameter_group_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -140,7 +124,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"backup_time": &schema.Schema{
+			"backup_begin_time": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1,
@@ -181,11 +165,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"role": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -202,123 +181,96 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if dbType.Engine == "postgresql" && dbType.Type == "ha" {
-		return fmt.Errorf("error in create db instance, high availability of postgresql is not supported at this time")
+		return fmt.Errorf("error in create db instance, high availability postgresql is not supported at this time")
 	}
 
-	masterId, slaveOk := d.GetOk("master_id")
-	if !slaveOk {
-		req := conn.NewCreateUDBInstanceRequest()
-		req.Name = ucloud.String(d.Get("name").(string))
-		req.AdminPassword = ucloud.String(d.Get("password").(string))
-		req.Zone = ucloud.String(d.Get("availability_zone").(string))
-		engineVersion := d.Get("engine_version").(string)
-		req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
-		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-		req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
-		req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
-		req.AdminUser = ucloud.String("root")
-		req.InstanceType = ucloud.String("SATA_SSD")
-		req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
-		req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
-
-		if val, ok := d.GetOk("port"); ok {
-			req.Port = ucloud.Int(val.(int))
-		} else {
-			if engine == "mysql" || engine == "percona" {
-				req.Port = ucloud.Int(3306)
-			}
-			if engine == "postgresql" {
-				req.Port = ucloud.Int(5432)
-			}
+	req := conn.NewCreateUDBInstanceRequest()
+	req.Name = ucloud.String(d.Get("name").(string))
+	req.AdminPassword = ucloud.String(d.Get("password").(string))
+	zone := d.Get("availability_zone").(string)
+	req.Zone = ucloud.String(zone)
+	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
+	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
+	req.AdminUser = ucloud.String("root")
+	req.InstanceType = ucloud.String("SATA_SSD")
+	req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
+	req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
+	engineVersion := d.Get("engine_version").(string)
+	if engine == "mysql" || engine == "percona" {
+		if err := checkStringIn(engineVersion, []string{"5.5", "5.6", "5.7"}); err != nil {
+			return fmt.Errorf("The current engine version is not supported, %s", err)
 		}
-
-		if val, ok := d.GetOk("backup_count"); ok {
-			req.BackupCount = ucloud.Int(val.(int))
+	} else {
+		if err := checkStringIn(engineVersion, []string{"9.4", "9.6"}); err != nil {
+			return fmt.Errorf("The current engine version is not supported, %s", err)
 		}
+	}
+	req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
 
-		if val, ok := d.GetOk("backup_time"); ok {
-			req.BackupTime = ucloud.Int(val.(int))
+	if val, ok := d.GetOk("port"); ok {
+		req.Port = ucloud.Int(val.(int))
+	} else {
+		if engine == "mysql" || engine == "percona" {
+			req.Port = ucloud.Int(3306)
 		}
-
-		if val, ok := d.GetOk("backup_duration"); ok {
-			req.BackupDuration = ucloud.Int(val.(int))
+		if engine == "postgresql" {
+			req.Port = ucloud.Int(5432)
 		}
+	}
 
-		if val, ok := d.GetOk("backup_id"); ok {
-			backupId, err := strconv.Atoi(val.(string))
-			if err != nil {
-				return err
-			}
-			req.BackupId = ucloud.Int(backupId)
+	if val, ok := d.GetOk("backup_zone"); ok {
+		if val.(string) != zone {
+			req.BackupZone = ucloud.String(val.(string))
 		}
+	}
 
-		if val, ok := d.GetOk("vpc_id"); ok {
-			req.VPCId = ucloud.String(val.(string))
-		}
+	if val, ok := d.GetOk("backup_count"); ok {
+		req.BackupCount = ucloud.Int(val.(int))
+	}
 
-		if val, ok := d.GetOk("subnet_id"); ok {
-			req.SubnetId = ucloud.String(val.(string))
-		}
+	if val, ok := d.GetOk("backup_begin_time"); ok {
+		req.BackupTime = ucloud.Int(val.(int))
+	}
 
-		pgId, err := strconv.Atoi(d.Get("param_group_id").(string))
+	if val, ok := d.GetOk("backup_duration"); ok {
+		req.BackupDuration = ucloud.Int(val.(int))
+	}
+
+	if val, ok := d.GetOk("backup_id"); ok {
+		backupId, err := strconv.Atoi(val.(string))
 		if err != nil {
 			return err
 		}
-		req.ParamGroupId = ucloud.Int(pgId)
+		req.BackupId = ucloud.Int(backupId)
+	}
 
-		resp, err := conn.CreateUDBInstance(req)
-		if err != nil {
-			return fmt.Errorf("error in create db instance, %s", err)
-		}
+	if val, ok := d.GetOk("vpc_id"); ok {
+		req.VPCId = ucloud.String(val.(string))
+	}
 
-		d.SetId(resp.DBId)
+	if val, ok := d.GetOk("subnet_id"); ok {
+		req.SubnetId = ucloud.String(val.(string))
+	}
 
-		// after create db, we need to wait it initialized
-		stateConf := dbWaitForState(client, d.Id(), "Running")
+	pgId, err := strconv.Atoi(d.Get("parameter_group_id").(string))
+	if err != nil {
+		return err
+	}
+	req.ParamGroupId = ucloud.Int(pgId)
 
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for db initialize failed in create db %s, %s", d.Id(), err)
-		}
-	} else {
-		req := conn.NewCreateUDBSlaveRequest()
+	resp, err := conn.CreateUDBInstance(req)
+	if err != nil {
+		return fmt.Errorf("error in create db instance, %s", err)
+	}
 
-		req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
-		req.SrcId = ucloud.String(masterId.(string))
-		req.Name = ucloud.String(d.Get("name").(string))
-		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-		req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
-		req.InstanceType = ucloud.String("SATA_SSD")
+	d.SetId(resp.DBId)
 
-		if val, ok := d.GetOk("port"); ok {
-			req.Port = ucloud.Int(val.(int))
-		} else {
-			if engine == "mysql" || engine == "percona" {
-				req.Port = ucloud.Int(3306)
-			}
-			if engine == "postgresql" {
-				req.Port = ucloud.Int(5432)
-			}
-		}
+	// after create db, we need to wait it initialized
+	stateConf := client.dbWaitForState(d.Id(), "Running")
 
-		if val, ok := d.GetOk("is_lock"); ok {
-			req.IsLock = ucloud.Bool(val.(bool))
-		}
-
-		resp, err := conn.CreateUDBSlave(req)
-
-		if err != nil {
-			return fmt.Errorf("error in create slave db, %s", err)
-		}
-
-		d.SetId(resp.DBId)
-
-		// after create db, we need to wait it initialized
-		stateConf := dbWaitForState(client, d.Id(), "Running")
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for slave db initialize failed in create slave db %s, %s", d.Id(), err)
-		}
-
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("wait for db initialize failed in create db %s, %s", d.Id(), err)
 	}
 
 	return resourceUCloudDBInstanceUpdate(d, meta)
@@ -341,7 +293,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		// after update db name, we need to wait it completed
-		stateConf := dbWaitForState(client, d.Id(), "Running")
+		stateConf := client.dbWaitForState(d.Id(), "Running")
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for update db name failed in update db %s, %s", d.Id(), err)
@@ -359,7 +311,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		// after update db password, we need to wait it completed
-		stateConf := dbWaitForState(client, d.Id(), "Running")
+		stateConf := client.dbWaitForState(d.Id(), "Running")
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for update db password failed in update db %s, %s", d.Id(), err)
@@ -401,43 +353,74 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if isChanged {
+		db, err := client.describeDBInstanceById(d.Id())
+		if err != nil {
+			if isNotFoundError(err) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("do %s failed in update db instance %s, %s", "DescribeUDBInstance", d.Id(), err)
+		}
+
+		if db.InstanceMode == "Normal" {
+			//update these attributes of db instance, we need to wait it stopped
+			stopReq := conn.NewStopUDBInstanceRequest()
+			stopReq.DBId = ucloud.String(d.Id())
+			stopReq.Zone = ucloud.String(d.Get("availability_zone").(string))
+			if db.State != "Shutoff" {
+				_, err := conn.StopUDBInstance(stopReq)
+
+				if err != nil {
+					return fmt.Errorf("do %s failed in update db instance %s, %s", "StopUDBInstance", d.Id(), err)
+				}
+
+				// after stop db instance, we need to wait it stopped
+				stateConf := client.dbWaitForState(d.Id(), "Shutoff")
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("wait for stop db instance failed in update db instance %s, %s", d.Id(), err)
+				}
+			}
+
+			if _, err := conn.ResizeUDBInstance(req); err != nil {
+				return fmt.Errorf("do %s failed in update db instance %s, %s", "ResizeUDBInstance", d.Id(), err)
+			}
+
+			// after resize db instance, we need to wait it completed
+			stateConf := client.dbWaitForState(d.Id(), "Shutoff")
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("wait for resize db instance failed in update db %s, %s", d.Id(), err)
+			}
+
+			// after update these attributes of db instance, we need to wait it started
+			startReq := conn.NewStartUDBInstanceRequest()
+			startReq.DBId = ucloud.String(d.Id())
+			startReq.Zone = ucloud.String(d.Get("availability_zone").(string))
+
+			_, err = conn.StartUDBInstance(startReq)
+
+			if err != nil {
+				return fmt.Errorf("do %s failed in update db instance %s, %s", "StartUDBInstance", d.Id(), err)
+			}
+
+			// after db instance update, we need to wait it started
+			stateConf = client.dbWaitForState(d.Id(), "Running")
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("wait for start db instance failed in update db instance %s, %s", d.Id(), err)
+			}
+		}
 
 		if _, err := conn.ResizeUDBInstance(req); err != nil {
 			return fmt.Errorf("do %s failed in update db %s, %s", "ResizeUDBInstance", d.Id(), err)
 		}
 
 		// after resize db instance, we need to wait it completed
-		stateConf := dbWaitForState(client, d.Id(), "Running")
+		stateConf := client.dbWaitForState(d.Id(), "Running")
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for resize db instance failed in update db %s, %s", d.Id(), err)
-		}
-	}
-
-	if d.HasChange("master_id") && !d.IsNewResource() {
-		d.SetPartial("master_id")
-		old, new := d.GetChange("master_id")
-		if old.(string) == "" {
-			return fmt.Errorf("the master db cannot be reduced to the slave db")
-		}
-
-		if new.(string) != "" {
-			return fmt.Errorf("the master id can only be updated to %s, got %s", "", new.(string))
-		}
-
-		req := conn.NewPromoteUDBSlaveRequest()
-		req.DBId = ucloud.String(d.Id())
-		req.IsForce = ucloud.Bool(d.Get("is_force").(bool))
-
-		if _, err := conn.PromoteUDBSlave(req); err != nil {
-			return fmt.Errorf("do %s failed in update db %s, %s", "PromoteUDBSlave", d.Id(), err)
-		}
-
-		// after promote slave db to master db, we need to wait it completed
-		stateConf := dbWaitForState(client, d.Id(), "Running")
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for promote slave db failed in update db %s, %s", d.Id(), err)
 		}
 	}
 
@@ -451,9 +434,9 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		backupChanged = true
 	}
 
-	if d.HasChange("backup_time") && !d.IsNewResource() {
-		d.SetPartial("backup_time")
-		buReq.BackupTime = ucloud.Int(d.Get("backup_time").(int))
+	if d.HasChange("backup_begin_time") && !d.IsNewResource() {
+		d.SetPartial("backup_begin_time")
+		buReq.BackupTime = ucloud.Int(d.Get("backup_begin_time").(int))
 		backupChanged = true
 	}
 
@@ -463,7 +446,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		}
 
 		// after update db backup strategy, we need to wait it completed
-		stateConf := dbWaitForState(client, d.Id(), "Running")
+		stateConf := client.dbWaitForState(d.Id(), "Running")
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for update db backup strategy failed in update db %s, %s", d.Id(), err)
@@ -502,15 +485,13 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("name", db.Name)
 	d.Set("engine", arr[0])
 	d.Set("engine_version", arr[1])
-	d.Set("param_group_id", strconv.Itoa(db.ParamGroupId))
+	d.Set("parameter_group_id", strconv.Itoa(db.ParamGroupId))
 	d.Set("port", db.Port)
 	d.Set("status", db.State)
 	d.Set("instance_charge_type", db.ChargeType)
 	d.Set("instance_storage", db.DiskSpace)
-	d.Set("role", db.Role)
 	d.Set("backup_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
-	d.Set("instance_charge_type", db.ChargeType)
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
@@ -548,50 +529,24 @@ func resourceUCloudDBInstanceDelete(d *schema.ResourceData, meta interface{}) er
 			}
 
 			// after instance stop, we need to wait it stoped
-			stateConf := dbWaitForState(client, d.Id(), "Shutoff")
+			stateConf := client.dbWaitForState(d.Id(), "Shutoff")
 
 			if _, err := stateConf.WaitForState(); err != nil {
-				return resource.RetryableError(fmt.Errorf("wait for db instance stop failed in delete db %s, %s", d.Id(), err))
+				return resource.RetryableError(fmt.Errorf("wait for db instance stop failed in delete db instance %s, %s", d.Id(), err))
 			}
 		}
 
 		if _, err := conn.DeleteUDBInstance(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete db %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error in delete db instance %s, %s", d.Id(), err))
 		}
 
 		if _, err := client.describeDBInstanceById(d.Id()); err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete db %s, %s", "DescribeUDBInstance", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete db instance %s, %s", "DescribeUDBInstance", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete db but it still exists"))
+		return resource.RetryableError(fmt.Errorf("delete db instance but it still exists"))
 	})
-}
-
-func dbWaitForState(client *UCloudClient, dbId, target string) *resource.StateChangeConf {
-	return &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{target},
-		Timeout:    5 * time.Minute,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			db, err := client.describeDBInstanceById(dbId)
-			if err != nil {
-				if isNotFoundError(err) {
-					return nil, "pending", nil
-				}
-				return nil, "", err
-			}
-
-			state := db.State
-			if state != target {
-				state = "pending"
-			}
-
-			return db, state, nil
-		},
-	}
 }
