@@ -260,3 +260,15 @@ func validateDBParamGroupName(v interface{}, k string) (ws []string, errors []er
 
 	return
 }
+
+var dbInstanceBlackListPattern = regexp.MustCompile(`^[^.%]+.([^.%]+|%)$`)
+
+func validateDBInstanceBlackList(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !dbInstanceBlackListPattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should like 'db.%' or 'dbname.tablename', got %q", k, value))
+	}
+
+	return
+}

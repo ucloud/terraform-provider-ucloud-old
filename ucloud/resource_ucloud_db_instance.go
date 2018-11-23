@@ -142,8 +142,16 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"backup_black_list": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateDBInstanceBlackList,
+			},
+
+			"tag": &schema.Schema{
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateInstanceName,
+				Computed:     true,
 			},
 
 			"status": &schema.Schema{
@@ -207,6 +215,10 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 	req.DBTypeId = ucloud.String(strings.Join([]string{engine, engineVersion}, "-"))
+
+	// if val, ok := d.GetOk("tag"); ok {
+	// 	req.Tag = ucloud.String(val.(string))
+	// }
 
 	if val, ok := d.GetOk("port"); ok {
 		req.Port = ucloud.Int(val.(int))
@@ -492,6 +504,7 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("instance_storage", db.DiskSpace)
 	d.Set("backup_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
+	//d.Set("tag", db.Tag)
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))

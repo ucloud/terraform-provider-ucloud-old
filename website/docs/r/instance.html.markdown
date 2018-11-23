@@ -93,7 +93,7 @@ The following arguments are supported:
 * `remark` - (Optional) The remarks of instance,the default value is "".
 * `security_group` - (Optional) The ID of the associated security group.
 * `subnet_id` - (Optional) The ID of subnet.
-* `tag` - (Optional) A mapping of tags to assign to the instance. The default value is "Default" (means no tag assigned).
+* `tag` - (Optional) A mapping of tags to assign to the instance. The default value is "Default" (means no tag assigned), should have 1 - 63 characters and only support chinese, english, numbers, '-', '_', '.'.
 * `vpc_id` - (Optional) The ID of VPC linked to the instances.
 
 ## Attributes Reference

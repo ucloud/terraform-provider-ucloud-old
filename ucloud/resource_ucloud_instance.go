@@ -109,9 +109,10 @@ func resourceUCloudInstance() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateInstanceName,
+				Computed:     true,
 			},
 
 			"security_group": &schema.Schema{
