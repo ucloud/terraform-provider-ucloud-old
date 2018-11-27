@@ -10,7 +10,7 @@ description: |-
 
 Provides a DB param group resource.
 ~> 使用限制 当通过 DB param group id来查询配置参数时，availability zone 参数必填; 对于单可用区配置文件ParamGroupId只在当前可用区唯一，多可用区配置文件在当前region唯一。 
-~> Note The "availability zone" is mandatory required when querying parameter group via calling "ParamGroupId"；the "ParamGroupId" is unique in the current availability zone for single availability zone param groups, and it is also unique in the current region for cross availability zone param groups.
+~> Note The "availability zone" is mandatory required when querying parameter group via calling "ParamGroupId"；the "ParamGroupId" is unique in the current availability zone for single availability zone param groups, and it is also unique in the current region for multiple zones param groups.
 ## Example Usage
 
 ## Argument Reference
@@ -26,7 +26,7 @@ The following arguments are supported:
 * `engine` - (Required) Database type, possible values are: "mysql", "percona", "postgresql".
 * `engine_version` - (Required) The database engine version, possible values are: "5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4".
 * `region_flag` - (Optional) 当请求没有填写Zone时，如果指定为true，表示只拉取跨可用区的相关配置文件，否则，拉取所有机房的配置文件（包括每个单可用区和跨可用区）
-* `region_flag` - (Optional) Possible values are " true" and "false", when "availability_zone" is not included in the request, only the cross-availability zone DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and cross-availability zone).
+* `region_flag` - (Optional) Possible values are " true" and "false", when "availability_zone" is not included in the request, only the multiple zones DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and multiple zones).
 * `parameter_input` - (Optional) parameter input is a nested type. parameter input documented below.
 
 The attribute (`parameter_input`) support the following:
