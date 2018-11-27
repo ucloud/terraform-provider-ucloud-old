@@ -98,6 +98,60 @@ func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 	})
 }
 
+func TestAccUCloudDBInstance_backup(t *testing.T) {
+	var db udb.UDBInstanceSet
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+		},
+
+		IDRefreshName: "ucloud_db_instance.foo",
+		Providers:     testAccProviders,
+		CheckDestroy:  testAccCheckDBInstanceDestroy,
+
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccDBInstanceConfigBackup,
+
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
+					testAccCheckDBInstanceAttributes(&db),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-backup"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "4"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_duration", "10"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "1111001"),
+				),
+			},
+
+			resource.TestStep{
+				Config: testAccDBInstanceConfigBackupTwo,
+
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
+					testAccCheckDBInstanceAttributes(&db),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-backupUpdate"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "mysql-ha-1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "mysql"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "5"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_duration", "10"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "city.address"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "0001111"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDBInstanceExists(n string, db *udb.UDBInstanceSet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -245,5 +299,60 @@ resource "ucloud_db_instance" "foo" {
 	engine_version = "9.6"
 	password = "2018_UClou"
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
+}
+`
+
+const testAccDBInstanceConfigBackup = `
+data "ucloud_zones" "default" {
+}
+
+data "ucloud_db_parameter_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
+resource "ucloud_db_instance" "foo" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	name = "tf-testDBInstance-backup"
+	instance_storage = 20
+	instance_type = "mysql-ha-1"
+	engine = "mysql"
+	engine_version = "5.7"
+	password = "2018_UClou"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
+	backup_begin_time = 4
+	backup_count = 6
+	backup_duration = 10
+	backup_black_list = "test.%"
+	backup_date = "1111001"
+}
+`
+const testAccDBInstanceConfigBackupTwo = `
+data "ucloud_zones" "default" {
+}
+
+data "ucloud_db_parameter_groups" "default" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	region_flag = "false"
+	engine = "mysql"
+	engine_version = "5.7"
+}
+
+resource "ucloud_db_instance" "foo" {
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	name = "tf-testDBInstance-backupUpdate"
+	instance_storage = 30
+	instance_type = "mysql-ha-2"
+	engine = "mysql"
+	engine_version = "5.7"
+	password = "2018_UClou"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
+	backup_begin_time = 5
+	backup_count = 6
+	backup_duration = 10
+	backup_black_list = "test.%"
+	backup_date = "0001111"
 }
 `

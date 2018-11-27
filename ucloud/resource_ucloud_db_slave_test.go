@@ -118,7 +118,7 @@ const testAccDBSlaveConfig = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
@@ -133,7 +133,7 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 
 resource "ucloud_db_slave" "foo" {
@@ -142,7 +142,7 @@ resource "ucloud_db_slave" "foo" {
 	instance_storage = 20
 	instance_type = "mysql-basic-1"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	master_id = "${ucloud_db_instance.foo.id}"
 }
 `
@@ -150,7 +150,7 @@ const testAccDBSlaveConfigTwo = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
@@ -165,7 +165,7 @@ resource "ucloud_db_instance" "foo" {
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 
 resource "ucloud_db_slave" "foo" {
@@ -174,7 +174,7 @@ resource "ucloud_db_slave" "foo" {
 	instance_storage = 30
 	instance_type = "mysql-basic-2"
 	password = "2018_UClou"
-	parameter_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	master_id = "${ucloud_db_instance.foo.id}"
 }
 `

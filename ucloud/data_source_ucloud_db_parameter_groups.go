@@ -96,7 +96,7 @@ func dataSourceUCloudDBParameterGroups() *schema.Resource {
 							Computed: true,
 						},
 
-						"param_member": &schema.Schema{
+						"parameter_member": &schema.Schema{
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -135,7 +135,7 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 	conn := client.udbconn
 	var fetched []udb.UDBParamGroupSet
 	var filtered []udb.UDBParamGroupSet
-	var paramGroups []udb.UDBParamGroupSet
+	var parameterGroups []udb.UDBParamGroupSet
 	var totalCount int
 	limit := 100
 	offset := 0
@@ -153,7 +153,7 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 			}
 
 			totalCount++
-			paramGroups = append(paramGroups, *dbPg)
+			parameterGroups = append(parameterGroups, *dbPg)
 		}
 	} else {
 		for {
@@ -202,14 +202,14 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 				continue
 			}
 
-			paramGroups = append(paramGroups, item)
+			parameterGroups = append(parameterGroups, item)
 			totalCount++
 		}
 	}
 
 	d.Set("total_count", totalCount)
 
-	err := dataSourceUCloudDBParameterGroupsSave(d, paramGroups)
+	err := dataSourceUCloudDBParameterGroupsSave(d, parameterGroups)
 	if err != nil {
 		return fmt.Errorf("error in read parameter groups, %s", err)
 	}
@@ -217,7 +217,7 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, paramGroups []udb.UDBParamGroupSet) error {
+func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, parameterGroups []udb.UDBParamGroupSet) error {
 	ids := []string{}
 	data := []map[string]interface{}{}
 	valueType := make(map[int]string)
@@ -225,11 +225,11 @@ func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, paramGroups [
 	valueType[10] = "int"
 	valueType[20] = "string"
 	valueType[30] = "bool"
-	for _, paramGroup := range paramGroups {
-		ids = append(ids, strconv.Itoa(paramGroup.GroupId))
-		paramMember := []map[string]interface{}{}
-		for _, item := range paramGroup.ParamMember {
-			paramMember = append(paramMember, map[string]interface{}{
+	for _, parameterGroup := range parameterGroups {
+		ids = append(ids, strconv.Itoa(parameterGroup.GroupId))
+		parameterMember := []map[string]interface{}{}
+		for _, item := range parameterGroup.ParamMember {
+			parameterMember = append(parameterMember, map[string]interface{}{
 				"key":           item.Key,
 				"value":         item.Value,
 				"value_type":    valueType[item.ValueType],
@@ -237,20 +237,20 @@ func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, paramGroups [
 			})
 		}
 
-		arr := strings.Split(paramGroup.DBTypeId, "-")
+		arr := strings.Split(parameterGroup.DBTypeId, "-")
 		data = append(data, map[string]interface{}{
-			"id":             strconv.Itoa(paramGroup.GroupId),
-			"name":           paramGroup.GroupName,
-			"engine":         arr[0],
-			"engine_version": arr[1],
-			"description":    paramGroup.Description,
-			"modifiable":     paramGroup.Modifiable,
-			"param_member":   paramMember,
+			"id":               strconv.Itoa(parameterGroup.GroupId),
+			"name":             parameterGroup.GroupName,
+			"engine":           arr[0],
+			"engine_version":   arr[1],
+			"description":      parameterGroup.Description,
+			"modifiable":       parameterGroup.Modifiable,
+			"parameter_member": parameterMember,
 		})
 	}
 
 	d.SetId(hashStringArray(ids))
-	if err := d.Set("param_groups", data); err != nil {
+	if err := d.Set("parameter_groups", data); err != nil {
 		return err
 	}
 

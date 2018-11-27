@@ -28,7 +28,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"backup_zone": &schema.Schema{
+			"standby_zone": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -231,7 +231,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if val, ok := d.GetOk("backup_zone"); ok {
+	if val, ok := d.GetOk("standby_zone"); ok {
 		if val.(string) != zone {
 			req.BackupZone = ucloud.String(val.(string))
 		}
@@ -441,8 +441,8 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	buReq.DBId = ucloud.String(d.Id())
 
 	if d.HasChange("backup_date") {
-		d.SetPartial("backup_count")
-		buReq.BackupDate = ucloud.String(d.Get("backup_count").(string))
+		d.SetPartial("backup_date")
+		buReq.BackupDate = ucloud.String(d.Get("backup_date").(string))
 		backupChanged = true
 	}
 
@@ -502,14 +502,13 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("status", db.State)
 	d.Set("instance_charge_type", db.ChargeType)
 	d.Set("instance_storage", db.DiskSpace)
-	d.Set("backup_zone", db.BackupZone)
+	d.Set("standby_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
 	d.Set("backup_count", db.BackupCount)
 	d.Set("backup_duration", db.BackupDuration)
 	d.Set("backup_begin_time", db.BackupBeginTime)
 	d.Set("backup_date", db.BackupDate)
 	d.Set("black_list", db.BackupBlacklist)
-	d.Set("backup_zone", db.BackupZone)
 	// d.Set("vpc_id", db.VPCId)
 	// d.Set("subnet_id", db.SubnetId)
 
