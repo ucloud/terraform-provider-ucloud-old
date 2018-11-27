@@ -18,7 +18,7 @@ func TestAccUCloudDBParameterGroup_basic(t *testing.T) {
 			testAccPreCheck(t)
 		},
 
-		IDRefreshName: "ucloud_db_param_group.foo",
+		IDRefreshName: "ucloud_db_parameter_group.foo",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckDBParameterGroupDestroy,
 
@@ -27,12 +27,12 @@ func TestAccUCloudDBParameterGroup_basic(t *testing.T) {
 				Config: testAccDBParameterGroupConfigBasic,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBParameterGroupExists("ucloud_db_param_group.foo", &dbPg),
+					testAccCheckDBParameterGroupExists("ucloud_db_parameter_group.foo", &dbPg),
 					testAccCheckDBParameterGroupAttributes(&dbPg),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParameterGroup-basic"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "description", "this is a test"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "name", "tf-testDBParameterGroup-basic"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "description", "this is a test"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "engine", "mysql"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "engine_version", "5.7"),
 				),
 			},
 		},
@@ -47,7 +47,7 @@ func TestAccUCloudDBParameterGroup_key(t *testing.T) {
 			testAccPreCheck(t)
 		},
 
-		IDRefreshName: "ucloud_db_param_group.foo",
+		IDRefreshName: "ucloud_db_parameter_group.foo",
 		Providers:     testAccProviders,
 		CheckDestroy:  testAccCheckDBParameterGroupDestroy,
 
@@ -56,12 +56,12 @@ func TestAccUCloudDBParameterGroup_key(t *testing.T) {
 				Config: testAccDBParameterGroupConfigKey,
 
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDBParameterGroupExists("ucloud_db_param_group.foo", &dbPg),
+					testAccCheckDBParameterGroupExists("ucloud_db_parameter_group.foo", &dbPg),
 					testAccCheckDBParameterGroupAttributes(&dbPg),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "name", "tf-testDBParameterGroup-key"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "description", "this is a test"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine", "mysql"),
-					resource.TestCheckResourceAttr("ucloud_db_param_group.foo", "engine_version", "5.7"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "name", "tf-testDBParameterGroup-key"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "description", "this is a test"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "engine", "mysql"),
+					resource.TestCheckResourceAttr("ucloud_db_parameter_group.foo", "engine_version", "5.7"),
 				),
 			},
 		},
@@ -136,17 +136,17 @@ const testAccDBParameterGroupConfigBasic = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
 
-resource "ucloud_db_param_group" "foo" {
+resource "ucloud_db_parameter_group" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBParameterGroup-basic"
-	src_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	src_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	description = "this is a test"
 	engine = "mysql"
 	engine_version = "5.7"
@@ -157,18 +157,18 @@ const testAccDBParameterGroupConfigKey = `
 data "ucloud_zones" "default" {
 }
 
-data "ucloud_db_param_groups" "default" {
+data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
 
-resource "ucloud_db_param_group" "foo" {
+resource "ucloud_db_parameter_group" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBParameterGroup-key"
 	description = "this is a test"
-	src_group_id = "${data.ucloud_db_param_groups.default.param_groups.0.id}"
+	src_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	engine = "mysql"
 	engine_version = "5.7"
 	parameter_input {
