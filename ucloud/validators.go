@@ -265,9 +265,11 @@ var dbInstanceBlackListPattern = regexp.MustCompile(`^[^.%]+.([^.%]+|%)$`)
 
 func validateDBInstanceBlackList(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
-
-	if !dbInstanceBlackListPattern.MatchString(value) {
-		errors = append(errors, fmt.Errorf("%q is invalid, should like %q or %q, got %q", k, "db.%", "dbname.tablename", value))
+	arr := strings.Split(value, ";")
+	for _, val := range arr {
+		if !dbInstanceBlackListPattern.MatchString(val) {
+			errors = append(errors, fmt.Errorf("%q is invalid, should like %q or %q, multiple black lists link with %q, got %q", k, "db.%", "dbname.tablename", ";", value))
+		}
 	}
 
 	return

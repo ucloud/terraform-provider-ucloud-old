@@ -117,13 +117,6 @@ func resourceUCloudDBInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"backup_duration": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  24,
-				ForceNew: true,
-			},
-
 			"backup_begin_time": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -133,6 +126,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 			"backup_date": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"backup_id": &schema.Schema{
@@ -144,6 +138,7 @@ func resourceUCloudDBInstance() *schema.Resource {
 			"backup_black_list": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateDBInstanceBlackList,
 			},
 
@@ -197,12 +192,25 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	req.AdminPassword = ucloud.String(d.Get("password").(string))
 	zone := d.Get("availability_zone").(string)
 	req.Zone = ucloud.String(zone)
-	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+	instanceStorage := d.Get("instance_storage").(int)
+	req.DiskSpace = ucloud.Int(instanceStorage)
+	memory := dbType.Memory * 1000
+	if memory <= 8 && instanceStorage > 500 {
+		return fmt.Errorf("the upper limit of instance storage is 500 when the memory is 8 or less")
+	}
+
+	if memory <= 24 && instanceStorage > 1000 {
+		return fmt.Errorf("the upper limit of instance storage is 1000 when the memory between 12 and 24")
+	}
+
+	if memory <= 32 && instanceStorage > 2000 {
+		return fmt.Errorf("the upper limit of instance storage is 2000 when the memory is 48 or more")
+	}
 	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
 	req.AdminUser = ucloud.String("root")
 	req.InstanceType = ucloud.String("SATA_SSD")
-	req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
+	req.MemoryLimit = ucloud.Int(memory)
 	req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
 	engineVersion := d.Get("engine_version").(string)
 	if engine == "mysql" || engine == "percona" {
@@ -239,14 +247,6 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 
 	if val, ok := d.GetOk("backup_count"); ok {
 		req.BackupCount = ucloud.Int(val.(int))
-	}
-
-	if val, ok := d.GetOk("backup_begin_time"); ok {
-		req.BackupTime = ucloud.Int(val.(int))
-	}
-
-	if val, ok := d.GetOk("backup_duration"); ok {
-		req.BackupDuration = ucloud.Int(val.(int))
 	}
 
 	if val, ok := d.GetOk("backup_id"); ok {
@@ -446,7 +446,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		backupChanged = true
 	}
 
-	if d.HasChange("backup_begin_time") && !d.IsNewResource() {
+	if d.HasChange("backup_begin_time") {
 		d.SetPartial("backup_begin_time")
 		buReq.BackupTime = ucloud.Int(d.Get("backup_begin_time").(int))
 		backupChanged = true
@@ -505,10 +505,9 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("standby_zone", db.BackupZone)
 	d.Set("availability_zone", db.Zone)
 	d.Set("backup_count", db.BackupCount)
-	d.Set("backup_duration", db.BackupDuration)
 	d.Set("backup_begin_time", db.BackupBeginTime)
 	d.Set("backup_date", db.BackupDate)
-	d.Set("black_list", db.BackupBlacklist)
+	d.Set("backup_black_list", db.BackupBlacklist)
 	// d.Set("vpc_id", db.VPCId)
 	// d.Set("subnet_id", db.SubnetId)
 

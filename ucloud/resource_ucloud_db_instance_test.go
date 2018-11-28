@@ -124,7 +124,6 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "4"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_duration", "10"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "1111001"),
 				),
@@ -143,8 +142,7 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "5"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_duration", "10"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "city.address"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%;city.address"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "0001111"),
 				),
 			},
@@ -235,6 +233,7 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 }
 `
+
 const testAccDBInstanceConfigTwo = `
 data "ucloud_zones" "default" {
 }
@@ -324,7 +323,6 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 4
 	backup_count = 6
-	backup_duration = 10
 	backup_black_list = "test.%"
 	backup_date = "1111001"
 }
@@ -343,16 +341,15 @@ data "ucloud_db_parameter_groups" "default" {
 resource "ucloud_db_instance" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-backupUpdate"
-	instance_storage = 30
-	instance_type = "mysql-ha-2"
+	instance_storage = 20
+	instance_type = "mysql-ha-1"
 	engine = "mysql"
 	engine_version = "5.7"
 	password = "2018_UClou"
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 5
 	backup_count = 6
-	backup_duration = 10
-	backup_black_list = "test.%"
+	backup_black_list = "test.%;city.address"
 	backup_date = "0001111"
 }
 `
