@@ -21,15 +21,15 @@ The following arguments are supported:
 * `availability_zone` - (Optional) Availability zone where database instances are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
 * `backup_zone` - (Optional) 跨可用区高可用备库所在可用区；单可用区高可用实例可以承受服务器和机架级别的故障；跨可用区高可用实例可以承受机房级别的故障；注意：因为多可用区之间存在一定的网络延迟，对于单个更新的响应时间会比单可用区高可用实例长
 * `backup_zone` - (Optional) Availability zone where the backup instance are located for multiple zone; The disater recovery can be activated by switching to the backup instance for the server or rack breakdown of single zone DB and data center breakdown of multiple zone DB. Note: The response time of switching is a bit longer for the single zone DB than the multiple zone DB due to the network latency.
-* `password` - (Optional) The password for the database instance, should have between 8-30 characters.It must contain least 3 items of Capital letters, small letter, numbers and special characters. The special characters include <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code> When it is changed, the instance will reboot to make the change take effect.
-* `engine` - (Required) Database type, possible values are: "mysql", "percona", "postgresql".
+* `password` - (Optional) The password for the database instance which should have 8-30 characters. It must contain at least 3 items of Capital letters, small letter, numbers and special characters. The special characters include <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code> When it is changed, the instance will reboot to make the change take effect.
+* `engine` - (Required) The type of Database engine, possible values are: "mysql", "percona", "postgresql".
 * `engine_version` - (Required) The database engine version, possible values are: "5.5", "5.6", "5.7", "9.4", "9.6".其中"mysql"和"percona"只支持 "5.5", "5.6", "5.7"，且"5.5"版本不支持创建从库，postgresql只支持"9.4", "9.6"版本
 * `engine_version` - (Required) The database engine version, possible values are: "5.5", "5.6", "5.7", "9.4", "9.6". 
   5.5/5.6/5.7 for mysql and percona engine (only the master DB is supported if under 5.5 version); 
   9.4/9.6 for postgresql engine.
 * `name` - (Optional)  实例名称，The name of the DB instance, should have 1 - 63 characters and only support chinese, english, numbers, '-', '_', '.'.
 * `instance_storage` - (Optional) 磁盘空间(GB), 暂时支持20G - 3000G；硬盘步长10G。SSD机型：内存8G及以下时硬盘容量上限为500G，内存12~24G时硬盘容量上限为1000G，内存32G时硬盘容量上限为2000G，内存48G及以上时硬盘容量上限为3000G。
-* `instance_storage` - (Optional) Specifies the allocated storage size in gigabytes (GB), range from 20 to 3000GB. The volume adjustment must be a multiple of 10 GB. When it is changed, the instance will reboot to make the change take effect. The maximum disk volume are： 500GB if the memory chosen is equal or less than 8GB;
+* `instance_storage` - (Optional) Specifies the allocated storage size in gigabytes (GB), range from 20 to 3000GB. The volume adjustment must be a multiple of 10 GB. When it is changed, the instance will reboot to make the change take effect. The maximum disk volume for SSD type are： 500GB if the memory chosen is equal or less than 8GB;
 1000GB if the memory chosen is from 12 to 24GB;
 2000GB if the memory chosen is 32GB;
 3000GB if the memory chosen is equal or more than 48GB.
