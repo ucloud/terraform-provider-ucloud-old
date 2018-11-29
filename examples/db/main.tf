@@ -24,11 +24,11 @@ resource "ucloud_db_instance" "master" {
   engine_version     = "5.7"
   password           = "${var.db_password}"
   parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
-  
+
   # Backup policy
   backup_begin_time = 4
-  backup_count = 6
-  backup_date = "0111110"
+  backup_count      = 6
+  backup_date       = "0111110"
   backup_black_list = "test.%"
 }
 
