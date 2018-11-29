@@ -48,7 +48,7 @@ The unique arguments for the master-slave KV storage for Redis ("Required" stand
 * `backup_policy` - (Optional) 主备版 Redis 的备份策略。默认不启用备份策略。backup_policy is a nested type. backup_policy documented below.
 * `backup_policy` - (Optional) Specifies the backup policy of instance, the instance backup doesn't take place by fault. backup_policy is a nested type. backup_policy documented below.
 * `backup_id` - (Optional) 主备版 Redis 备份的 ID，如填写，则表示当前实例是基于该备份恢复并创建的。默认不填写。
-* `backup_id` - (Optional) The ID of master-slave Redis backup, The instance is created based on a backup set if the ID is specified, otherwise the ID is set to "null".
+* `backup_id` - (Optional) The ID of master-slave Redis backup set, The instance is created based on a backup set if the ID is specified, otherwise the ID is set to "null".
 The argument (`backup_policy`) support the following:
 
 * `backup_time` - 自动备份开始时间，范围 [0-23]，表示每天在几点钟触发自动备份，采用 UTC+8 时间。
@@ -76,4 +76,4 @@ The attribute (`ip_set`) support the following:
 * `ip` - KV 存储实例的虚拟 IP
 * `ip` - The virtual ip of KV storage instance.
 * `port` - KV 存储实例的端口
-* `port` - The port of KV storage instance.
+* `port` - The port on which Key-Value storage instance accepts connections, it is 6379 by default.
