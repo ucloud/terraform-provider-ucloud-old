@@ -126,3 +126,34 @@ func Test_parseAssociationInfo(t *testing.T) {
 		})
 	}
 }
+
+func Test_parseKVStoreInstanceType(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{"redisMasterOK", args{"redis-master-1"}, false},
+		{"redisMasterErr", args{"redis-master-100"}, true},
+		{"redisDistributedOK", args{"redis-distributed-16"}, false},
+		{"redisDistributedTooSmall", args{"redis-distributed-1"}, true},
+		{"redisDistributedTooLarge", args{"redis-distributed-1001"}, true},
+		{"redisDistributedStepErr", args{"redis-distributed-21"}, true},
+		{"memcacheMasterOk", args{"memcache-master-1"}, false},
+		{"memcacheMasterErr", args{"memcache-master-100"}, true},
+		{"engineError", args{"some-master-1"}, true},
+		{"typeError", args{"redis-some-1"}, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := parseKVStoreInstanceType(tt.args.s)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseKVStoreInstanceType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+		})
+	}
+}

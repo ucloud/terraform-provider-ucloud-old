@@ -84,6 +84,20 @@ func checkStringIn(val string, avaliables []string) error {
 	return fmt.Errorf("got %s, should be one of %s", val, strings.Join(avaliables, ","))
 }
 
+func checkIntIn(val int, availables []int) error {
+	for _, choice := range availables {
+		if val == choice {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("should be one of %v, got %d", availables, val)
+}
+
 func timestampToString(ts int) string {
 	return time.Unix(int64(ts), 0).Format(time.RFC3339)
+}
+
+func isEmptyString(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
 }

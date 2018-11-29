@@ -54,12 +54,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"ucloud_instances":      dataSourceUCloudInstances(),
-			"ucloud_projects":       dataSourceUCloudProjects(),
-			"ucloud_images":         dataSourceUCloudImages(),
-			"ucloud_zones":          dataSourceUCloudZones(),
-			"ucloud_eips":           dataSourceUCloudEips(),
-			"ucloud_instance_types": dataSourceUCloudInstanceTypes(),
+			"ucloud_instances":                dataSourceUCloudInstances(),
+			"ucloud_projects":                 dataSourceUCloudProjects(),
+			"ucloud_images":                   dataSourceUCloudImages(),
+			"ucloud_zones":                    dataSourceUCloudZones(),
+			"ucloud_eips":                     dataSourceUCloudEips(),
+			"ucloud_instance_types":           dataSourceUCloudInstanceTypes(),
+			"ucloud_kvstore_snapshots":        dataSourceUCloudKVStoreSnapshots(),
+			"ucloud_kvstore_parameter_groups": dataSourceUCloudKVStoreParameterGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ucloud_instance":               resourceUCloudInstance(),
@@ -75,6 +77,9 @@ func Provider() terraform.ResourceProvider {
 			"ucloud_disk":                   resourceUCloudDisk(),
 			"ucloud_disk_attachment":        resourceUCloudDiskAttachment(),
 			"ucloud_security_group":         resourceUCloudSecurityGroup(),
+			"ucloud_udpn_connection":        resourceUCloudUDPNConnection(),
+			"ucloud_kvstore_instance":       resourceUCloudKVStoreInstance(),
+			"ucloud_kvstore_slave":          resourceUCloudKVStoreSlave(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

@@ -15,7 +15,7 @@ func validateIntegerInRange(min, max int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(int)
 
-		if value < min || value > max {
+		if value < min || max < value {
 			errors = append(errors, fmt.Errorf("%q is invalid, should between %d-%d, got %v", k, min, max, value))
 		}
 
@@ -82,6 +82,18 @@ func validateSecurityGroupName(v interface{}, k string) (ws []string, errors []e
 	return
 }
 
+var kvstoreInstancePattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,63}$`)
+
+func validateKVStoreInstanceName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !kvstoreInstancePattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have 1 - 63 characters and only support english, numbers, '-', '_', got %q", k, value))
+	}
+
+	return
+}
+
 var instancePasswordUpperPattern = regexp.MustCompile(`[A-Z]`)
 var instancePasswordLowerPattern = regexp.MustCompile(`[a-z]`)
 var instancePasswordNumPattern = regexp.MustCompile(`[0-9]`)
@@ -108,6 +120,39 @@ func validateInstancePassword(v interface{}, k string) (ws []string, errors []er
 	}
 
 	if instancePasswordSpecialPattern.MatchString(value) {
+		categoryCount++
+	}
+
+	if categoryCount < 3 {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have least 3 items of Capital letters, small letter, numbers and special characters, got %q", k, value))
+	}
+
+	return
+}
+
+var kvstoreInstancePasswordSpecialPattern = regexp.MustCompile(`[-_]`)
+var kvstoreInstancePasswordPattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,36}$`)
+
+func validateKVStoreInstancePassword(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if !kvstoreInstancePasswordPattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have between 6-36 characters and any characters must be legal, got %q", k, value))
+	}
+
+	categoryCount := 0
+	if instancePasswordUpperPattern.MatchString(value) {
+		categoryCount++
+	}
+
+	if instancePasswordLowerPattern.MatchString(value) {
+		categoryCount++
+	}
+
+	if instancePasswordNumPattern.MatchString(value) {
+		categoryCount++
+	}
+
+	if kvstoreInstancePasswordSpecialPattern.MatchString(value) {
 		categoryCount++
 	}
 
@@ -203,6 +248,15 @@ func validateImageNameRegex(v interface{}, k string) (ws []string, errors []erro
 
 	if _, err := regexp.Compile(value); err != nil {
 		errors = append(errors, fmt.Errorf("%q contains an invalid regular expression: %s", k, err))
+	}
+	return
+}
+
+func validateKVStoreInstanceType(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if _, err := parseKVStoreInstanceType(value); err != nil {
+		errors = append(errors, err)
 	}
 	return
 }
