@@ -55,7 +55,7 @@ Possible values for memory are: 1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64GB.
 * `backup_date` - (Optional) 备份时期标记位。共7位，每一位为一周中一天的备份情况，0表示关闭当天备份，1表示打开当天备份。最右边的一位为星期天的备份开关，其余从右到左依次为星期一到星期六的备份配置开关，每周必须至少设置两天备份。例如：1100000表示打开星期六和星期五的备份功能.
 * `backup_date` - (Optional) Specifies whether the backup took place from Sunday to Satursday by displaying 7 digits. 0 stands for backup disbaled and 1 stands for backup enabled. The rightmost digit specifies whether the backup took place on Sunday, and the digits from right to left specify whether the backup took place from Monday to Satursday, it's mandatory required to backup twice per week at least. such as: digits "1100000" stands for the backup took place on Friday and Satursday.
 * `backup_id` - (Optional) 备份id，如果指定，则表明从备份恢复实例
-* `backup_id` - (Optional) The ID of backup instance, the specified backup DB will be switched on when necessary.
+* `backup_id` - (Optional) The ID of backup set of DB instance, The instance is created based on a backup set if the ID is specified, otherwise the ID is set to "null". Please note that the "availability_zone ","engine" and "engine_version" requested must be identical with the backup set when performing recovery from backup set.
 * `backup_black_list` - (Optional) 黑名单，规范示例,指定库mysql.%;test.%; 指定表city.address;
 * `backup_black_list` - (Optional) The backup for DB/table specified in the black list are not supprted.
 
