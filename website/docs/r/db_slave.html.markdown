@@ -20,7 +20,7 @@ The following arguments are supported:
 
 * `availability_zone` - (Required) Availability zone where database slaves are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
 * `master_id` - (Required) 主库实例的id，当创建从库时必传；对于已创建的从库，如果此参数置空，则将当前从库提升为主库，与原主库分离
-* `master_id` - (Required) The ID of master DB instance, it is mandatory required to request when creating slave DB; the current slave DB will be switched to the master one and separate from the origin master DB if it is set to "null" for the existing slave DB.
+* `master_id` - (Required) The ID of master DB instance, it is mandatory required to request when creating slave DB; the current slave DB will be promoted to new master one and separate from the origin master DB if it is set to "null" for the existing slave DB.
 * `is_lock` - (Optional) 当创建从库时是否锁主库，默认为true，代表锁主库
 * `is_lock` - (Optional) Specifies whether need to set master DB to read only when creating slave DB, possible values are "true" and "False", it is "true" by default.
 * `password` - (Optional) 管理员密码.
@@ -33,7 +33,7 @@ The following arguments are supported:
 * `instance_type` - (Required) 数据库机型.基本格式为"engine-type-memory",其中 engine 可以为"mysql","percona","postgresql"；type可以为"basic","ha",分别代表普通版和高可用版，高可用版实例采用双主热备架构，可以彻底解决因宕机或硬件故障造成的数据库不可用，mysql与percona只支持高可用版，postgresql现只支持普通版；memory可以为1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64,单位GB
 * `instance_type` - (Required) Specifies the type of DB instance with format "engine-type-memory", Possible values are:
   "mysql","percona" and "postgresql" for engine;
-  "basic" as standard verison and  "ha" as high availability version for type, the dual mian hot standby structure which can thoroughly solved the issue of unsysnchronized DB caused by the system downtime or DB unavailable, the "ha" version only supports "mysql" and "percona" engine, the standard version only supports the "postgrsql" engine.
+  "basic" as normal verison and  "ha" as high availability version for type, the dual mian hot standby structure which can thoroughly solved the issue of unsysnchronized DB caused by the system downtime or DB unavailable, the "ha" version only supports "mysql" and "percona" engine, the standard version only supports the "postgrsql" engine.
 Possible values for memory are: 1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64GB.  
 * `port` - (Optional) 端口号，mysql与percona默认3306，postgresql默认5432
 * `port` - (Optional) The port on which the DB accepts connections, the default port is 3306 for mysql and percona and 5432 for postgresql.
