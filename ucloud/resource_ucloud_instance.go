@@ -109,9 +109,10 @@ func resourceUCloudInstance() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateInstanceName,
+				Computed:     true,
 			},
 
 			"security_group": &schema.Schema{
@@ -277,7 +278,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(resp.UHostIds) != 1 {
-		return fmt.Errorf("error in create instance, expect extactly one instance, got %v", len(resp.UHostIds))
+		return fmt.Errorf("error in create instance, expect exactly one instance, got %v", len(resp.UHostIds))
 	}
 
 	d.SetId(resp.UHostIds[0])

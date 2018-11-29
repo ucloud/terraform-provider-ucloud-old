@@ -29,7 +29,26 @@ func validateStringInChoices(choices []string) schema.SchemaValidateFunc {
 		err := checkStringIn(v.(string), choices)
 
 		if err != nil {
-			errors = append(errors, fmt.Errorf("%q is invalid, got error %s", k, err))
+			errors = append(errors, fmt.Errorf("%q is invalid, %s", k, err))
+		}
+
+		return
+	}
+}
+
+// validateIntInChoices is a common factory to create validator to validate int by enum values
+func validateIntInChoices(choices []int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(int)
+		exist := false
+		for _, i := range choices {
+			if i == value {
+				exist = true
+				break
+			}
+		}
+		if !exist {
+			errors = append(errors, fmt.Errorf("%q is invalid, should be one of %#v, got %q", k, choices, value))
 		}
 
 		return
@@ -40,6 +59,17 @@ func validateInstanceType(v interface{}, k string) (ws []string, errors []error)
 	instanceType := v.(string)
 
 	_, err := parseInstanceType(instanceType)
+	if err != nil {
+		errors = append(errors, err)
+	}
+
+	return
+}
+
+func validateDBInstanceType(v interface{}, k string) (ws []string, errors []error) {
+	dbInstanceType := v.(string)
+
+	_, err := parseDBInstanceType(dbInstanceType)
 	if err != nil {
 		errors = append(errors, err)
 	}
@@ -204,5 +234,43 @@ func validateImageNameRegex(v interface{}, k string) (ws []string, errors []erro
 	if _, err := regexp.Compile(value); err != nil {
 		errors = append(errors, fmt.Errorf("%q contains an invalid regular expression: %s", k, err))
 	}
+	return
+}
+
+var dbInstanceNamePattern = regexp.MustCompile(`^[A-Za-z0-9\p{Han}-_.,\[\]:]{6,63}$`)
+
+func validateDBInstanceName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !dbInstanceNamePattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have 6 - 63 characters and only support chinese, english, numbers, '-', '_', '.', ',', '[', ']', ':', got %q", k, value))
+	}
+
+	return
+}
+
+var dbParameterGroupNamePattern = regexp.MustCompile(`^[A-Za-z0-9-_]{6,63}$`)
+
+func validateDBParameterGroupName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	if !dbParameterGroupNamePattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, should have 6 - 63 characters and only support english, numbers, '-', '_', got %q", k, value))
+	}
+
+	return
+}
+
+var dbInstanceBlackListPattern = regexp.MustCompile(`^[^.%]+.([^.%]+|%)$`)
+
+func validateDBInstanceBlackList(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	arr := strings.Split(value, ";")
+	for _, val := range arr {
+		if !dbInstanceBlackListPattern.MatchString(val) {
+			errors = append(errors, fmt.Errorf("%q is invalid, should like %q or %q, multiple black lists link with %q, got %q", k, "db.%", "dbname.tablename", ";", value))
+		}
+	}
+
 	return
 }

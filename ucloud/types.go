@@ -33,7 +33,7 @@ func parseCidrBlock(s string) (*cidrBlock, error) {
 }
 
 /*
-parseUCloudCidrBlock will parse cidr with specific range constriants
+parseUCloudCidrBlock will parse cidr with specific range constraints
 cidr must contained by subnet as followed
 	- 192.168.*.[8, 16, 24 ...]
 	- 172.[16-32].*.[8, 16, 24 ...]
@@ -122,7 +122,7 @@ var instanceTypeScaleMap = map[string]int{
 	"highmem":  8 * 1024,
 }
 
-var avaliableHostTypes = []string{"n"}
+var availableHostTypes = []string{"n"}
 
 func parseInstanceTypeByCustomize(splited ...string) (*instanceType, error) {
 	if len(splited) != 4 {
@@ -130,7 +130,7 @@ func parseInstanceTypeByCustomize(splited ...string) (*instanceType, error) {
 	}
 
 	hostType := splited[0]
-	err := checkStringIn(hostType, avaliableHostTypes)
+	err := checkStringIn(hostType, availableHostTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func parseInstanceTypeByCustomize(splited ...string) (*instanceType, error) {
 		return nil, fmt.Errorf("memory count is invalid, please use a number")
 	}
 
-	if memory < 1 || 128 < memory {
+	if memory < 1 || 256 < memory {
 		return nil, fmt.Errorf("memory count is invalid, it must between 1 ~ 128")
 	}
 
@@ -169,7 +169,7 @@ func parseInstanceTypeByNormal(splited ...string) (*instanceType, error) {
 	}
 
 	hostType := splited[0]
-	err := checkStringIn(hostType, avaliableHostTypes)
+	err := checkStringIn(hostType, availableHostTypes)
 	if err != nil {
 		return nil, err
 	}
@@ -250,4 +250,46 @@ func (c transformer) transform(src int) string {
 		return dst
 	}
 	return string(src)
+}
+
+type dbInstanceType struct {
+	Engine string
+	Type   string
+	Memory int
+}
+
+var availableDBEngine = []string{"mysql", "percona", "postgresql"}
+var availableDBTypes = []string{"basic", "ha"}
+var availableDBMemory = []int{1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128}
+
+func parseDBInstanceType(s string) (*dbInstanceType, error) {
+	splited := strings.Split(s, "-")
+	if len(splited) != 3 {
+		return nil, fmt.Errorf("db instance type is invalid, got %s", s)
+	}
+	engine := splited[0]
+	if err := checkStringIn(engine, availableDBEngine); err != nil {
+		return nil, err
+	}
+
+	dbType := splited[1]
+	if err := checkStringIn(dbType, availableDBTypes); err != nil {
+		return nil, err
+	}
+
+	memory, err := strconv.Atoi(splited[2])
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checkIntIn(memory, availableDBMemory); err != nil {
+		return nil, err
+	}
+
+	t := &dbInstanceType{}
+	t.Engine = engine
+	t.Type = dbType
+	t.Memory = memory
+
+	return t, nil
 }
