@@ -72,7 +72,7 @@ func dataSourceUCloudDBBackups() *schema.Resource {
 				Computed: true,
 			},
 
-			"db_backups": &schema.Schema{
+			"backups": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -263,7 +263,7 @@ func dataSourceUCloudDBBackupsSave(d *schema.ResourceData, backups []udb.UDBBack
 	}
 
 	d.SetId(hashStringArray(ids))
-	if err := d.Set("db_backups", data); err != nil {
+	if err := d.Set("backups", data); err != nil {
 		return err
 	}
 

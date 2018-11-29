@@ -93,6 +93,7 @@ func checkIntIn(val int, availables []int) error {
 
 	return fmt.Errorf("should be one of %v, got %d", availables, val)
 }
+
 func timestampToString(ts int) string {
 	return time.Unix(int64(ts), 0).Format(time.RFC3339)
 }
@@ -103,4 +104,8 @@ func stringToTimestamp(ts string) (int, error) {
 		return 0, err
 	}
 	return int(t.Unix()), nil
+}
+
+func isEmptyString(s string) bool {
+	return len(strings.TrimSpace(s)) == 0
 }

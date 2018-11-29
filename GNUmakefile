@@ -68,8 +68,10 @@ all: mac windows linux
 
 dev: clean fmt linux devcopy
 
-devcopy:
-	tar -xvf bin/terraform-provider-ucloud_linux-amd64.tgz && mv bin/terraform-provider-ucloud $(shell dirname `which terraform`)
+devinit:
+	GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-ucloud.exe
+	chmod +x bin/terraform-provider-ucloud.exe
+	mv ./bin/terraform-provider-ucloud.exe ${APPDATA}/terraform.d/plugins/
 
 clean:
 	rm -rf bin/*
