@@ -30,7 +30,7 @@ The following arguments are supported:
 * `engine` - (Required) KV 存储实例的引擎名称，支持 memcache 或 redis。
 * `engine` - (Required) The type of engine, possible values are: "memcache" and "redis".
 * `instance_type` - (Required) KV 存储实例的机型，表示实例引擎类型和容量的组合，可参考下方 [KV 存储实例机型表](/docs/providers/ucloud/appendix/kvstore_instance_type.html.markdown)。 
-* `instance_type` - (Required) The type of Key-Value storage instance which specifies the emgine and storage size, please visit the instance type tabel for more details. (/docs/providers/ucloud/appendix/kvstore_instance_type.html.markdown).
+* `instance_type` - (Required) The type of Key-Value storage instance which specifies the emgine and storage size, please visit the instance type table for more details. (/docs/providers/ucloud/appendix/kvstore_instance_type.html.markdown).
 * `instance_charge_type` - (Optional) Charge type. Possible values are: "Year" as pay by year, "Month" as pay by month, "Dynamic" as pay by hour (specific permission required). The default value is "Month".
 * `instance_duration` - (Optional) The duration that you will buy the resource, the default value is "1". It is not required when "Dynamic" (pay by hour), the value is "0" when pay by month and the instance will be vaild till the last day of that month.
 * `tag` - (Optional) A tag to assign to the instance. The default value is "Default" (means no tag assigned).
@@ -48,7 +48,7 @@ The unique arguments for the master-slave KV storage for Redis ("Required" stand
 * `backup_policy` - (Optional) 主备版 Redis 的备份策略。默认不启用备份策略。backup_policy is a nested type. backup_policy documented below.
 * `backup_policy` - (Optional) Specifies the backup policy of instance, the instance backup doesn't take place by fault. backup_policy is a nested type. backup_policy documented below.
 * `backup_id` - (Optional) 主备版 Redis 备份的 ID，如填写，则表示当前实例是基于该备份恢复并创建的。默认不填写。
-* `backup_id` - (Optional) The ID of slave Redis for master-slave type, The instance is created based on a backup set if the ID is specified, otherwise the ID is set to "null".
+* `backup_id` - (Optional) The ID of master-slave Redis backup, The instance is created based on a backup set if the ID is specified, otherwise the ID is set to "null".
 The argument (`backup_policy`) support the following:
 
 * `backup_time` - 自动备份开始时间，范围 [0-23]，表示每天在几点钟触发自动备份，采用 UTC+8 时间。
