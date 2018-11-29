@@ -119,7 +119,7 @@ func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface
 	dbType := strings.Join([]string{engine, engineVersion}, "-")
 	srcGroupId, err := strconv.Atoi(d.Get("src_group_id").(string))
 	if err != nil {
-		return err
+		return fmt.Errorf("transform %q to integer failed in create db parameter group, %s", "src_group_id", err)
 	}
 	dbPg, err := client.describeDBParameterGroupByIdAndZone(d.Get("src_group_id").(string), zone)
 	if err != nil {
@@ -127,7 +127,7 @@ func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface
 	}
 
 	if dbPg.DBTypeId != dbType {
-		return fmt.Errorf("\"src_group_id\" is invalid, the corresponding type of database should be %s, got %s", dbType, dbPg.DBTypeId)
+		return fmt.Errorf("%q is invalid, the corresponding type of database should be %s, got %s", "src_group_id", dbType, dbPg.DBTypeId)
 	}
 
 	_, ok := d.GetOk("parameter_input")
