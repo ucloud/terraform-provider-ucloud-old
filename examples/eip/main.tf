@@ -3,14 +3,17 @@ provider "ucloud" {
   region = "${var.region}"
 }
 
+# Query availability zone
 data "ucloud_zones" "default" {}
 
+# Query image
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
   name_regex        = "^CentOS 7.[1-2] 64"
   image_type        = "Base"
 }
 
+# Create security group
 resource "ucloud_security_group" "default" {
   name = "tf-example-eip"
   tag  = "tf-example"
@@ -23,6 +26,7 @@ resource "ucloud_security_group" "default" {
   }
 }
 
+# Create an eip
 resource "ucloud_eip" "default" {
   bandwidth            = 2
   internet_charge_mode = "Bandwidth"
@@ -30,6 +34,7 @@ resource "ucloud_eip" "default" {
   tag                  = "tf-example"
 }
 
+# Create a web server
 resource "ucloud_instance" "web" {
   instance_type     = "n-standard-1"
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
@@ -43,6 +48,7 @@ resource "ucloud_instance" "web" {
   tag  = "tf-example"
 }
 
+# bind eip to instance
 resource "ucloud_eip_association" "default" {
   resource_type = "instance"
   resource_id   = "${ucloud_instance.web.id}"

@@ -2,6 +2,7 @@ package ucloud
 
 import (
 	"github.com/ucloud/ucloud-sdk-go/services/uaccount"
+	"github.com/ucloud/ucloud-sdk-go/services/udb"
 	"github.com/ucloud/ucloud-sdk-go/services/udisk"
 	"github.com/ucloud/ucloud-sdk-go/services/uhost"
 	"github.com/ucloud/ucloud-sdk-go/services/ulb"
@@ -33,6 +34,7 @@ type UCloudClient struct {
 	vpcconn      *vpc.VPCClient
 	uaccountconn *uaccount.UAccountClient
 	udiskconn    *udisk.UDiskClient
+	udbconn      *udb.UDBClient
 }
 
 // Client will returns a client with connections for all product
@@ -69,6 +71,7 @@ func (c *Config) Client() (*UCloudClient, error) {
 	client.vpcconn = vpc.NewClient(&config, &credential)
 	client.uaccountconn = uaccount.NewClient(&config, &credential)
 	client.udiskconn = udisk.NewClient(&config, &credential)
+	client.udbconn = udb.NewClient(&config, &credential)
 
 	return &client, nil
 }

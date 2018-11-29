@@ -160,7 +160,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(resp.EIPSet) != 1 {
-		return fmt.Errorf("error in create eip, expect extactly one eip, got %v", len(resp.EIPSet))
+		return fmt.Errorf("error in create eip, expect exactly one eip, got %v", len(resp.EIPSet))
 	}
 
 	eip := resp.EIPSet[0]

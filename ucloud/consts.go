@@ -19,14 +19,14 @@ const DefaultWaitMaxAttempts = 10
 // DefaultWaitIgnoreError is if it will ignore error during wait for state changed after resource is created
 const DefaultWaitIgnoreError = false
 
-//listenerStatus is used to tranform int to string for status after read lb listener
+//listenerStatus is used to transform int to string for status after read lb listener
 var listenerStatus transformer = map[int]string{
 	0: "allNormal",
 	1: "partNormal",
 	2: "allException",
 }
 
-//lbAttachmentStatus is used to tranform int to string for status after read lb attachment
+//lbAttachmentStatus is used to transform int to string for status after read lb attachment
 var lbAttachmentStatus transformer = map[int]string{
 	0: "normalRunning",
 	1: "exceptionRunning",
@@ -55,4 +55,10 @@ var udiskMap converter = map[string]string{
 //ulbMap is used to covert ulb to lb
 var ulbMap converter = map[string]string{
 	"lb": "ulb",
+}
+
+//dbMap is used to covert basic to Normal and convert ha to HA
+var dbMap converter = map[string]string{
+	"basic": "Normal",
+	"ha":    "HA",
 }
