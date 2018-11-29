@@ -9,9 +9,9 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
-func dataSourceUCloudKVStoreSnapshots() *schema.Resource {
+func dataSourceUCloudKVStoreBackups() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceUCloudKVStoreSnapshotsRead,
+		Read: dataSourceUCloudKVStoreBackupsRead,
 		Schema: map[string]*schema.Schema{
 			"availability_zone": &schema.Schema{
 				Type:     schema.TypeString,
@@ -44,7 +44,7 @@ func dataSourceUCloudKVStoreSnapshots() *schema.Resource {
 				Computed: true,
 			},
 
-			"snapshots": {
+			"backups": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -100,7 +100,7 @@ func dataSourceUCloudKVStoreSnapshots() *schema.Resource {
 	}
 }
 
-func dataSourceUCloudKVStoreSnapshotsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceUCloudKVStoreBackupsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*UCloudClient).umemconn
 
 	req := conn.NewDescribeURedisBackupRequest()
@@ -108,7 +108,7 @@ func dataSourceUCloudKVStoreSnapshotsRead(d *schema.ResourceData, meta interface
 		req.GroupId = ucloud.String(v.(string))
 	}
 
-	var snapshots []umem.URedisBackupSet
+	var backups []umem.URedisBackupSet
 	limit := 100
 	offset := 0
 	for {
@@ -123,7 +123,7 @@ func dataSourceUCloudKVStoreSnapshotsRead(d *schema.ResourceData, meta interface
 			break
 		}
 
-		snapshots = append(snapshots, resp.DataSet...)
+		backups = append(backups, resp.DataSet...)
 		if len(resp.DataSet) < limit {
 			break
 		}
@@ -133,20 +133,20 @@ func dataSourceUCloudKVStoreSnapshotsRead(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("name_regex"); ok {
 		r := regexp.MustCompile(v.(string))
-		snapshots = filterSnapshots(snapshots, func(item *umem.URedisBackupSet) bool {
+		backups = filterSnapshots(backups, func(item *umem.URedisBackupSet) bool {
 			return r.MatchString(item.BackupName)
 		})
 	}
 
 	if v, ok := d.GetOk("ids"); ok {
-		snapshots = filterSnapshots(snapshots, func(item *umem.URedisBackupSet) bool {
+		backups = filterSnapshots(backups, func(item *umem.URedisBackupSet) bool {
 			err := checkStringIn(item.BackupId, ifaceToStringSlice(v))
 			return err == nil
 		})
 	}
 
-	d.Set("total_count", len(snapshots))
-	err := dataSourceUCloudKVStoreSnapshotsSave(d, snapshots)
+	d.Set("total_count", len(backups))
+	err := dataSourceUCloudKVStoreBackupsSave(d, backups)
 	if err != nil {
 		return fmt.Errorf("error in read kvstore snapshot list, %s", err)
 	}
@@ -154,9 +154,9 @@ func dataSourceUCloudKVStoreSnapshotsRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func filterSnapshots(snapshots []umem.URedisBackupSet, fn func(*umem.URedisBackupSet) bool) []umem.URedisBackupSet {
+func filterSnapshots(backups []umem.URedisBackupSet, fn func(*umem.URedisBackupSet) bool) []umem.URedisBackupSet {
 	var vL []umem.URedisBackupSet
-	for _, v := range snapshots {
+	for _, v := range backups {
 		if fn(&v) {
 			vL = append(vL, v)
 		}
@@ -164,11 +164,11 @@ func filterSnapshots(snapshots []umem.URedisBackupSet, fn func(*umem.URedisBacku
 	return vL
 }
 
-func dataSourceUCloudKVStoreSnapshotsSave(d *schema.ResourceData, snapshots []umem.URedisBackupSet) error {
+func dataSourceUCloudKVStoreBackupsSave(d *schema.ResourceData, backups []umem.URedisBackupSet) error {
 	ids := []string{}
 	data := []map[string]interface{}{}
 
-	for _, item := range snapshots {
+	for _, item := range backups {
 		ids = append(ids, item.BackupId)
 		data = append(data, map[string]interface{}{
 			"availability_zone":     item.Zone,
@@ -184,7 +184,7 @@ func dataSourceUCloudKVStoreSnapshotsSave(d *schema.ResourceData, snapshots []um
 	}
 
 	d.SetId(hashStringArray(ids))
-	if err := d.Set("snapshots", data); err != nil {
+	if err := d.Set("backups", data); err != nil {
 		return err
 	}
 

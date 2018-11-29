@@ -60,9 +60,9 @@ func Provider() terraform.ResourceProvider {
 			"ucloud_zones":                    dataSourceUCloudZones(),
 			"ucloud_eips":                     dataSourceUCloudEips(),
 			"ucloud_instance_types":           dataSourceUCloudInstanceTypes(),
-			"ucloud_db_parameter_groups":      dataSourceUCloudDBParameterGroups(),
 			"ucloud_db_backups":               dataSourceUCloudDBBackups(),
-			"ucloud_kvstore_snapshots":        dataSourceUCloudKVStoreSnapshots(),
+			"ucloud_db_parameter_groups":      dataSourceUCloudDBParameterGroups(),
+			"ucloud_kvstore_backups":          dataSourceUCloudKVStoreBackups(),
 			"ucloud_kvstore_parameter_groups": dataSourceUCloudKVStoreParameterGroups(),
 		},
 		ResourcesMap: map[string]*schema.Resource{

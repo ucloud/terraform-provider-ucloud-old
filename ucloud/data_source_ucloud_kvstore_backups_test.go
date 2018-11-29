@@ -16,7 +16,7 @@ func TestAccUCloudKVStoreSnapshotsDataSource(t *testing.T) {
 			{
 				Config: testAccKVStoreSnapshotsConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIDExists("data.ucloud_kvstore_snapshots.foo"),
+					testAccCheckIDExists("data.ucloud_kvstore_backups.foo"),
 				),
 			},
 		},
@@ -24,6 +24,6 @@ func TestAccUCloudKVStoreSnapshotsDataSource(t *testing.T) {
 }
 
 const testAccKVStoreSnapshotsConfig = `
-data "ucloud_kvstore_snapshots" "foo" {
+data "ucloud_kvstore_backups" "foo" {
 }
 `

@@ -27,8 +27,7 @@ type Config struct {
 	ProjectId  string
 
 	MaxRetries int
-
-	Insecure bool
+	Insecure   bool
 }
 
 type UCloudClient struct {
@@ -63,10 +62,12 @@ func (c *Config) Client() (*UCloudClient, error) {
 
 	// enable auto retry with http/connection error
 	config.MaxRetries = c.MaxRetries
-	if os.Getenv("UCLOUD_DEBUG") != "false" {
-		config.LogLevel = log.DebugLevel
-	} else {
+
+	// enable log detail when debug environment variable is trust-value
+	if v := os.Getenv("UCLOUD_DEBUG"); len(v) == 0 || v == "false" {
 		config.LogLevel = log.ErrorLevel
+	} else {
+		config.LogLevel = log.DebugLevel
 	}
 
 	// set endpoint with insecure https connection
