@@ -198,6 +198,65 @@ func parseInstanceTypeByNormal(splited ...string) (*instanceType, error) {
 	}
 }
 
+type kvstoreInstanceType struct {
+	Engine string
+	Type   string
+	Memory int
+}
+
+var availableKVStoreEngine = []string{"redis", "memcache"}
+var availableKVStoreType = []string{"master", "distributed"}
+var availableKVStoreMemcacheMemory = []int{1, 2, 4, 8, 16}
+var availableKVStoreMasterRedisMemory = []int{1, 2, 4, 6, 8, 12, 16, 24, 32}
+
+func parseKVStoreInstanceType(s string) (*kvstoreInstanceType, error) {
+	splited := strings.Split(s, "-")
+	if len(splited) != 3 {
+		return nil, fmt.Errorf("kvstore instance type is invalid, should like xx-xx-1, got %s", s)
+	}
+
+	engine := splited[0]
+	if err := checkStringIn(engine, availableKVStoreEngine); err != nil {
+		return nil, fmt.Errorf("kvstore instance type is invalid, should like xx-xx-1, got error %s", err)
+	}
+
+	t := splited[1]
+	if err := checkStringIn(t, availableKVStoreType); err != nil {
+		return nil, fmt.Errorf("kvstore instance type is invalid, should like xx-xx-1, got error %s", err)
+	}
+
+	memory, err := strconv.Atoi(splited[2])
+	if err != nil {
+		return nil, fmt.Errorf("kvstore instance type is invalid, should like xx-xx-1, got error %s", err)
+	}
+
+	if engine == "memcache" && t == "master" {
+		if err := checkIntIn(memory, availableKVStoreMemcacheMemory); err != nil {
+			return nil, fmt.Errorf("kvstore instance type is invalid, memory is out of range, got error %s", err)
+		}
+	} else if engine == "redis" && t == "master" {
+		if err := checkIntIn(memory, availableKVStoreMasterRedisMemory); err != nil {
+			return nil, fmt.Errorf("kvstore instance type is invalid, memory is out of range, got error %s", err)
+		}
+	} else if engine == "redis" && t == "distributed" {
+		if memory%4 != 0 {
+			return nil, fmt.Errorf("kvstore instance type is invalid, memory should multiple of 4, got %v", memory)
+		}
+
+		if memory < 16 || 1000 < memory {
+			return nil, fmt.Errorf("kvstore instance type is invalid, memory should between 16-1000, got %v", memory)
+		}
+	} else {
+		return nil, fmt.Errorf("kvstore instance type is invalid, except memcache.master/redis.master/redis.distributed, got %q", fmt.Sprintf("%s.%s", engine, t))
+	}
+
+	return &kvstoreInstanceType{
+		Engine: engine,
+		Type:   t,
+		Memory: memory,
+	}, nil
+}
+
 type associationInfo struct {
 	PrimaryType  string
 	PrimaryId    string

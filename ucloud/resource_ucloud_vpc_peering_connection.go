@@ -34,6 +34,12 @@ func resourceUCloudVPCPeeringConnection() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+
+			"peer_region": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -44,11 +50,15 @@ func resourceUCloudVPCPeeringConnectionCreate(d *schema.ResourceData, meta inter
 
 	vpcId := d.Get("vpc_id").(string)
 	peerVpcId := d.Get("peer_vpc_id").(string)
+
 	peerRegion := client.region
+	if v, ok := d.GetOk("peer_region"); ok {
+		peerRegion = v.(string)
+	}
 
 	peerProjectId := client.projectId
-	if val, ok := d.GetOk("peer_project_id"); ok {
-		peerProjectId = val.(string)
+	if v, ok := d.GetOk("peer_project_id"); ok {
+		peerProjectId = v.(string)
 	}
 
 	req := conn.NewCreateVPCIntercomRequest()

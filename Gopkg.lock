@@ -420,16 +420,20 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:9f661b4c4be441c3c1bb9144845ecebe56f83d8d96bfdfbabb3b513f09e2e7cb"
+  digest = "1:0ce6ff81b440a3743851c25bceed56bc71502e4a4ca90ba6839ee7c5eb4e5861"
   name = "github.com/ucloud/ucloud-sdk-go"
   packages = [
+    ".",
     "private/protocol/http",
+    "private/services/umem",
     "private/utils",
     "services/uaccount",
     "services/udb",
     "services/udisk",
+    "services/udpn",
     "services/uhost",
     "services/ulb",
+    "services/umem",
     "services/unet",
     "services/vpc",
     "ucloud",
@@ -598,11 +602,15 @@
     "github.com/hashicorp/terraform/helper/schema",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
+    "github.com/ucloud/ucloud-sdk-go",
+    "github.com/ucloud/ucloud-sdk-go/private/services/umem",
     "github.com/ucloud/ucloud-sdk-go/services/uaccount",
     "github.com/ucloud/ucloud-sdk-go/services/udb",
     "github.com/ucloud/ucloud-sdk-go/services/udisk",
+    "github.com/ucloud/ucloud-sdk-go/services/udpn",
     "github.com/ucloud/ucloud-sdk-go/services/uhost",
     "github.com/ucloud/ucloud-sdk-go/services/ulb",
+    "github.com/ucloud/ucloud-sdk-go/services/umem",
     "github.com/ucloud/ucloud-sdk-go/services/unet",
     "github.com/ucloud/ucloud-sdk-go/services/vpc",
     "github.com/ucloud/ucloud-sdk-go/ucloud",
