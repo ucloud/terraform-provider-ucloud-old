@@ -273,7 +273,7 @@ func validateCidrBlock(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validateImageNameRegex(v interface{}, k string) (ws []string, errors []error) {
+func validateNameRegex(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
 	if _, err := regexp.Compile(value); err != nil {

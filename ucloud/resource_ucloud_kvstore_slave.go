@@ -51,16 +51,6 @@ func resourceUCloudKVStoreSlave() *schema.Resource {
 				ValidateFunc: validateKVStoreInstancePassword,
 			},
 
-			"vpc_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"subnet_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"parameter_group_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -70,6 +60,16 @@ func resourceUCloudKVStoreSlave() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+
+			"vpc_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"subnet_id": &schema.Schema{
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -147,13 +147,13 @@ func resourceUCloudKVStoreSlaveCreate(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := conn.CreateURedisGroup(req)
 	if err != nil {
-		return fmt.Errorf("error in create memory instance, %s", err)
+		return fmt.Errorf("error in create kvstore instance, %s", err)
 	}
 
 	d.SetId(resp.GroupId)
 
 	if err := client.waitActiveStandbyRedisRunning(d.Id()); err != nil {
-		return fmt.Errorf("error in create momory instance, %s", err)
+		return fmt.Errorf("error in create kvstore instance, %s", err)
 	}
 	return resourceUCloudKVStoreSlaveUpdate(d, meta)
 }
@@ -174,7 +174,7 @@ func resourceUCloudKVStoreSlaveRead(d *schema.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read memory instance %s, %s", "DescribeURedisGroup", d.Id(), err)
+		return fmt.Errorf("do %s failed in read kvstore instance %s, %s", "DescribeURedisGroup", d.Id(), err)
 	}
 
 	d.Set("name", inst.Name)
@@ -186,6 +186,8 @@ func resourceUCloudKVStoreSlaveRead(d *schema.ResourceData, meta interface{}) er
 		"ip":   inst.VirtualIP,
 		"port": inst.Port,
 	}})
+	d.Set("vpc_id", inst.VPCId)
+	d.Set("subnet_id", inst.SubnetId)
 
 	d.Set("create_time", timestampToString(inst.CreateTime))
 	d.Set("update_time", timestampToString(inst.ModifyTime))

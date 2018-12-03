@@ -23,7 +23,7 @@ func dataSourceUCloudImages() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateImageNameRegex,
+				ValidateFunc: validateNameRegex,
 			},
 
 			"image_type": &schema.Schema{

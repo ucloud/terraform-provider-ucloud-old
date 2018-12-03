@@ -28,6 +28,13 @@ func dataSourceUCloudKVStoreBackups() *schema.Resource {
 				},
 			},
 
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateNameRegex,
+			},
+
 			"kvstore_instance_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -116,7 +123,7 @@ func dataSourceUCloudKVStoreBackupsRead(d *schema.ResourceData, meta interface{}
 		req.Offset = ucloud.Int(offset)
 		resp, err := conn.DescribeURedisBackup(req)
 		if err != nil {
-			return fmt.Errorf("error in read kvstore snapshot list, %s", err)
+			return fmt.Errorf("error in read kvstore backup list, %s", err)
 		}
 
 		if resp == nil || len(resp.DataSet) < 1 {
@@ -133,13 +140,13 @@ func dataSourceUCloudKVStoreBackupsRead(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("name_regex"); ok {
 		r := regexp.MustCompile(v.(string))
-		backups = filterSnapshots(backups, func(item *umem.URedisBackupSet) bool {
+		backups = filterBackups(backups, func(item *umem.URedisBackupSet) bool {
 			return r.MatchString(item.BackupName)
 		})
 	}
 
 	if v, ok := d.GetOk("ids"); ok {
-		backups = filterSnapshots(backups, func(item *umem.URedisBackupSet) bool {
+		backups = filterBackups(backups, func(item *umem.URedisBackupSet) bool {
 			err := checkStringIn(item.BackupId, ifaceToStringSlice(v))
 			return err == nil
 		})
@@ -148,13 +155,13 @@ func dataSourceUCloudKVStoreBackupsRead(d *schema.ResourceData, meta interface{}
 	d.Set("total_count", len(backups))
 	err := dataSourceUCloudKVStoreBackupsSave(d, backups)
 	if err != nil {
-		return fmt.Errorf("error in read kvstore snapshot list, %s", err)
+		return fmt.Errorf("error in read kvstore backup list, %s", err)
 	}
 
 	return nil
 }
 
-func filterSnapshots(backups []umem.URedisBackupSet, fn func(*umem.URedisBackupSet) bool) []umem.URedisBackupSet {
+func filterBackups(backups []umem.URedisBackupSet, fn func(*umem.URedisBackupSet) bool) []umem.URedisBackupSet {
 	var vL []umem.URedisBackupSet
 	for _, v := range backups {
 		if fn(&v) {

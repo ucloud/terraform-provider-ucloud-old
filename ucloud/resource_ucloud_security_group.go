@@ -11,6 +11,11 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
+var (
+	// security policy use ICMP, GRE packet with port is not supported
+	portIndependentProtocols = []string{"ICMP", "GRE"}
+)
+
 func resourceUCloudSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceUCloudSecurityGroupCreate,
@@ -38,6 +43,12 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validateSecurityGroupPort,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if v, ok := d.GetOk("protocol"); ok && isPortIndependentProtocol(v.(string)) {
+									return false
+								}
+								return true
+							},
 						},
 
 						"protocol": &schema.Schema{
@@ -256,8 +267,13 @@ func resourceUCloudSecurityGroupDelete(d *schema.ResourceData, meta interface{})
 func resourceucloudSecurityGroupRuleHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["port_range"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+
+	protocol := m["protocol"].(string)
+	if !isPortIndependentProtocol(protocol) {
+		buf.WriteString(fmt.Sprintf("%s-", m["port_range"].(string)))
+	}
+
+	buf.WriteString(fmt.Sprintf("%s-", protocol))
 
 	if m["cidr_block"].(string) != "" {
 		buf.WriteString(fmt.Sprintf("%s-", m["cidr_block"].(string)))
@@ -278,7 +294,11 @@ func buildRuleParameter(iface interface{}) []string {
 	rules := []string{}
 	for _, item := range iface.(*schema.Set).List() {
 		rule := item.(map[string]interface{})
-		s := fmt.Sprintf("%s|%s|%s|%s|%s", rule["protocol"], rule["port_range"], rule["cidr_block"], rule["policy"], rule["priority"])
+		port := rule["port_range"]
+		if isPortIndependentProtocol(rule["protocol"].(string)) {
+			port = ""
+		}
+		s := fmt.Sprintf("%s|%s|%s|%s|%s", rule["protocol"], port, rule["cidr_block"], rule["policy"], rule["priority"])
 		rules = append(rules, s)
 	}
 	return rules
@@ -303,4 +323,8 @@ func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChan
 			return sgSet, "initialized", nil
 		},
 	}
+}
+
+func isPortIndependentProtocol(protocol string) bool {
+	return checkStringIn(protocol, portIndependentProtocols) == nil
 }

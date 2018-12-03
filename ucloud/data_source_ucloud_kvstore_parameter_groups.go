@@ -28,10 +28,18 @@ func dataSourceUCloudKVStoreParameterGroups() *schema.Resource {
 				},
 			},
 
+			"name_regex": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateNameRegex,
+			},
+
 			"engine_version": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validateStringInChoices([]string{"3.0", "3.2", "4.0"}),
 			},
 
 			"output_file": {
