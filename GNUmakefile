@@ -66,12 +66,9 @@ endif
 
 all: mac windows linux
 
-dev: clean fmt linux devcopy
-
-devinit:
-	GOOS=windows GOARCH=amd64 go build -o bin/terraform-provider-ucloud.exe
-	chmod +x bin/terraform-provider-ucloud.exe
-	mv ./bin/terraform-provider-ucloud.exe ${APPDATA}/terraform.d/plugins/
+dev: clean fmt
+	@chmod +x scripts/devinit.sh
+	@sh ./scripts/devinit.sh
 
 clean:
 	rm -rf bin/*
