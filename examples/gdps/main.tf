@@ -46,6 +46,7 @@ resource "ucloud_udpn_connection" "default" {
 # Create a VPC Peering Connection for establish a connection to put multi vpc network into same network plane.
 resource "ucloud_vpc_peering_connection" "default" {
   vpc_id      = "${module.app-primary.vpc_id}"
+  peer_region = "${var.replica_region}"
   peer_vpc_id = "${module.app-replication-cross-region.vpc_id}"
 
   # UDPN connection is required by vpc peering connection across multi-region.

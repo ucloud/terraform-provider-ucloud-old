@@ -28,9 +28,10 @@ func resourceUCloudUDPNConnection() *schema.Resource {
 			},
 
 			"charge_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Default:  "Month",
-				Optional: true,
+				Type:         schema.TypeString,
+				Default:      "Month",
+				Optional:     true,
+				ValidateFunc: validateStringInChoices([]string{"Year", "Month", "Dynamic"}),
 			},
 
 			"duration": &schema.Schema{
@@ -46,12 +47,12 @@ func resourceUCloudUDPNConnection() *schema.Resource {
 			},
 
 			"create_time": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"expire_time": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
@@ -135,8 +136,8 @@ func resourceUCloudUDPNConnectionRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("peer_region", inst.Peer1)
 	}
 
-	d.Set("create_time", inst.CreateTime)
-	d.Set("expire_time", inst.ExpireTime)
+	d.Set("create_time", timestampToString(inst.CreateTime))
+	d.Set("expire_time", timestampToString(inst.ExpireTime))
 	return nil
 }
 
@@ -148,7 +149,15 @@ func resourceUCloudUDPNConnectionDelete(d *schema.ResourceData, meta interface{}
 	req.UDPNId = ucloud.String(d.Id())
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
-		_, err := conn.ReleaseUDPN(req)
+		_, err := client.describeDPNById(d.Id())
+		if err != nil {
+			if isNotFoundError(err) {
+				return nil
+			}
+			return resource.NonRetryableError(fmt.Errorf("error in delete dpn %s, %s", d.Id(), err))
+		}
+
+		_, err = conn.ReleaseUDPN(req)
 		if err != nil {
 			return resource.NonRetryableError(fmt.Errorf("error in delete dpn %s, %s", d.Id(), err))
 		}

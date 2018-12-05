@@ -48,7 +48,7 @@ resource "ucloud_instance" "web" {
   tag  = "tf-example"
 }
 
-# bind eip to instance
+# Bind eip to instance
 resource "ucloud_eip_association" "default" {
   resource_type = "instance"
   resource_id   = "${ucloud_instance.web.id}"
