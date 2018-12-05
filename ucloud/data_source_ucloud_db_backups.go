@@ -40,7 +40,7 @@ func dataSourceUCloudDBBackups() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: schema.SchemaValidateFunc(validation.StringInSlice([]string{"automatic", "manual"}, false)),
+				ValidateFunc: validation.StringInSlice([]string{"automatic", "manual"}, false),
 			},
 
 			"begin_time": {

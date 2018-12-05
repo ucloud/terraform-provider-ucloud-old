@@ -17,6 +17,7 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/services/unet"
 	"github.com/ucloud/ucloud-sdk-go/services/vpc"
 
+	pudb "github.com/ucloud/ucloud-sdk-go/private/services/udb"
 	pumem "github.com/ucloud/ucloud-sdk-go/private/services/umem"
 )
 
@@ -47,6 +48,7 @@ type UCloudClient struct {
 
 	// private services
 	pumemconn *pumem.UMemClient
+	pudbconn  *pudb.UDBClient
 }
 
 // Client will returns a client with connections for all product
@@ -95,6 +97,7 @@ func (c *Config) Client() (*UCloudClient, error) {
 
 	// initialize client connections for private usage
 	client.pumemconn = pumem.NewClient(&config, &credential)
+	client.pudbconn = pudb.NewClient(&config, &credential)
 
 	return &client, nil
 }

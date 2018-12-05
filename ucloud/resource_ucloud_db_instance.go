@@ -435,9 +435,9 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 
 	//change parameter group id take effect until the db instance is restarted
 	if d.HasChange("parameter_group_id") {
-		pgReq := conn.NewChangeUDBParamGroupRequest()
+		pgReq := client.pudbconn.NewChangeUDBParamGroupRequest()
 		pgReq.DBId = ucloud.String(d.Id())
-		if _, err := conn.ChangUeDBParamGroup(pgReq); err != nil {
+		if _, err := client.pudbconn.ChangeUDBParamGroup(pgReq); err != nil {
 			return fmt.Errorf("do %s failed in update db instance %s, %s", "ChangeUDBParamGroup", d.Id(), err)
 		}
 

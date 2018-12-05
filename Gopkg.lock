@@ -422,10 +422,11 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:528ebdad897cb02855fc1f7e407b0c35fff13d7218fc1adef69d3fa432d55af1"
+  digest = "1:650983a9272deb31180b0714437fa6dc2106d1ac9bd8019890e210d69e700aa9"
   name = "github.com/ucloud/ucloud-sdk-go"
   packages = [
     "private/protocol/http",
+    "private/services/udb",
     "private/services/umem",
     "private/utils",
     "services/uaccount",
@@ -604,6 +605,7 @@
     "github.com/hashicorp/terraform/helper/validation",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
+    "github.com/ucloud/ucloud-sdk-go/private/services/udb",
     "github.com/ucloud/ucloud-sdk-go/private/services/umem",
     "github.com/ucloud/ucloud-sdk-go/services/uaccount",
     "github.com/ucloud/ucloud-sdk-go/services/udb",

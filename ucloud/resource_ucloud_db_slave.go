@@ -307,9 +307,9 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 
 	//change parameter group id take effect until the db slave is restarted
 	if d.HasChange("parameter_group_id") {
-		pgReq := conn.NewChangeUDBParamGroupRequest()
+		pgReq := client.pudbconn.NewChangeUDBParamGroupRequest()
 		pgReq.DBId = ucloud.String(d.Id())
-		if _, err := conn.ChangUeDBParamGroup(pgReq); err != nil {
+		if _, err := client.pudbconn.ChangeUDBParamGroup(pgReq); err != nil {
 			return fmt.Errorf("do %s failed in update db slave %s, %s", "ChangeUDBParamGroup", d.Id(), err)
 		}
 
