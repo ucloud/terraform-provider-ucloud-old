@@ -45,9 +45,9 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 							ValidateFunc: validateSecurityGroupPort,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								if v, ok := d.GetOk("protocol"); ok && isPortIndependentProtocol(v.(string)) {
-									return false
+									return true
 								}
-								return true
+								return false
 							},
 						},
 
