@@ -71,7 +71,7 @@ func resourceUCloudLBAttachmentCreate(d *schema.ResourceData, meta interface{}) 
 	req := conn.NewAllocateBackendRequest()
 	req.ULBId = ucloud.String(lbId)
 	req.VServerId = ucloud.String(listenerId)
-	req.ResourceType = ucloud.String(uHostMap.convert(d.Get("resource_type").(string)))
+	req.ResourceType = ucloud.String(titleCaseProdCvt.mustConvert(d.Get("resource_type").(string)))
 	req.ResourceId = ucloud.String(d.Get("resource_id").(string))
 	req.Port = ucloud.Int(d.Get("port").(int))
 
@@ -98,7 +98,7 @@ func resourceUCloudLBAttachmentCreate(d *schema.ResourceData, meta interface{}) 
 				return nil, "", err
 			}
 
-			state := lbAttachmentStatus.transform(backendSet.Status)
+			state := lbAttachmentStatus.mustConvert(backendSet.Status)
 			if state != "normalRunning" {
 				state = "pending"
 			} else {
@@ -162,10 +162,10 @@ func resourceUCloudLBAttachmentRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("resource_id", backendSet.ResourceId)
-	d.Set("resource_type", uHostMap.unconvert(backendSet.ResourceType))
+	d.Set("resource_type", titleCaseProdCvt.mustConvert(backendSet.ResourceType))
 	d.Set("port", backendSet.Port)
 	d.Set("private_ip", backendSet.PrivateIP)
-	d.Set("status", lbAttachmentStatus.transform(backendSet.Status))
+	d.Set("status", lbAttachmentStatus.mustConvert(backendSet.Status))
 
 	return nil
 }

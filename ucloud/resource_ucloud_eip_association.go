@@ -42,7 +42,7 @@ func resourceUCloudEIPAssociationCreate(d *schema.ResourceData, meta interface{}
 	conn := client.unetconn
 
 	eipId := d.Get("eip_id").(string)
-	resourceType := ulbMap.convert(uhostMap.convert(d.Get("resource_type").(string)))
+	resourceType := lowerCaseProdCvt.mustConvert(d.Get("resource_type").(string))
 	resourceId := d.Get("resource_id").(string)
 
 	req := conn.NewBindEIPRequest()
@@ -106,7 +106,7 @@ func resourceUCloudEIPAssociationRead(d *schema.ResourceData, meta interface{}) 
 	//TODO:[API-ERROR] UnetEIPResourceSet don't have EIPId
 	d.Set("eip_id", d.Get("eip_id"))
 	d.Set("resource_id", resource.ResourceId)
-	d.Set("resource_type", ulbMap.unconvert(uhostMap.unconvert(resource.ResourceType)))
+	d.Set("resource_type", lowerCaseProdCvt.mustUnconvert(resource.ResourceType))
 
 	return nil
 }

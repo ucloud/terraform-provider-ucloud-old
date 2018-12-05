@@ -284,33 +284,6 @@ func parseAssociationInfo(assocId string) (*associationInfo, error) {
 	}, nil
 }
 
-type converter map[string]string
-
-func (c converter) convert(src string) string {
-	if dst, ok := c[src]; ok {
-		return dst
-	}
-	return src
-}
-
-func (c converter) unconvert(dst string) string {
-	for src, v := range c {
-		if v == dst {
-			return src
-		}
-	}
-	return dst
-}
-
-type transformer map[int]string
-
-func (c transformer) transform(src int) string {
-	if dst, ok := c[src]; ok {
-		return dst
-	}
-	return string(src)
-}
-
 type dbInstanceType struct {
 	Engine string
 	Type   string

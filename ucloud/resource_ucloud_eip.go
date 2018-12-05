@@ -301,7 +301,7 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("ip_set", eipAddr)
 
 	d.Set("resource", map[string]string{
-		"resource_type": ulbMap.unconvert(uhostMap.unconvert(eip.Resource.ResourceType)),
+		"resource_type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
 		"resource_id":   eip.Resource.ResourceId,
 		"eip_id":        eip.EIPId, //TODO:[API-ERROR] UnetEIPResourceSet don't have EIPId
 	})
