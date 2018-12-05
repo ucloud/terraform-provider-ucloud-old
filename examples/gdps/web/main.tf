@@ -62,11 +62,17 @@ resource "ucloud_subnet" "default" {
   vpc_id = "${ucloud_vpc.default.id}"
 }
 
+# Random shuffle will random select a zone
+resource "random_shuffle" "az" {
+  input        = ["${data.ucloud_zones.default.ids}"]
+  result_count = "${var.instance_count}"
+}
+
 # Create a web server
 resource "ucloud_instance" "web" {
   name              = "tf-example-gdps-web-${format(var.count_format, count.index+1)}"
   tag               = "tf-example"
-  availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+  availability_zone = "${element(random_shuffle.az.result, count.index)}"
   image_id          = "${data.ucloud_images.default.images.0.id}"
   instance_type     = "${data.ucloud_instance_types.default.instance_types.0.id}"
 

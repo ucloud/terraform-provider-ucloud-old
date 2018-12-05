@@ -15,5 +15,5 @@ output "image_id" {
 }
 
 output "instance_id_list" {
-  value = "${ucloud_instance.web.*.id}"
+  value = ["${ucloud_instance.web.*.id}"]
 }

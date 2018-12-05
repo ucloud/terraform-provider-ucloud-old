@@ -11,12 +11,21 @@ func dataSourceUCloudZones() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceUCloudZonesRead,
 		Schema: map[string]*schema.Schema{
-			"output_file": {
+			"output_file": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 			},
 
-			"zones": {
+			"ids": &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"zones": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -42,12 +51,16 @@ func dataSourceUCloudZonesRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error in read region list, %s", err)
 	}
 
+	var ids []string
+	if v, ok := d.GetOk("ids"); ok {
+		ids = ifaceToStringSlice(v)
+	}
+
 	var zones []uaccount.RegionInfo
 	for _, item := range resp.Regions {
-		// filter by query at here
-		// ...
-
-		zones = append(zones, item)
+		if len(ids) == 0 || checkStringIn(item.Zone, ids) == nil {
+			zones = append(zones, item)
+		}
 	}
 
 	err = dataSourceUCloudZonesSave(d, zones, meta)
@@ -75,6 +88,7 @@ func dataSourceUCloudZonesSave(d *schema.ResourceData, zones []uaccount.RegionIn
 	if err := d.Set("zones", data); err != nil {
 		return err
 	}
+	d.Set("ids", ids)
 
 	if outputFile, ok := d.GetOk("output_file"); ok && outputFile.(string) != "" {
 		writeToFile(outputFile.(string), data)

@@ -38,8 +38,8 @@ The attribute (`eips`) support the following:
 
 * `bandwidth` - Maximum bandwidth to the elastic public network, measured in Mbps, this attribute will be displayed as shared bandwidth if "BandwidthType=1", otherwise it will be displayed as the bandwith to EIP if "BandwidthType=0".
 * `ip_set` - ip_set is a nested type. ip_set documented below.
-* `create_time` - The time of creation for Elastic IP.
-* `expire_time` - The expiration time for Elastic IP, formatted by Unix Timestamp.
+* `create_time` - The time of creation for Elastic IP, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for Elastic IP, formatted by RFC3339 time string.
 * `internet_charge_mode` - Elastic IP charge mode. Possible values are: "Traffic" as pay by traffic, "Bandwidth" as pay by bandwidth, "ShareBandwidth" as pay by shared bandwidth.
 * `internet_charge_type` - Elastic IP Charge type. Possible values are: "Year" as pay by year, "Month" as pay by month, "Dynamic" as pay by hour.
 * `name` - The name of Elastic IP.

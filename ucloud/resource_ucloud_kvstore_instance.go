@@ -55,6 +55,7 @@ func resourceUCloudKVStoreInstance() *schema.Resource {
 			"instance_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      "Month",
 				ValidateFunc: validateStringInChoices([]string{"Year", "Month", "Dynamic"}),
 			},
@@ -68,13 +69,13 @@ func resourceUCloudKVStoreInstance() *schema.Resource {
 			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 
 			"subnet_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 
 			"password": &schema.Schema{
@@ -100,7 +101,7 @@ func resourceUCloudKVStoreInstance() *schema.Resource {
 			"backup_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 
 			"tag": &schema.Schema{
@@ -127,25 +128,18 @@ func resourceUCloudKVStoreInstance() *schema.Resource {
 				},
 			},
 
-			"port": &schema.Schema{
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateIntegerInRange(0, 65535),
-			},
-
 			"create_time": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"update_time": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"expire_time": &schema.Schema{
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -162,7 +156,7 @@ func resourceUCloudKVStoreInstanceCreate(d *schema.ResourceData, meta interface{
 	t, _ := parseKVStoreInstanceType(d.Get("instance_type").(string))
 
 	if engine := d.Get("engine").(string); t.Engine != engine {
-		return fmt.Errorf("error in create memory instance, engine of instance type %s must be same as engine %s", t.Engine, engine)
+		return fmt.Errorf("error in create kvstore instance, engine of instance type %s must be same as engine %s", t.Engine, engine)
 	}
 
 	if t.Engine == "redis" && t.Type == "master" {
@@ -178,10 +172,10 @@ func resourceUCloudKVStoreInstanceCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if t.Engine == "memcache" && t.Type == "distributed" {
-		return fmt.Errorf("error in create memory instance, distributed memcache is not supported")
+		return fmt.Errorf("error in create kvstore instance, distributed memcache is not supported")
 	}
 
-	return fmt.Errorf("error in create memory instance, %s is not supported", t.Engine)
+	return fmt.Errorf("error in create kvstore instance, %s is not supported", t.Engine)
 }
 
 func resourceUCloudKVStoreInstanceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -189,7 +183,7 @@ func resourceUCloudKVStoreInstanceUpdate(d *schema.ResourceData, meta interface{
 	t, _ := parseKVStoreInstanceType(d.Get("instance_type").(string))
 
 	if engine := d.Get("engine").(string); t.Engine != engine {
-		return fmt.Errorf("error in update memory instance, engine of instance type %s must be same as engine %s", t.Engine, engine)
+		return fmt.Errorf("error in update kvstore instance, engine of instance type %s must be same as engine %s", t.Engine, engine)
 	}
 
 	if t.Engine == "redis" && t.Type == "master" {
@@ -204,13 +198,13 @@ func resourceUCloudKVStoreInstanceUpdate(d *schema.ResourceData, meta interface{
 		return updateActiveStandbyMemcacheInstance(d, meta)
 	}
 
-	return fmt.Errorf("error in update memory instance, current engine is not supported")
+	return fmt.Errorf("error in update kvstore instance, current engine is not supported")
 }
 
 func resourceUCloudKVStoreInstanceRead(d *schema.ResourceData, meta interface{}) error {
 	t, err := parseKVStoreInstanceType(d.Get("instance_type").(string))
 	if err != nil {
-		return fmt.Errorf("error in read memory instance, %s", err)
+		return fmt.Errorf("error in read kvstore instance, %s", err)
 	}
 
 	if t.Engine == "redis" && t.Type == "master" {
@@ -225,7 +219,7 @@ func resourceUCloudKVStoreInstanceRead(d *schema.ResourceData, meta interface{})
 		return readActiveStandbyMemcacheInstance(d, meta)
 	}
 
-	return fmt.Errorf("error in read memory instance, current engine is not supported")
+	return fmt.Errorf("error in read kvstore instance, current engine is not supported")
 }
 
 func resourceUCloudKVStoreInstanceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -245,7 +239,7 @@ func resourceUCloudKVStoreInstanceDelete(d *schema.ResourceData, meta interface{
 			return deleteActiveStandbyMemcacheInstance(d, meta)
 		}
 
-		return resource.NonRetryableError(fmt.Errorf("error in delete memory instance, current engine is not supported"))
+		return resource.NonRetryableError(fmt.Errorf("error in delete kvstore instance, current engine is not supported"))
 	})
 }
 
@@ -261,13 +255,13 @@ func createActiveStandbyRedisInstance(d *schema.ResourceData, meta interface{}) 
 	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 	req.HighAvailability = ucloud.String("enable")
 
-	if v, ok := d.GetOk("engine_version"); !ok || isEmptyString(v.(string)) {
-		return fmt.Errorf("error in create memory instance, engine version is required")
-	} else {
+	if v, ok := d.GetOk("engine_version"); ok {
 		req.Version = ucloud.String(v.(string))
+	} else {
+		return fmt.Errorf("error in create kvstore instance, engine version is required")
 	}
 
-	if v, ok := d.GetOk("password"); ok && !isEmptyString(v.(string)) {
+	if v, ok := d.GetOk("password"); ok {
 		req.Password = ucloud.String(v.(string))
 	}
 
@@ -298,7 +292,7 @@ func createActiveStandbyRedisInstance(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := conn.CreateURedisGroup(req)
 	if err != nil {
-		return fmt.Errorf("error in create memory instance, %s", err)
+		return fmt.Errorf("error in create kvstore instance, %s", err)
 	}
 
 	d.SetId(resp.GroupId)
@@ -336,7 +330,7 @@ func createDistributedRedisInstance(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := conn.CreateUMemSpace(req)
 	if err != nil {
-		return fmt.Errorf("error in create memory instance, %s", err)
+		return fmt.Errorf("error in create kvstore instance, %s", err)
 	}
 
 	d.SetId(resp.SpaceId)
@@ -374,7 +368,7 @@ func createActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{
 
 	resp, err := conn.CreateUMemcacheGroup(req)
 	if err != nil {
-		return fmt.Errorf("error in create memory instance, %s", err)
+		return fmt.Errorf("error in create kvstore instance, %s", err)
 	}
 
 	d.SetId(resp.GroupId)
@@ -406,11 +400,11 @@ func updateActiveStandbyRedisInstanceWithoutRead(d *schema.ResourceData, meta in
 
 		_, err := conn.ModifyURedisGroupName(req)
 		if err != nil {
-			return fmt.Errorf("do ModifyURedisGroupName failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ModifyURedisGroupName failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ModifyURedisGroupName failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ModifyURedisGroupName failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("name")
@@ -420,7 +414,7 @@ func updateActiveStandbyRedisInstanceWithoutRead(d *schema.ResourceData, meta in
 		o, n := d.GetChange("instance_type")
 		newCapability := getKVStoreCapability(n.(string))
 		if newCapability == getKVStoreCapability(o.(string)) {
-			return fmt.Errorf("instance_type is invalid in update memory instance %s, intance type changed but memory capability is not changed", d.Id())
+			return fmt.Errorf("instance_type is invalid in update kvstore instance %s, intance type changed but memory capability is not changed", d.Id())
 		}
 
 		req := conn.NewResizeURedisGroupRequest()
@@ -429,11 +423,11 @@ func updateActiveStandbyRedisInstanceWithoutRead(d *schema.ResourceData, meta in
 
 		_, err := conn.ResizeURedisGroup(req)
 		if err != nil {
-			return fmt.Errorf("do ResizeURedisGroup failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ResizeURedisGroup failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ResizeURedisGroup failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ResizeURedisGroup failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("instance_type")
@@ -448,11 +442,11 @@ func updateActiveStandbyRedisInstanceWithoutRead(d *schema.ResourceData, meta in
 
 		_, err := client.pumemconn.ModifyURedisGroupPassword(req)
 		if err != nil {
-			return fmt.Errorf("do ModifyURedisGroupPassword failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ModifyURedisGroupPassword failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ModifyURedisGroupPassword failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ModifyURedisGroupPassword failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("password")
@@ -467,11 +461,11 @@ func updateActiveStandbyRedisInstanceWithoutRead(d *schema.ResourceData, meta in
 
 		_, err := client.pumemconn.ChangeURedisConfig(req)
 		if err != nil {
-			return fmt.Errorf("do ChangeURedisConfig failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ChangeURedisConfig failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ChangeURedisConfig failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ChangeURedisConfig failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("parameter_group_id")
@@ -494,11 +488,11 @@ func updateDistributedRedisInstance(d *schema.ResourceData, meta interface{}) er
 
 		_, err := conn.ModifyUMemSpaceName(req)
 		if err != nil {
-			return fmt.Errorf("do ModifyUMemSpaceName failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ModifyUMemSpaceName failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitDistributedRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for modify name failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for modify name failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("name")
@@ -508,7 +502,7 @@ func updateDistributedRedisInstance(d *schema.ResourceData, meta interface{}) er
 		o, n := d.GetChange("instance_type")
 		newCapability := getKVStoreCapability(n.(string))
 		if newCapability == getKVStoreCapability(o.(string)) {
-			return fmt.Errorf("instance_type is invalid in update memory instance %s, intance type changed but memory capability is not changed", d.Id())
+			return fmt.Errorf("instance_type is invalid in update kvstore instance %s, intance type changed but memory capability is not changed", d.Id())
 		}
 
 		req := conn.NewResizeUMemSpaceRequest()
@@ -517,11 +511,11 @@ func updateDistributedRedisInstance(d *schema.ResourceData, meta interface{}) er
 
 		_, err := conn.ResizeUMemSpace(req)
 		if err != nil {
-			return fmt.Errorf("do ResizeUMemSpace failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ResizeUMemSpace failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitDistributedRedisRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for resize failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for resize failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		d.SetPartial("instance_type")
@@ -545,11 +539,11 @@ func updateActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{
 
 		_, err := conn.ModifyUMemcacheGroupName(req)
 		if err != nil {
-			return fmt.Errorf("do ModifyUMemcacheGroupName failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ModifyUMemcacheGroupName failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyMemcacheRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ModifyUMemcacheGroupName failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ModifyUMemcacheGroupName failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 	}
 
@@ -557,7 +551,7 @@ func updateActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{
 		o, n := d.GetChange("instance_type")
 		newCapability := getKVStoreCapability(n.(string))
 		if newCapability == getKVStoreCapability(o.(string)) {
-			return fmt.Errorf("instance_type is invalid in update memory instance %s, intance type changed but memory capability is not changed", d.Id())
+			return fmt.Errorf("instance_type is invalid in update kvstore instance %s, intance type changed but memory capability is not changed", d.Id())
 		}
 
 		req := conn.NewResizeUMemcacheGroupRequest()
@@ -566,11 +560,11 @@ func updateActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{
 
 		_, err := conn.ResizeUMemcacheGroup(req)
 		if err != nil {
-			return fmt.Errorf("do ResizeUMemcacheGroup failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do ResizeUMemcacheGroup failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 
 		if err := client.waitActiveStandbyMemcacheRunning(d.Id()); err != nil {
-			return fmt.Errorf("do wait for ResizeUMemcacheGroup failed in update memory instance %s, %s", d.Id(), err)
+			return fmt.Errorf("do wait for ResizeUMemcacheGroup failed in update kvstore instance %s, %s", d.Id(), err)
 		}
 	}
 
@@ -588,7 +582,7 @@ func readActiveStandbyRedisInstance(d *schema.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read memory instance %s, %s", "DescribeURedisGroup", d.Id(), err)
+		return fmt.Errorf("do %s failed in read kvstore instance %s, %s", "DescribeURedisGroup", d.Id(), err)
 	}
 
 	d.Set("name", inst.Name)
@@ -607,7 +601,6 @@ func readActiveStandbyRedisInstance(d *schema.ResourceData, meta interface{}) er
 		"ip":   inst.VirtualIP,
 		"port": inst.Port,
 	}})
-	d.Set("port", inst.Port)
 	d.Set("create_time", timestampToString(inst.CreateTime))
 	d.Set("update_time", timestampToString(inst.ModifyTime))
 	d.Set("expire_time", timestampToString(inst.ExpireTime))
@@ -624,7 +617,7 @@ func readDistributedRedisInstance(d *schema.ResourceData, meta interface{}) erro
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read memory instance %s, %s", "DescribeUMemSpace", d.Id(), err)
+		return fmt.Errorf("do %s failed in read kvstore instance %s, %s", "DescribeUMemSpace", d.Id(), err)
 	}
 
 	d.Set("name", inst.Name)
@@ -644,11 +637,10 @@ func readDistributedRedisInstance(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(addresses) == 0 {
-		return fmt.Errorf("do %s failed in read memory instance %s, no availability ip address", "DescribeUMemSpace", d.Id())
+		return fmt.Errorf("do %s failed in read kvstore instance %s, no availability ip address", "DescribeUMemSpace", d.Id())
 	}
 
 	d.Set("ip_set", addresses)
-	d.Set("port", inst.Address[0].Port)
 	d.Set("create_time", timestampToString(inst.CreateTime))
 	d.Set("expire_time", timestampToString(inst.ExpireTime))
 	d.Set("status", inst.State)
@@ -664,7 +656,7 @@ func readActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read memory instance %s, %s", "DescribeURedisGroup", d.Id(), err)
+		return fmt.Errorf("do %s failed in read kvstore instance %s, %s", "DescribeURedisGroup", d.Id(), err)
 	}
 
 	d.Set("name", inst.Name)
@@ -678,7 +670,6 @@ func readActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{})
 		"ip":   inst.VirtualIP,
 		"port": inst.Port,
 	}})
-	d.Set("port", inst.Port)
 	d.Set("create_time", timestampToString(inst.CreateTime))
 	d.Set("update_time", timestampToString(inst.ModifyTime))
 	d.Set("expire_time", timestampToString(inst.ExpireTime))
@@ -690,61 +681,86 @@ func deleteActiveStandbyRedisInstance(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*UCloudClient)
 	conn := client.umemconn
 
-	req := conn.NewDeleteURedisGroupRequest()
-	req.GroupId = ucloud.String(d.Id())
-	if _, err := conn.DeleteURedisGroup(req); err != nil {
-		return resource.NonRetryableError(fmt.Errorf("error in delete memory instance %s, %s", d.Id(), err))
-	}
-
 	_, err := client.describeActiveStandbyRedisById(d.Id())
 	if err != nil {
 		if isNotFoundError(err) {
 			return nil
 		}
-		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete memory instance %s, %s", "DescribeRedisGroup", d.Id(), err))
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeRedisGroup", d.Id(), err))
 	}
 
-	return resource.RetryableError(fmt.Errorf("delete memory instance but it still exists"))
+	req := conn.NewDeleteURedisGroupRequest()
+	req.GroupId = ucloud.String(d.Id())
+	if _, err := conn.DeleteURedisGroup(req); err != nil {
+		return resource.NonRetryableError(fmt.Errorf("error in delete kvstore instance %s, %s", d.Id(), err))
+	}
+
+	_, err = client.describeActiveStandbyRedisById(d.Id())
+	if err != nil {
+		if isNotFoundError(err) {
+			return nil
+		}
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeRedisGroup", d.Id(), err))
+	}
+
+	return resource.RetryableError(fmt.Errorf("delete kvstore instance but it still exists"))
 }
 
 func deleteDistributedRedisInstance(d *schema.ResourceData, meta interface{}) *resource.RetryError {
 	client := meta.(*UCloudClient)
 	conn := client.umemconn
 
-	req := conn.NewDeleteUMemSpaceRequest()
-	req.SpaceId = ucloud.String(d.Id())
-	if _, err := conn.DeleteUMemSpace(req); err != nil {
-		return resource.NonRetryableError(fmt.Errorf("error in delete memory instance %s, %s", d.Id(), err))
-	}
-
 	_, err := client.describeDistributedRedisById(d.Id())
 	if err != nil {
 		if isNotFoundError(err) {
 			return nil
 		}
-		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete memory instance %s, %s", "DescribeUMemSpace", d.Id(), err))
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeUMemSpace", d.Id(), err))
 	}
-	return nil
+
+	req := conn.NewDeleteUMemSpaceRequest()
+	req.SpaceId = ucloud.String(d.Id())
+	if _, err := conn.DeleteUMemSpace(req); err != nil {
+		return resource.NonRetryableError(fmt.Errorf("error in delete kvstore instance %s, %s", d.Id(), err))
+	}
+
+	_, err = client.describeDistributedRedisById(d.Id())
+	if err != nil {
+		if isNotFoundError(err) {
+			return nil
+		}
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeUMemSpace", d.Id(), err))
+	}
+	return resource.RetryableError(fmt.Errorf("delete kvstore instance but it still exists"))
 }
 
 func deleteActiveStandbyMemcacheInstance(d *schema.ResourceData, meta interface{}) *resource.RetryError {
 	client := meta.(*UCloudClient)
 	conn := client.umemconn
 
-	req := conn.NewDeleteUMemcacheGroupRequest()
-	req.GroupId = ucloud.String(d.Id())
-	if _, err := conn.DeleteUMemcacheGroup(req); err != nil {
-		return resource.NonRetryableError(fmt.Errorf("error in delete memory instance %s, %s", d.Id(), err))
-	}
-
 	_, err := client.describeActiveStandbyMemcacheById(d.Id())
 	if err != nil {
 		if isNotFoundError(err) {
 			return nil
 		}
-		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete memory instance %s, %s", "DescribeUMemcacheGroup", d.Id(), err))
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeUMemcacheGroup", d.Id(), err))
 	}
-	return nil
+
+	req := conn.NewDeleteUMemcacheGroupRequest()
+	req.GroupId = ucloud.String(d.Id())
+	if _, err := conn.DeleteUMemcacheGroup(req); err != nil {
+		return resource.NonRetryableError(fmt.Errorf("error in delete kvstore instance %s, %s", d.Id(), err))
+	}
+
+	_, err = client.describeActiveStandbyMemcacheById(d.Id())
+	if err != nil {
+		if isNotFoundError(err) {
+			return nil
+		}
+		return resource.NonRetryableError(fmt.Errorf("do %s failed in delete kvstore instance %s, %s", "DescribeUMemcacheGroup", d.Id(), err))
+	}
+
+	return resource.RetryableError(fmt.Errorf("delete kvstore instance but it still exists"))
 }
 
 func getKVStoreCapability(instType string) int {
