@@ -84,6 +84,16 @@ func checkStringIn(val string, availables []string) error {
 	return fmt.Errorf("should be one of %s, got %s", strings.Join(availables, ","), val)
 }
 
+func isStringIn(val string, availables []string) bool {
+	for _, choice := range availables {
+		if val == choice {
+			return true
+		}
+	}
+
+	return false
+}
+
 func checkIntIn(val int, availables []int) error {
 	for _, choice := range availables {
 		if val == choice {

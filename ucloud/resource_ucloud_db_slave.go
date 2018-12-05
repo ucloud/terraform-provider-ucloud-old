@@ -77,6 +77,16 @@ func resourceUCloudDBSlave() *schema.Resource {
 				ValidateFunc: validateIntegerInRange(3306, 65535),
 			},
 
+			"vpc_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"subnet_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"status": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
@@ -111,10 +121,15 @@ func resourceUCloudDBSlaveCreate(d *schema.ResourceData, meta interface{}) error
 	}
 	arr := strings.Split(db.DBTypeId, "-")
 	engine := arr[0]
+	version := arr[1]
 	// skip error because it has been validated by schema
 	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
 	if dbType.Engine != engine {
-		return fmt.Errorf("error in create db slave, engine of instance type %s must be same as engine of master db %s", dbType.Engine, engine)
+		return fmt.Errorf("error in create db slave, engine of slave type %s must be same as engine of master db instance %s", dbType.Engine, engine)
+	}
+
+	if version == "5.5" {
+		return fmt.Errorf("error in create db slave, engine version of master db can not support %q", "5.5")
 	}
 
 	if dbType.Type == "ha" {
@@ -123,7 +138,7 @@ func resourceUCloudDBSlaveCreate(d *schema.ResourceData, meta interface{}) error
 
 	req := conn.NewCreateUDBSlaveRequest()
 
-	req.InstanceMode = ucloud.String(dbMap.convert(dbType.Type))
+	req.InstanceMode = ucloud.String(dbMap.mustConvert(dbType.Type))
 	req.SrcId = ucloud.String(masterId)
 	req.Name = ucloud.String(d.Get("name").(string))
 	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
@@ -154,7 +169,7 @@ func resourceUCloudDBSlaveCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(resp.DBId)
 
 	// after create db slave, we need to wait it initialized
-	stateConf := client.dbWaitForState(d.Id(), "Running")
+	stateConf := client.dbWaitForState(d.Id(), []string{"Running"})
 
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("wait for db slave initialize failed in create db slave %s, %s", d.Id(), err)
@@ -178,13 +193,6 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		if _, err := conn.ModifyUDBInstanceName(req); err != nil {
 			return fmt.Errorf("do %s failed in update db slave %s, %s", "ModifyUDBInstanceName", d.Id(), err)
 		}
-
-		// after update db slave name, we need to wait it completed
-		stateConf := client.dbWaitForState(d.Id(), "Running")
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for update db name failed in update db slave %s, %s", d.Id(), err)
-		}
 	}
 
 	if d.HasChange("password") && !d.IsNewResource() {
@@ -196,21 +204,13 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		if _, err := conn.ModifyUDBInstancePassword(req); err != nil {
 			return fmt.Errorf("do %s failed in update db %s, %s", "ModifyUDBInstancePassword", d.Id(), err)
 		}
-
-		// after update db password, we need to wait it completed
-		stateConf := client.dbWaitForState(d.Id(), "Running")
-
-		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for update db password failed in update db slave %s, %s", d.Id(), err)
-		}
 	}
 
-	isChanged := false
-	req := conn.NewResizeUDBInstanceRequest()
-	req.DBId = ucloud.String(d.Id())
+	isSizeChanged := false
+	sizeReq := conn.NewResizeUDBInstanceRequest()
+	sizeReq.DBId = ucloud.String(d.Id())
 
 	if d.HasChange("instance_type") && !d.IsNewResource() {
-		d.SetPartial("instance_type")
 		old, new := d.GetChange("instance_type")
 
 		oldType, _ := parseDBInstanceType(old.(string))
@@ -225,34 +225,24 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		engine := arr[0]
 
 		if newType.Engine != engine {
-			return fmt.Errorf("error in update db slave, engine of instance type %s must be same as engine of master db %s", newType.Engine, engine)
+			return fmt.Errorf("error in update db slave, engine of slave type %s must be same as engine of master db instance %s", newType.Engine, engine)
 		}
 
-		if newType.Type == "ha" {
-			return fmt.Errorf("error in update db slave, create high availability db slave is not supported")
+		if newType.Type == oldType.Type {
+			return fmt.Errorf("error in update db slave, db slave is not supported update the type of %q", "instance_type")
 		}
 
-		if oldType.Memory != newType.Memory {
-			req.MemoryLimit = ucloud.Int(newType.Memory * 1000)
-		}
-
-		isChanged = true
+		sizeReq.MemoryLimit = ucloud.Int(newType.Memory * 1000)
+		isSizeChanged = true
 	}
 
 	if d.HasChange("instance_storage") && !d.IsNewResource() {
-		d.SetPartial("instance_storage")
-		req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
-		isChanged = true
+		sizeReq.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+		isSizeChanged = true
 	}
 
-	if isChanged {
-		//update these attributes of db slave, we need to wait it stopped
-		stopReq := conn.NewStopUDBInstanceRequest()
-		stopReq.DBId = ucloud.String(d.Id())
-		stopReq.Zone = ucloud.String(d.Get("availability_zone").(string))
-
+	if isSizeChanged {
 		dbSlave, err := client.describeDBInstanceById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				d.SetId("")
@@ -261,6 +251,10 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("do %s failed in update db slave %s, %s", "DescribeUDBInstance", d.Id(), err)
 		}
 
+		//update these attributes of db slave, we need to wait it stopped
+		stopReq := conn.NewStopUDBInstanceRequest()
+		stopReq.DBId = ucloud.String(d.Id())
+		stopReq.Zone = ucloud.String(d.Get("availability_zone").(string))
 		if dbSlave.State != "Shutoff" {
 			_, err := conn.StopUDBInstance(stopReq)
 
@@ -269,41 +263,69 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 			}
 
 			// after stop db slave, we need to wait it stopped
-			stateConf := client.dbWaitForState(d.Id(), "Shutoff")
+			stateConf := client.dbWaitForState(d.Id(), []string{"Shutoff"})
 
 			if _, err := stateConf.WaitForState(); err != nil {
 				return fmt.Errorf("wait for stop db slave failed in update db slave %s, %s", d.Id(), err)
 			}
 		}
 
-		if _, err := conn.ResizeUDBInstance(req); err != nil {
+		if _, err := conn.ResizeUDBInstance(sizeReq); err != nil {
 			return fmt.Errorf("do %s failed in update db slave %s, %s", "ResizeUDBInstance", d.Id(), err)
 		}
 
 		// after resize db slave, we need to wait it completed
-		stateConf := client.dbWaitForState(d.Id(), "Shutoff")
+		stateConf := client.dbWaitForState(d.Id(), []string{"Shutoff"})
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("wait for resize db slave failed in update db %s, %s", d.Id(), err)
 		}
 
-		// after update these attributes of db slave, we need to wait it started
-		startReq := conn.NewStartUDBInstanceRequest()
-		startReq.DBId = ucloud.String(d.Id())
-		startReq.Zone = ucloud.String(d.Get("availability_zone").(string))
+		d.SetPartial("instance_storage")
+		d.SetPartial("instance_type")
 
-		_, err = conn.StartUDBInstance(startReq)
+		if dbSlave.State == "Running" {
+			// after update these attributes of db slave completed, we need start it
+			startReq := conn.NewStartUDBInstanceRequest()
+			startReq.DBId = ucloud.String(d.Id())
+			startReq.Zone = ucloud.String(d.Get("availability_zone").(string))
 
-		if err != nil {
-			return fmt.Errorf("do %s failed in update db slave %s, %s", "StartUDBInstance", d.Id(), err)
+			_, err = conn.StartUDBInstance(startReq)
+
+			if err != nil {
+				return fmt.Errorf("do %s failed in update db slave %s, %s", "StartUDBInstance", d.Id(), err)
+			}
+
+			//after start db slave, we need to wait it running
+			stateConf = client.dbWaitForState(d.Id(), []string{"Running"})
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("wait for start db slave failed in update db slave %s, %s", d.Id(), err)
+			}
+		}
+	}
+
+	//change parameter group id take effect until the db slave is restarted
+	if d.HasChange("parameter_group_id") {
+		pgReq := conn.NewChangeUDBParamGroupRequest()
+		pgReq.DBId = ucloud.String(d.Id())
+		if _, err := conn.ChangUeDBParamGroup(pgReq); err != nil {
+			return fmt.Errorf("do %s failed in update db slave %s, %s", "ChangeUDBParamGroup", d.Id(), err)
 		}
 
-		// after db slave update, we need to wait it started
-		stateConf = client.dbWaitForState(d.Id(), "Running")
+		resReq := conn.NewRestartUDBInstanceRequest()
+		resReq.DBId = ucloud.String(d.Id())
+		if _, err := conn.RestartUDBInstance(resReq); err != nil {
+			return fmt.Errorf("do %s failed in update db slave %s, %s", "RestartUDBInstance", d.Id(), err)
+		}
+
+		// after change parameter group id , we need to wait it completed
+		stateConf := client.dbWaitForState(d.Id(), []string{"Running", "Shutoff"})
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for start db slave failed in update db slave %s, %s", d.Id(), err)
+			return fmt.Errorf("wait for change parameter group id failed in update db slave %s, %s", d.Id(), err)
 		}
+		d.SetPartial("parameter_group_id")
 	}
 
 	d.Partial(false)
@@ -333,10 +355,12 @@ func resourceUCloudDBSlaveRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
+	// d.Set("vpc_id", db.VPCId)
+	// d.Set("subnet_id", db.SubnetId)
 	var dbType dbInstanceType
 	dbType.Memory = db.MemoryLimit / 1000
 	dbType.Engine = arr[0]
-	dbType.Type = dbMap.unconvert(db.InstanceMode)
+	dbType.Type = dbMap.mustUnconvert(db.InstanceMode)
 
 	d.Set("instance_type", fmt.Sprintf("%s-%s-%d", dbType.Engine, dbType.Type, dbType.Memory))
 
@@ -367,7 +391,7 @@ func resourceUCloudDBSlaveDelete(d *schema.ResourceData, meta interface{}) error
 			}
 
 			// after db slave stop, we need to wait it stoped
-			stateConf := client.dbWaitForState(d.Id(), "Shutoff")
+			stateConf := client.dbWaitForState(d.Id(), []string{"Shutoff"})
 
 			if _, err := stateConf.WaitForState(); err != nil {
 				return resource.RetryableError(fmt.Errorf("wait for db slave stop failed in delete db %s, %s", d.Id(), err))

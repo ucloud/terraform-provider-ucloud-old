@@ -36,25 +36,6 @@ func validateStringInChoices(choices []string) schema.SchemaValidateFunc {
 	}
 }
 
-// validateIntInChoices is a common factory to create validator to validate int by enum values
-func validateIntInChoices(choices []int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(int)
-		exist := false
-		for _, i := range choices {
-			if i == value {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			errors = append(errors, fmt.Errorf("%q is invalid, should be one of %#v, got %q", k, choices, value))
-		}
-
-		return
-	}
-}
-
 func validateInstanceType(v interface{}, k string) (ws []string, errors []error) {
 	instanceType := v.(string)
 
@@ -307,16 +288,13 @@ func validateDBParameterGroupName(v interface{}, k string) (ws []string, errors 
 	return
 }
 
-var dbInstanceBlackListPattern = regexp.MustCompile(`^[^.%]+.([^.%]+|%)$`)
+var dbInstanceBlackListPattern = regexp.MustCompile(`^[^.%]+\.([^.%]+|%)$`)
 
 func validateDBInstanceBlackList(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
-	arr := strings.Split(value, ";")
 
-	for _, val := range arr {
-		if !dbInstanceBlackListPattern.MatchString(val) {
-			errors = append(errors, fmt.Errorf("%q is invalid, should like %q or %q, multiple black lists link with %q, got %q", k, "db.%", "dbname.tablename", ";", value))
-		}
+	if !dbInstanceBlackListPattern.MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q is invalid, the element of %q should like %q or %q, got %q", k, "db.%", "dbname.tablename", "backup_black_list", value))
 	}
 
 	return

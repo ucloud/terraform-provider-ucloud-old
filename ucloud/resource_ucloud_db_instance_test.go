@@ -3,9 +3,11 @@ package ucloud
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/ucloud/ucloud-sdk-go/services/udb"
 )
@@ -124,7 +126,8 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "4"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list.#", "1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("test.%")), "test.%"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "1111001"),
 				),
 			},
@@ -142,7 +145,9 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "5"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%;city.address"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list.#", "2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("test.%")), "test.%"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("city.address")), "city.address"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "0001111"),
 				),
 			},
@@ -323,7 +328,7 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 4
 	backup_count = 6
-	backup_black_list = "test.%"
+	backup_black_list = ["test.%"]
 	backup_date = "1111001"
 }
 `
@@ -349,7 +354,7 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 5
 	backup_count = 6
-	backup_black_list = "test.%;city.address"
+	backup_black_list = ["test.%", "city.address"]
 	backup_date = "0001111"
 }
 `
