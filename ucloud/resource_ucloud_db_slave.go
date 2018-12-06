@@ -356,8 +356,8 @@ func resourceUCloudDBSlaveRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
-	// d.Set("vpc_id", db.VPCId)
-	// d.Set("subnet_id", db.SubnetId)
+	d.Set("vpc_id", db.VPCId)
+	d.Set("subnet_id", db.SubnetId)
 	var dbType dbInstanceType
 	dbType.Memory = db.MemoryLimit / 1000
 	dbType.Engine = arr[0]
