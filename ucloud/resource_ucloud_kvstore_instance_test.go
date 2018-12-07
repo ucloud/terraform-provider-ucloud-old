@@ -269,13 +269,16 @@ func testAccCheckActiveStandbyMemcacheDestroy(s *terraform.State) error {
 }
 
 const testAccActiveStandbyRedisConfig = `
+data "ucloud_zones" "default" {
+}
+
 data "ucloud_kvstore_parameter_groups" "default" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	engine_version = "4.0"
 }
 
 resource "ucloud_kvstore_instance" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	engine = "redis"
 	engine_version = "4.0"
 	instance_type = "redis-master-1"
@@ -289,7 +292,7 @@ resource "ucloud_kvstore_instance" "foo" {
 
 const testAccActiveStandbyRedisConfigUpdate = `
 resource "ucloud_kvstore_instance" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	engine = "redis"
 	engine_version = "4.0"
 	instance_type = "redis-master-2"
@@ -301,7 +304,7 @@ resource "ucloud_kvstore_instance" "foo" {
 
 const testAccActiveStandbyMemcacheConfig = `
 resource "ucloud_kvstore_instance" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-acc-memcache"
 	engine = "memcache"
 	engine_version = "4.0"

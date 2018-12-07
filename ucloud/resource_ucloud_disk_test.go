@@ -111,15 +111,18 @@ func testAccCheckDiskDestroy(s *terraform.State) error {
 }
 
 const testAccDiskConfig = `
+data "ucloud_zones" "default" {
+}
+
 resource "ucloud_disk" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "testAcc"
 	disk_size = 10
 }
 `
 const testAccDiskConfigTwo = `
 resource "ucloud_disk" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "testAccTwo"
 	disk_size = 20
 }

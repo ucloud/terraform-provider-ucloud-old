@@ -76,8 +76,8 @@ func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "50"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-2"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
@@ -90,8 +90,8 @@ func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsqlUpdate"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "60"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-4"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
@@ -262,21 +262,19 @@ resource "ucloud_db_instance" "foo" {
 }
 `
 const testAccDBInstanceConfigPgsql = `
-data "ucloud_zones" "default" {
-}
 
 data "ucloud_db_parameter_groups" "default" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone = "cn-bj2-05"
 	region_flag = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	name = "tf-testDBInstance-pgsql"
-	instance_storage = 20
-	instance_type = "postgresql-basic-1"
+	instance_storage = 50
+	instance_type = "postgresql-basic-2"
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"
@@ -284,21 +282,19 @@ resource "ucloud_db_instance" "foo" {
 }
 `
 const testAccDBInstanceConfigPgsqlTwo = `
-data "ucloud_zones" "default" {
-}
 
 data "ucloud_db_parameter_groups" "default" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	region_flag = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	name = "tf-testDBInstance-pgsqlUpdate"
-	instance_storage = 30
-	instance_type = "postgresql-basic-2"
+	instance_storage = 60
+	instance_type = "postgresql-basic-4"
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"

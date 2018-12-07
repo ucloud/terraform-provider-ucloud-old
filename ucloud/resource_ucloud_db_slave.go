@@ -228,7 +228,7 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error in update db slave, engine of slave type %s must be same as engine of master db instance %s", newType.Engine, engine)
 		}
 
-		if newType.Type == oldType.Type {
+		if newType.Type != oldType.Type {
 			return fmt.Errorf("error in update db slave, db slave is not supported update the type of %q", "instance_type")
 		}
 

@@ -162,7 +162,7 @@ func resourceUCloudLBAttachmentRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("resource_id", backendSet.ResourceId)
-	d.Set("resource_type", titleCaseProdCvt.mustConvert(backendSet.ResourceType))
+	d.Set("resource_type", titleCaseProdCvt.mustUnconvert(backendSet.ResourceType))
 	d.Set("port", backendSet.Port)
 	d.Set("private_ip", backendSet.PrivateIP)
 	d.Set("status", lbAttachmentStatus.mustConvert(backendSet.Status))

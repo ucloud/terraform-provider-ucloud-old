@@ -116,7 +116,7 @@ resource "ucloud_udpn_connection" "foo" {
 	charge_type = "Month"
 	duration = 1
 	bandwidth = 2
-	peer_region = "cn-bj2"
+	peer_region = "cn-sh2"
 }
 `
 
@@ -125,6 +125,6 @@ resource "ucloud_udpn_connection" "foo" {
 	charge_type = "Month"
 	duration = 1
 	bandwidth = 3
-	peer_region = "cn-bj2"
+	peer_region = "cn-sh2"
 }
 `

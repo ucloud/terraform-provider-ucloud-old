@@ -119,9 +119,10 @@ func resourceUCloudDBInstance() *schema.Resource {
 			},
 
 			"backup_begin_time": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateIntegerInRange(0, 23),
 			},
 
 			"backup_date": &schema.Schema{
@@ -204,16 +205,20 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	instanceStorage := d.Get("instance_storage").(int)
 	req.DiskSpace = ucloud.Int(instanceStorage)
 	memory := dbType.Memory * 1000
+	if engine == "postgresql" && instanceStorage < 50 {
+		return fmt.Errorf("the %q of postgresql must greater than or equal to 50", "instance_storage")
+	}
+
 	if memory <= 8 && instanceStorage > 500 {
-		return fmt.Errorf("the upper limit of instance storage is 500 when the memory is 8 or less")
+		return fmt.Errorf("the upper limit of %q is 500 when the memory is 8 or less", "instance_storage")
 	}
 
 	if memory <= 24 && instanceStorage > 1000 {
-		return fmt.Errorf("the upper limit of instance storage is 1000 when the memory between 12 and 24")
+		return fmt.Errorf("the upper limit of %q is 1000 when the memory between 12 and 24", "instance_storage")
 	}
 
 	if memory == 32 && instanceStorage > 2000 {
-		return fmt.Errorf("the upper limit of instance storage is 2000 when the memory is 32")
+		return fmt.Errorf("the upper limit of %q is 2000 when the memory is 32", "instance_storage")
 	}
 	req.ChargeType = ucloud.String(d.Get("instance_charge_type").(string))
 	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
@@ -252,9 +257,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 		req.BackupZone = ucloud.String(val.(string))
 	}
 
-	if val, ok := d.GetOk("backup_count"); ok {
-		req.BackupCount = ucloud.Int(val.(int))
-	}
+	req.BackupCount = ucloud.Int(d.Get("backup_count").(int))
 
 	if val, ok := d.GetOk("backup_id"); ok {
 		backupId, err := strconv.Atoi(val.(string))
@@ -326,9 +329,31 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	isSizeChanged := false
 	sizeReq := conn.NewResizeUDBInstanceRequest()
 	sizeReq.DBId = ucloud.String(d.Id())
+	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
+	memory := dbType.Memory * 1000
+	sizeReq.MemoryLimit = ucloud.Int(memory)
+	instanceStorage := d.Get("instance_storage").(int)
+	sizeReq.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+	engine := d.Get("engine").(string)
+	sizeReq.InstanceType = ucloud.String("SATA_SSD")
+
+	if engine == "postgresql" && instanceStorage < 50 {
+		return fmt.Errorf("the %q of postgresql must greater than or equal to 50", "instance_storage")
+	}
+
+	if memory <= 8 && instanceStorage > 500 {
+		return fmt.Errorf("the upper limit of %q is 500 when the memory is 8 or less", "instance_storage")
+	}
+
+	if memory <= 24 && instanceStorage > 1000 {
+		return fmt.Errorf("the upper limit of %q is 1000 when the memory between 12 and 24", "instance_storage")
+	}
+
+	if memory == 32 && instanceStorage > 2000 {
+		return fmt.Errorf("the upper limit of %q is 2000 when the memory is 32", "instance_storage")
+	}
 
 	if d.HasChange("instance_type") && !d.IsNewResource() {
-		engine := d.Get("engine").(string)
 		old, new := d.GetChange("instance_type")
 
 		oldType, _ := parseDBInstanceType(old.(string))
@@ -343,12 +368,10 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("error in update db instance, db instance is not supported update the type of %q", "instance_type")
 		}
 
-		sizeReq.MemoryLimit = ucloud.Int(newType.Memory * 1000)
 		isSizeChanged = true
 	}
 
 	if d.HasChange("instance_storage") && !d.IsNewResource() {
-		sizeReq.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
 		isSizeChanged = true
 	}
 

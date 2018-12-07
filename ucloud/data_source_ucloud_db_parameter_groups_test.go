@@ -25,10 +25,13 @@ func TestAccUCloudDBParameterGroupsDataSource(t *testing.T) {
 }
 
 const testAccDataDBParameterGroupsConfig = `
+data "ucloud_zones" "default" {
+}
+
 resource "ucloud_db_parameter_group" "foo" {
 	count = 2
 
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 
 	name = "testAccDBParameterGroups"
 	src_group_id = "18"
@@ -38,7 +41,7 @@ resource "ucloud_db_parameter_group" "foo" {
 }
 
 data "ucloud_db_parameter_groups" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	ids = ["${ucloud_db_parameter_group.foo.*.id}"]
 }
 `

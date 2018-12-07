@@ -88,13 +88,16 @@ func testAccCheckKVStoreSlaveDestroy(s *terraform.State) error {
 }
 
 const testAccKVStoreSlaveConfig = `
+data "ucloud_zones" "default" {
+}
+
 data "ucloud_kvstore_parameter_groups" "default" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	engine_version = "4.0"
 }
 
 resource "ucloud_kvstore_instance" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	engine = "redis"
 	engine_version = "3.2"
 	instance_type = "redis-master-1"
@@ -106,7 +109,7 @@ resource "ucloud_kvstore_instance" "foo" {
 }
 
 resource "ucloud_kvstore_slave" "foo" {
-	availability_zone = "cn-sh2-02"
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-acc-redis-read-only-slave"
 	instance_type = "redis-master-1"
 	master_id = "${ucloud_kvstore_instance.foo.id}"
