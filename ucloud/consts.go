@@ -19,15 +19,15 @@ const DefaultWaitMaxAttempts = 10
 // DefaultWaitIgnoreError is if it will ignore error during wait for state changed after resource is created
 const DefaultWaitIgnoreError = false
 
-//listenerStatus is used to covert int to string for status after read lb listener
-var listenerStatus = newIntConverter(map[int]string{
+//listenerStatusCvt is used to covert int to string for status after read lb listener
+var listenerStatusCvt = newIntConverter(map[int]string{
 	0: "allNormal",
 	1: "partNormal",
 	2: "allException",
 })
 
-//lbAttachmentStatus is used to covert int to string for status after read lb attachment
-var lbAttachmentStatus = newIntConverter(map[int]string{
+//lbAttachmentStatusCvt is used to covert int to string for status after read lb attachment
+var lbAttachmentStatusCvt = newIntConverter(map[int]string{
 	0: "normalRunning",
 	1: "exceptionRunning",
 })
@@ -44,20 +44,20 @@ var titleCaseProdCvt = newStringConverter(map[string]string{
 	"lb":       "ULB",
 })
 
-//dbMap is used to covert basic to Normal and convert ha to HA
-var dbMap = newStringConverter(map[string]string{
+//dbModeCvt is used to covert basic to Normal and convert ha to HA
+var dbModeCvt = newStringConverter(map[string]string{
 	"basic": "Normal",
 	"ha":    "HA",
 })
 
-//backupTypeMap is used to transform string to int for backup type when read db backups
-var backupTypeMap = newIntConverter(map[int]string{
+//backupTypeCvt is used to transform string to int for backup type when read db backups
+var backupTypeCvt = newIntConverter(map[int]string{
 	0: "automatic",
 	1: "manual",
 })
 
-//pgValueTypeMap is used to transform int to string for value type after read parameter groups
-var pgValueTypeMap = newIntConverter(map[int]string{
+//pgValueTypeCvt is used to transform int to string for value type after read parameter groups
+var pgValueTypeCvt = newIntConverter(map[int]string{
 	0:  "unknown",
 	10: "int",
 	20: "string",
