@@ -22,12 +22,6 @@ func resourceUCloudDBSlave() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"availability_zone": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"master_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -55,7 +49,7 @@ func resourceUCloudDBSlave() *schema.Resource {
 
 			"instance_storage": &schema.Schema{
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateDataDiskSize(20, 3000),
 			},
 
@@ -66,7 +60,7 @@ func resourceUCloudDBSlave() *schema.Resource {
 
 			"instance_type": &schema.Schema{
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateDBInstanceType,
 			},
 
@@ -83,6 +77,15 @@ func resourceUCloudDBSlave() *schema.Resource {
 			},
 
 			"subnet_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"instance_charge_type": &schema.Schema{
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"availability_zone": &schema.Schema{
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -122,6 +125,7 @@ func resourceUCloudDBSlaveCreate(d *schema.ResourceData, meta interface{}) error
 	arr := strings.Split(db.DBTypeId, "-")
 	engine := arr[0]
 	version := arr[1]
+	memory := db.MemoryLimit / 1000
 	// skip error because it has been validated by schema
 	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
 	if dbType.Engine != engine {
@@ -138,12 +142,29 @@ func resourceUCloudDBSlaveCreate(d *schema.ResourceData, meta interface{}) error
 
 	req := conn.NewCreateUDBSlaveRequest()
 
-	req.InstanceMode = ucloud.String(dbMap.mustConvert(dbType.Type))
+	req.InstanceMode = ucloud.String(dbModeCvt.mustConvert(dbType.Type))
 	req.SrcId = ucloud.String(masterId)
 	req.Name = ucloud.String(d.Get("name").(string))
-	req.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+	instanceStorage := d.Get("instance_storage").(int)
+	req.DiskSpace = ucloud.Int(instanceStorage)
 	req.MemoryLimit = ucloud.Int(dbType.Memory * 1000)
 	req.InstanceType = ucloud.String("SATA_SSD")
+
+	if engine == "postgresql" && instanceStorage < 50 {
+		return fmt.Errorf("the %q of postgresql must greater than or equal to 50", "instance_storage")
+	}
+
+	if memory <= 8 && instanceStorage > 500 {
+		return fmt.Errorf("the upper limit of %q is 500 when the memory is 8 or less", "instance_storage")
+	}
+
+	if memory <= 24 && instanceStorage > 1000 {
+		return fmt.Errorf("the upper limit of %q is 1000 when the memory between 12 and 24", "instance_storage")
+	}
+
+	if memory == 32 && instanceStorage > 2000 {
+		return fmt.Errorf("the upper limit of %q is 2000 when the memory is 32", "instance_storage")
+	}
 
 	if val, ok := d.GetOk("port"); ok {
 		req.Port = ucloud.Int(val.(int))
@@ -209,6 +230,31 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 	isSizeChanged := false
 	sizeReq := conn.NewResizeUDBInstanceRequest()
 	sizeReq.DBId = ucloud.String(d.Id())
+	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
+	memory := dbType.Memory * 1000
+	instanceStorage := d.Get("instance_storage").(int)
+	db, err := client.describeDBInstanceById(d.Get("master_id").(string))
+	if err != nil {
+		return fmt.Errorf("do %s failed in update db slave, %s", "DescribeUDBInstance", err)
+	}
+	arr := strings.Split(db.DBTypeId, "-")
+	engine := arr[0]
+
+	if engine == "postgresql" && instanceStorage < 50 {
+		return fmt.Errorf("the %q of postgresql must greater than or equal to 50", "instance_storage")
+	}
+
+	if memory <= 8 && instanceStorage > 500 {
+		return fmt.Errorf("the upper limit of %q is 500 when the memory is 8 or less", "instance_storage")
+	}
+
+	if memory <= 24 && instanceStorage > 1000 {
+		return fmt.Errorf("the upper limit of %q is 1000 when the memory between 12 and 24", "instance_storage")
+	}
+
+	if memory == 32 && instanceStorage > 2000 {
+		return fmt.Errorf("the upper limit of %q is 2000 when the memory is 32", "instance_storage")
+	}
 
 	if d.HasChange("instance_type") && !d.IsNewResource() {
 		old, new := d.GetChange("instance_type")
@@ -216,13 +262,6 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		oldType, _ := parseDBInstanceType(old.(string))
 
 		newType, _ := parseDBInstanceType(new.(string))
-
-		db, err := client.describeDBInstanceById(d.Get("master_id").(string))
-		if err != nil {
-			return fmt.Errorf("do %s failed in update db slave, %s", "DescribeUDBInstance", err)
-		}
-		arr := strings.Split(db.DBTypeId, "-")
-		engine := arr[0]
 
 		if newType.Engine != engine {
 			return fmt.Errorf("error in update db slave, engine of slave type %s must be same as engine of master db instance %s", newType.Engine, engine)
@@ -232,12 +271,13 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("error in update db slave, db slave is not supported update the type of %q", "instance_type")
 		}
 
-		sizeReq.MemoryLimit = ucloud.Int(newType.Memory * 1000)
+		sizeReq.MemoryLimit = ucloud.Int(memory)
 		isSizeChanged = true
 	}
 
 	if d.HasChange("instance_storage") && !d.IsNewResource() {
-		sizeReq.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
+		sizeReq.DiskSpace = ucloud.Int(instanceStorage)
+		sizeReq.InstanceType = ucloud.String("SATA_SSD")
 		isSizeChanged = true
 	}
 
@@ -254,7 +294,6 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		//update these attributes of db slave, we need to wait it stopped
 		stopReq := conn.NewStopUDBInstanceRequest()
 		stopReq.DBId = ucloud.String(d.Id())
-		stopReq.Zone = ucloud.String(d.Get("availability_zone").(string))
 		if dbSlave.State != "Shutoff" {
 			_, err := conn.StopUDBInstance(stopReq)
 
@@ -285,11 +324,9 @@ func resourceUCloudDBSlaveUpdate(d *schema.ResourceData, meta interface{}) error
 		d.SetPartial("instance_type")
 
 		if dbSlave.State == "Running" {
-			// after update these attributes of db slave completed, we need start it
+			// after update these attributes of db slave completed, we need to start it
 			startReq := conn.NewStartUDBInstanceRequest()
 			startReq.DBId = ucloud.String(d.Id())
-			startReq.Zone = ucloud.String(d.Get("availability_zone").(string))
-
 			_, err = conn.StartUDBInstance(startReq)
 
 			if err != nil {
@@ -352,16 +389,17 @@ func resourceUCloudDBSlaveRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("port", db.Port)
 	d.Set("status", db.State)
 	d.Set("instance_storage", db.DiskSpace)
-	d.Set("availability_zone", db.Zone)
 	d.Set("create_time", timestampToString(db.CreateTime))
 	d.Set("expire_time", timestampToString(db.ExpiredTime))
 	d.Set("modify_time", timestampToString(db.ModifyTime))
 	d.Set("vpc_id", db.VPCId)
 	d.Set("subnet_id", db.SubnetId)
+	d.Set("availability_zone", db.Zone)
+	d.Set("instance_charge_type", db.ChargeType)
 	var dbType dbInstanceType
 	dbType.Memory = db.MemoryLimit / 1000
 	dbType.Engine = arr[0]
-	dbType.Type = dbMap.mustUnconvert(db.InstanceMode)
+	dbType.Type = dbModeCvt.mustUnconvert(db.InstanceMode)
 
 	d.Set("instance_type", fmt.Sprintf("%s-%s-%d", dbType.Engine, dbType.Type, dbType.Memory))
 
