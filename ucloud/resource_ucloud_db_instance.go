@@ -225,7 +225,7 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	req.AdminUser = ucloud.String("root")
 	req.InstanceType = ucloud.String("SATA_SSD")
 	req.MemoryLimit = ucloud.Int(memory)
-	req.InstanceMode = ucloud.String(dbMap.mustConvert(dbType.Type))
+	req.InstanceMode = ucloud.String(dbModeCvt.mustConvert(dbType.Type))
 	engineVersion := d.Get("engine_version").(string)
 	if engine == "mysql" || engine == "percona" {
 		if err := checkStringIn(engineVersion, []string{"5.5", "5.6", "5.7"}); err != nil {
@@ -331,11 +331,8 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 	sizeReq.DBId = ucloud.String(d.Id())
 	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
 	memory := dbType.Memory * 1000
-	sizeReq.MemoryLimit = ucloud.Int(memory)
 	instanceStorage := d.Get("instance_storage").(int)
-	sizeReq.DiskSpace = ucloud.Int(d.Get("instance_storage").(int))
 	engine := d.Get("engine").(string)
-	sizeReq.InstanceType = ucloud.String("SATA_SSD")
 
 	if engine == "postgresql" && instanceStorage < 50 {
 		return fmt.Errorf("the %q of postgresql must greater than or equal to 50", "instance_storage")
@@ -368,10 +365,13 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("error in update db instance, db instance is not supported update the type of %q", "instance_type")
 		}
 
+		sizeReq.MemoryLimit = ucloud.Int(memory)
 		isSizeChanged = true
 	}
 
 	if d.HasChange("instance_storage") && !d.IsNewResource() {
+		sizeReq.DiskSpace = ucloud.Int(instanceStorage)
+		sizeReq.InstanceType = ucloud.String("SATA_SSD")
 		isSizeChanged = true
 	}
 
@@ -420,7 +420,7 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 			d.SetPartial("instance_type")
 
 			if db.State == "Running" {
-				// after update these attributes of db instance completed, we need start it
+				// after update these attributes of db instance completed, we need to start it
 				startReq := conn.NewStartUDBInstanceRequest()
 				startReq.DBId = ucloud.String(d.Id())
 				startReq.Zone = ucloud.String(d.Get("availability_zone").(string))
@@ -557,7 +557,7 @@ func resourceUCloudDBInstanceRead(d *schema.ResourceData, meta interface{}) erro
 	var dbType dbInstanceType
 	dbType.Memory = db.MemoryLimit / 1000
 	dbType.Engine = arr[0]
-	dbType.Type = dbMap.mustUnconvert(db.InstanceMode)
+	dbType.Type = dbModeCvt.mustUnconvert(db.InstanceMode)
 	d.Set("instance_type", fmt.Sprintf("%s-%s-%d", dbType.Engine, dbType.Type, dbType.Memory))
 
 	return nil

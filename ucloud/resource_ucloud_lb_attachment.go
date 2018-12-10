@@ -98,7 +98,7 @@ func resourceUCloudLBAttachmentCreate(d *schema.ResourceData, meta interface{}) 
 				return nil, "", err
 			}
 
-			state := lbAttachmentStatus.mustConvert(backendSet.Status)
+			state := lbAttachmentStatusCvt.mustConvert(backendSet.Status)
 			if state != "normalRunning" {
 				state = "pending"
 			} else {
@@ -165,7 +165,7 @@ func resourceUCloudLBAttachmentRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_type", titleCaseProdCvt.mustUnconvert(backendSet.ResourceType))
 	d.Set("port", backendSet.Port)
 	d.Set("private_ip", backendSet.PrivateIP)
-	d.Set("status", lbAttachmentStatus.mustConvert(backendSet.Status))
+	d.Set("status", lbAttachmentStatusCvt.mustConvert(backendSet.Status))
 
 	return nil
 }

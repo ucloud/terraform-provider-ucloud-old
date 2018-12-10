@@ -227,7 +227,7 @@ func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, parameterGrou
 			parameterMember = append(parameterMember, map[string]interface{}{
 				"key":           item.Key,
 				"value":         item.Value,
-				"value_type":    pgValueTypeMap.mustConvert(item.ValueType),
+				"value_type":    pgValueTypeCvt.mustConvert(item.ValueType),
 				"allowed_value": item.AllowedVal,
 			})
 		}

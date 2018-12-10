@@ -163,7 +163,7 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 				return nil, "", err
 			}
 
-			state := listenerStatus.mustConvert(vserverSet.Status)
+			state := listenerStatusCvt.mustConvert(vserverSet.Status)
 			if state != "allNormal" {
 				state = "pending"
 			} else {
@@ -284,7 +284,7 @@ func resourceUCloudLBListenerRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("health_check_type", vserverSet.MonitorType)
 	d.Set("domain", vserverSet.Domain)
 	d.Set("path", vserverSet.Path)
-	d.Set("status", listenerStatus.mustConvert(vserverSet.Status))
+	d.Set("status", listenerStatusCvt.mustConvert(vserverSet.Status))
 
 	return nil
 }

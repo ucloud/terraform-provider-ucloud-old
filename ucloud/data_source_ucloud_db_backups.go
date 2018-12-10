@@ -197,7 +197,7 @@ func dataSourceUCloudDBBackupsRead(d *schema.ResourceData, meta interface{}) err
 			}
 
 			if val, ok := d.GetOk("backup_type"); ok {
-				req.BackupType = ucloud.Int(backupTypeMap.mustUnconvert(val.(string)))
+				req.BackupType = ucloud.Int(backupTypeCvt.mustUnconvert(val.(string)))
 			}
 
 			resp, err := conn.DescribeUDBBackup(req)
