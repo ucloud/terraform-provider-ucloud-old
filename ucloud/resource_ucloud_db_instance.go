@@ -358,11 +358,11 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		newType, _ := parseDBInstanceType(new.(string))
 
 		if newType.Engine != engine {
-			return fmt.Errorf("error in update db instance, engine of instance type %s must be same as engine %s", newType.Engine, engine)
+			return fmt.Errorf("engine of instance type %s must be same as engine %s", newType.Engine, engine)
 		}
 
 		if newType.Type != oldType.Type {
-			return fmt.Errorf("error in update db instance, db instance is not supported update the type of %q", "instance_type")
+			return fmt.Errorf("db instance is not supported update the type of %q", "instance_type")
 		}
 
 		sizeReq.MemoryLimit = ucloud.Int(memory)
