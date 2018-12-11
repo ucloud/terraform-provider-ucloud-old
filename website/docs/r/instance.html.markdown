@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `availability_zone` - (Required) Availability zone where instance is located. such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
 * `image_id` - (Required) The ID for the image to use for the instance.
-* `root_password` - (Required) The password for the instance, should have between 8-30 characters.It must contain least 3 items of Capital letters, small letter, numbers and special characters. The special characters incloud <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code> When it is changed, the instance will reboot to make the change take effect.
+* `root_password` - (Required) The password for the instance, should have between 8-30 characters.It must contain least 3 items of Capital letters, small letter, numbers and special characters. The special characters incloud <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code>. Note:When it is changed, the instance will reboot to make the change take effect.
 * `instance_type` - (Required) The type of instance.There are two types, one is Customized: "n-customized-CPU-Memory", eg."n-customized-1-3",the other is Standard: "n-Type-CPU", eg."n-highcpu-2". Thereinto, "Type" can be "highcpu", "basic", "standard", "highmem" represent the ratio of CPU and Memory respectively, 1:1, 1:2, 1:4, 1:8. In addition, CPU range from 1 to 32 ,Memory range from 1 to 256. When it is changed, the instance will reboot to make the change take effect.
 * `boot_disk_size` - (Optional) Size of the boot disk, measured in GB (Giga byte). when the instance is creating, the boot disk can not be set and it fixed in size, 20GB for standard Linux image, 40GB for standard Windows image. when the instance is updating, the boot disk size range from 20GB to 100 GB by user set, the volume adjustment must be a multiple of 10 GB. When it is changed, the instance will reboot to make the change take effect and will spend about twenty minutes. In addition, reduce boot disk size is not supported.
 * `boot_disk_type` - (Optional) The type of boot disk. Possible values are: "LOCAL_NORMAL" and "LOCAL_SSD" belong to local boot disk, "CLOUD_NORMAL" and "CLOUD_SSD" belong to cloud boot disk, the default is "LOCAL_NORMAL". The "LOCAL_SSD", "CLOUD_NORMAL" and "CLOUD_SSD" are not supported in all regions as boot disk type, please proceed to UCloud console for more details.
@@ -103,8 +103,8 @@ In addition to all arguments above, the following attributes are exported:
 * `auto_renew` - Whether to renew an ECS instance automatically or not. Passible values are "Yes" as enabling auto renewal and "No" as disabling auto renewal.
 * `cpu` - The number of cores of virtual CPU, measureed in core.
 * `memory` - The size of memory, measured in MB (Megabyte).
-* `create_time` - The time of creation for instance.
-* `expire_time` - The expiration time for instance.
+* `create_time` - The time of creation for instance, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for instance, formatted by RFC3339 time string.
 * `status` - Instance current status. Possible values are "Initializing", "starting", "Running", "Stopping", "Stopped", "Install Fail" and "Rebooting".
 * `ip_set` - ip_set is a nested type. ip_set documented below.
 * `disk_set` - disk_set is a nested type. disk_set documented below.

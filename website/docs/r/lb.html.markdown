@@ -35,8 +35,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for LB.
-* `expire_time` - The expiration time for LB.
+* `create_time` - The time of creation for LB, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for LB, formatted by RFC3339 time string.
 * `ip_set` - ip_set is a nested type. ip_set documented below.
 * `private_ip` - The IP address of intranet IP, this attribute is "" if "internal" is "false".
 

@@ -43,8 +43,8 @@ The attribute (`instances`) support the following:
 * `auto_renew` - To identify if the auto renewal is on, possible values are : "Yes" and “No”.
 * `cpu` - The number of cores of virtual CPU, measured in "core".
 * `memory` - The size of memory, measured in MB.
-* `create_time` - The time of creation for EIP.
-* `expire_time` - The expiration time for instance.
+* `create_time` - The time of creation for EIP, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for instance, formatted by RFC3339 time string.
 * `id` - The ID of instance.
 * `instance_charge_type` - The charge type of instance, possible values are: "Year", "Month" and "Dynamic" as pay by hour.
 * `name` - The name of the instance.

@@ -36,6 +36,6 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for disk.
-* `expire_time` - The expiration time for disk.
+* `create_time` - The time of creation for disk, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for disk, formatted by RFC3339 time string.
 * `status` -  status. Possible values are: "Available", "InUse", "Detaching", "Initializating", "Failed", "Cloning", "Restoring", "RestoreFailed".

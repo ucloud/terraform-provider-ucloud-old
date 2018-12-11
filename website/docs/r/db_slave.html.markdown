@@ -1,7 +1,7 @@
 ---
 layout: "ucloud"
 page_title: "UCloud: ucloud_db_slave"
-sidebar_current: "docs-ucloud-resource-db-param-group"
+sidebar_current: "docs-ucloud-resource-db-slave"
 description: |-
   Provides a Database slave resource.
 ---
@@ -10,43 +10,81 @@ description: |-
 
 Provides a Database slave resource.
 
-~> **使用限制** 注意，请尽量保持从库与主库配置的一致性，否则在数据同步时可能会出现数据丢失。"5.5"版的"mysql","percona"不支持创建从库
-~> **Note** Please try to keep the same settings for both master and slave DBs, otherwise it's likely to have an issue of data loss when making synchronization. The slave DB creation is not supported for mysql and percona in 5.5 version.
+~> **Note** Please try to keep the same settings for both master and slave databases, otherwise it's likely to have an issue of data loss when making synchronization. The slave database creation is not supported for mysql and percona in 5.5 version. In addition, the slave is a basic database (normal version), it takes around 5 mins to shut down when making upgrade/degrade(incloud the memory of instance_type and instance_storage), please make the necessary arrangements to your business in advance to prevent any loss of data. Up to five slave databases can be created from the same master database.
 ## Example Usage
+
+```hcl
+# Query availability zone
+data "ucloud_zones" "default" {}
+
+# Create parameter group
+data "ucloud_db_parameter_groups" "default" {
+  availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+  region_flag       = "false"
+  engine            = "mysql"
+  engine_version    = "5.7"
+}
+
+# Create database instance
+resource "ucloud_db_instance" "master" {
+  availability_zone  = "${data.ucloud_zones.default.zones.0.id}"
+  name               = "tf-example-db-instance"
+  instance_storage   = 20
+  instance_type      = "mysql-ha-1"
+  engine             = "mysql"
+  engine_version     = "5.7"
+  password           = "2018_dbSlave"
+  parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
+  tag                = "tf-example"
+
+  # Backup policy
+  backup_begin_time = 4
+  backup_count      = 6
+  backup_date       = "0111110"
+  backup_black_list = ["test.%"]
+}
+
+# Create database slave
+resource "ucloud_db_slave" "slave" {
+  availability_zone  = "${data.ucloud_zones.default.zones.0.id}"
+  name               = "f-example-db-slave"
+  instance_storage   = 20
+  instance_type      = "mysql-basic-1"
+  password           = "2018_dbSlave"
+  parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
+  master_id          = "${ucloud_db_instance.master.id}"
+}
+```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `availability_zone` - (Required) Availability zone where database slaves are located. Such as: "cn-bj-01". You may refer to [list of availability zone](https://docs.ucloud.cn/api/summary/regionlist)
-* `master_id` - (Required) 主库实例的id，当创建从库时必传；对于已创建的从库，如果此参数置空，则将当前从库提升为主库，与原主库分离
-* `master_id` - (Required) The ID of master DB instance, it is mandatory required to request when creating slave DB; the current slave DB will be promoted to new master one and separate from the origin master DB if it is set to "null" for the existing slave DB.
-* `is_lock` - (Optional) 当创建从库时是否锁主库，默认为true，代表锁主库
-* `is_lock` - (Optional) Specifies whether need to set master DB to read only when creating slave DB, possible values are "true" and "False", it is "true" by default.
-* `password` - (Optional) 管理员密码.
-* `password` - (Optional) The password for the database instance which should have 8-30 characters. It must contain at least 3 items of Capital letters, small letter, numbers and special characters. The special characters include <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code> When it is changed, the instance will reboot to make the change take effect.
-* `name` - (Optional)  实例名称,The name of the DB instance, should have 1 - 63 characters and only support chinese, english, numbers, '-', '_', '.'.
-* `instance_storage` - (Optional) 磁盘空间(GB), 暂时支持20G - 3000G
-* `instance_storage` - (Optional) Specifies the allocated storage size in gigabytes (GB), range from 20 to 3000GB. The volume adjustment must be a multiple of 10 GB. When it is changed, the instance will reboot to make the change take effect.
-* `parameter_group_id` - (Optional) DB实例使用的配置参数组id.
-* `parameter_group_id` - (Optional) The ID of DB param group. Note: the "parameter_group_id" should be included in the request for the multiple zone DB instance. 
-* `instance_type` - (Required) 数据库机型.基本格式为"engine-type-memory",其中 engine 可以为"mysql","percona","postgresql"；type可以为"basic","ha",分别代表普通版和高可用版，高可用版实例采用双主热备架构，可以彻底解决因宕机或硬件故障造成的数据库不可用，mysql与percona只支持高可用版，postgresql现只支持普通版；memory可以为1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64,单位GB
-* `instance_type` - (Required) Specifies the type of DB instance with format "engine-type-memory", Possible values are:
-  "mysql","percona" and "postgresql" for engine;
-  "basic" as normal verison and  "ha" as high availability version for type, the dual mian hot standby structure which can thoroughly solved the issue of unsysnchronized DB caused by the system downtime or DB unavailable, the "ha" version only supports "mysql" and "percona" engine, the standard version only supports the "postgrsql" engine.
-Possible values for memory are: 1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64GB.  
-* `port` - (Optional) 端口号，mysql与percona默认3306，postgresql默认5432
+* `master_id` - (Required) The ID of master DB instance, it is mandatory required to request when creating database slave.
+* `name` - (Required) The name of the database slave, should have 1 - 63 characters and only support chinese, english, numbers, '-', '_', '.'.
+* `parameter_group_id` - (Required) The ID of database parameter group. Note: The "parameter_group_id" of the multiple zone database should be included in the request for the slave of high availability database instance with multiple zone. When it is changed, the database slave will reboot to make the change take effect.
+* `instance_storage` - (Optional) Specifies the allocated storage size in gigabytes (GB), range from 20 to 3000GB. The volume adjustment must be a multiple of 10 GB. The maximum disk volume for SSD type are：
+    - 500GB if the memory chosen is equal or less than 8GB;
+    - 1000GB if the memory chosen is from 12 to 24GB;
+    - 2000GB if the memory chosen is 32GB;
+    - 3000GB if the memory chosen is equal or more than 48GB.
+* `instance_type` - (Optional) Specifies the type of database slave with format "engine-type-memory", Possible values are:
+    - "mysql","percona" and "postgresql" for engine;
+    - "basic" is the only one type as normal version.
+    - possible values for memory are: 1, 2, 4, 6, 8, 12, 16, 24, 32, 48, 64GB.
+* `is_lock` - (Optional) Specifies whether need to set master DB to read only when creating database slave, possible values are "true" and "false", it is "false" by default.
+* `password` - (Optional) The password for the database slave which should have 8-30 characters. It must contain at least 3 items of Capital letters, small letter, numbers and special characters. The special characters include <code>`()~!@#$%^&*-+=_|{}\[]:;'<>,.?/</code>.
 * `port` - (Optional) The port on which the DB accepts connections, the default port is 3306 for mysql and percona and 5432 for postgresql.
   
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `status` - DB状态标记 Init：初始化中，Fail：安装失败，Starting：启动中，Running：运行，Shutdown：关闭中，Shutoff：已关闭，Delete：已删除，Upgrading：升级中，Promoting：提升为独库进行中，Recovering：恢复中，Recover fail：恢复失败
-* `status` - Specifies the status of DB, possible values are: "Init","Fail", "Starting", "Running", "Shutdown", "shutoff", "Delete", "Upgrading", "Promoting", "Recovering" and "Recover fail".
-* `create_time` - DB实例创建时间，采用unix计时时间戳
-* `create_time` - The creation time of DB, format in Unix timestamp.
-* `expire_time` - DB实例修改时间，采用unix计时时间戳
-* `expire_time` - The expiration time of DB, format in Unix timestamp.
-* `modify_time` - DB实例过期时间，采用unix计时时间戳
-* `modify_time` - The modification time of DB, format in Unix timestamp.
+* `availability_zone` - Availability zone where database slaves are located.
+* `status` - Specifies the status of database slave, possible values are: "Init","Fail", "Starting", "Running", "Shutdown", "shutoff", "Delete", "Upgrading", "Promoting", "Recovering" and "Recover fail".
+* `create_time` - The creation time of database slave, formatted by RFC3339 time string.
+* `expire_time` - The expiration time of database slave, formatted by RFC3339 time string.
+* `modify_time` - The modification time of database slave, formatted by RFC3339 time string.
+* `instance_charge_type` - The charge type of slave, possible values are: "Year", "Month" and "Dynamic" as pay by hour.
+* `vpc_id` - The ID of VPC linked to the slave.
+* `subnet_id` - The ID of subnet linked to the slave.

@@ -38,8 +38,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for EIP.
-* `expire_time` - The expiration time for EIP.
+* `create_time` - The time of creation for EIP, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for EIP, formatted by RFC3339 time string.
 * `ip_set` - ip_set is a nested type. ip_set documented below.
 * `resource` - resource is a nested type. resource documented below.
 * `status` - EIP status. Possible values are: "used" as in use, "free" as available and "freeze" as associating.
