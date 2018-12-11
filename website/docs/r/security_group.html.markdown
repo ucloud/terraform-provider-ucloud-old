@@ -55,4 +55,4 @@ The attribute (`rules`) support the following:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation of security group.
+* `create_time` - The time of creation of security group, formatted by RFC3339 time string.

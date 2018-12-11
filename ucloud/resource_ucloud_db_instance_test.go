@@ -3,9 +3,11 @@ package ucloud
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/ucloud/ucloud-sdk-go/services/udb"
 )
@@ -74,8 +76,8 @@ func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsql"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "20"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "50"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-2"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
@@ -88,8 +90,8 @@ func TestAccUCloudDBInstance_pgsql(t *testing.T) {
 					testAccCheckDBInstanceExists("ucloud_db_instance.foo", &db),
 					testAccCheckDBInstanceAttributes(&db),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "name", "tf-testDBInstance-pgsqlUpdate"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "30"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_storage", "60"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "instance_type", "postgresql-basic-4"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine", "postgresql"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "9.6"),
 				),
@@ -124,7 +126,8 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "4"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list.#", "1"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("test.%")), "test.%"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "1111001"),
 				),
 			},
@@ -142,7 +145,9 @@ func TestAccUCloudDBInstance_backup(t *testing.T) {
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "engine_version", "5.7"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_begin_time", "5"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_count", "6"),
-					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list", "test.%;city.address"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list.#", "2"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("test.%")), "test.%"),
+					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_black_list."+strconv.Itoa(schema.HashString("city.address")), "city.address"),
 					resource.TestCheckResourceAttr("ucloud_db_instance.foo", "backup_date", "0001111"),
 				),
 			},
@@ -257,21 +262,19 @@ resource "ucloud_db_instance" "foo" {
 }
 `
 const testAccDBInstanceConfigPgsql = `
-data "ucloud_zones" "default" {
-}
 
 data "ucloud_db_parameter_groups" "default" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone = "cn-bj2-05"
 	region_flag = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	name = "tf-testDBInstance-pgsql"
-	instance_storage = 20
-	instance_type = "postgresql-basic-1"
+	instance_storage = 50
+	instance_type = "postgresql-basic-2"
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"
@@ -279,21 +282,19 @@ resource "ucloud_db_instance" "foo" {
 }
 `
 const testAccDBInstanceConfigPgsqlTwo = `
-data "ucloud_zones" "default" {
-}
 
 data "ucloud_db_parameter_groups" "default" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	region_flag = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
 
 resource "ucloud_db_instance" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
+	availability_zone =  "cn-bj2-05"
 	name = "tf-testDBInstance-pgsqlUpdate"
-	instance_storage = 30
-	instance_type = "postgresql-basic-2"
+	instance_storage = 60
+	instance_type = "postgresql-basic-4"
 	engine = "postgresql"
 	engine_version = "9.6"
 	password = "2018_UClou"
@@ -323,7 +324,7 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 4
 	backup_count = 6
-	backup_black_list = "test.%"
+	backup_black_list = ["test.%"]
 	backup_date = "1111001"
 }
 `
@@ -349,7 +350,7 @@ resource "ucloud_db_instance" "foo" {
 	parameter_group_id = "${data.ucloud_db_parameter_groups.default.parameter_groups.0.id}"
 	backup_begin_time = 5
 	backup_count = 6
-	backup_black_list = "test.%;city.address"
+	backup_black_list = ["test.%", "city.address"]
 	backup_date = "0001111"
 }
 `

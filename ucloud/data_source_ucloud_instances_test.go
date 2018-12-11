@@ -25,10 +25,13 @@ func TestAccUCloudInstancesDataSource(t *testing.T) {
 }
 
 const testAccDataInstancesConfig = `
+data "ucloud_zones" "default" {
+}
+
 resource "ucloud_instance" "foo" {
 	count = 2
-
-	availability_zone = "cn-sh2-02"
+	
+	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	image_id = "uimage-of3pac"
 	root_password = "wA1234567"
 

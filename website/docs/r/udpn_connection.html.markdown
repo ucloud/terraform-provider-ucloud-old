@@ -35,5 +35,5 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for UDPN connection.
-* `expire_time` - The expiration time for UDPN connection.
+* `create_time` - The time of creation for UDPN connection, formatted by RFC3339 time string.
+* `expire_time` - The expiration time for UDPN connection, formatted by RFC3339 time string.

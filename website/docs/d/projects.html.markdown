@@ -38,7 +38,7 @@ In addition to all arguments above, the following attributes are exported:
 
 The attribute (`projects`) support the following:
 
-* `create_time` - The time of creation for instance.
+* `create_time` - The time of creation for instance, formatted by RFC3339 time string.
 * `id` - The ID of project defined.
 * `member_count` - The number of members belongs to the defined project.
 * `name` - The name of the defined project.

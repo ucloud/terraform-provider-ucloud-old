@@ -63,7 +63,7 @@ func resourceUCloudDBParameterGroup() *schema.Resource {
 				Required:     true,
 			},
 
-			"region_flag": &schema.Schema{
+			"multi_az": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -88,23 +88,6 @@ func resourceUCloudDBParameterGroup() *schema.Resource {
 				},
 				Set: resourceUCloudDBParameterHash,
 			},
-
-			"parameter_output": &schema.Schema{
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"value": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -117,10 +100,12 @@ func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface
 	engine := d.Get("engine").(string)
 	engineVersion := d.Get("engine_version").(string)
 	dbType := strings.Join([]string{engine, engineVersion}, "-")
+
 	srcGroupId, err := strconv.Atoi(d.Get("src_group_id").(string))
 	if err != nil {
 		return fmt.Errorf("transform %q to integer failed in create db parameter group, %s", "src_group_id", err)
 	}
+
 	dbPg, err := client.describeDBParameterGroupByIdAndZone(d.Get("src_group_id").(string), zone)
 	if err != nil {
 		return fmt.Errorf("do %s failed in create db parameter group, %s", "DescribeUDBParamGroup", err)
@@ -142,7 +127,7 @@ func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface
 			req.Description = ucloud.String(val.(string))
 		}
 
-		if val, ok := d.GetOk("region_flag"); ok {
+		if val, ok := d.GetOk("multi_az"); ok {
 			req.RegionFlag = ucloud.Bool(val.(bool))
 		}
 
@@ -194,7 +179,7 @@ func resourceUCloudDBParameterGroupCreate(d *schema.ResourceData, meta interface
 			upReq.Description = ucloud.String(val.(string))
 		}
 		upReq.Content = ucloud.String(contented)
-		if val, ok := d.GetOk("region_flag"); ok {
+		if val, ok := d.GetOk("multi_az"); ok {
 			upReq.RegionFlag = ucloud.Bool(val.(bool))
 		}
 
@@ -226,16 +211,6 @@ func resourceUCloudDBParameterGroupRead(d *schema.ResourceData, meta interface{}
 	d.Set("engine", arr[0])
 	d.Set("engine_version", arr[1])
 	d.Set("description", dbPg.Description)
-
-	parameterOutput := []map[string]interface{}{}
-	for _, item := range dbPg.ParamMember {
-		parameterOutput = append(parameterOutput, map[string]interface{}{
-			"key":   item.Key,
-			"value": item.Value,
-		})
-	}
-	d.Set("parameter_output", parameterOutput)
-
 	return nil
 }
 
@@ -252,7 +227,7 @@ func resourceUCloudDBParameterGroupDelete(d *schema.ResourceData, meta interface
 
 	req.GroupId = ucloud.Int(groupId)
 	req.Zone = ucloud.String(zone)
-	if val, ok := d.GetOk("region_flag"); ok {
+	if val, ok := d.GetOk("multi_az"); ok {
 		req.RegionFlag = ucloud.Bool(val.(bool))
 	}
 

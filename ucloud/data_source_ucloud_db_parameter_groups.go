@@ -96,7 +96,7 @@ func dataSourceUCloudDBParameterGroups() *schema.Resource {
 							Computed: true,
 						},
 
-						"parameter_member": &schema.Schema{
+						"parameter_set": &schema.Schema{
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -220,11 +220,6 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, parameterGroups []udb.UDBParamGroupSet) error {
 	ids := []string{}
 	data := []map[string]interface{}{}
-	valueType := make(map[int]string)
-	valueType[0] = "unknown"
-	valueType[10] = "int"
-	valueType[20] = "string"
-	valueType[30] = "bool"
 	for _, parameterGroup := range parameterGroups {
 		ids = append(ids, strconv.Itoa(parameterGroup.GroupId))
 		parameterMember := []map[string]interface{}{}
@@ -232,20 +227,20 @@ func dataSourceUCloudDBParameterGroupsSave(d *schema.ResourceData, parameterGrou
 			parameterMember = append(parameterMember, map[string]interface{}{
 				"key":           item.Key,
 				"value":         item.Value,
-				"value_type":    valueType[item.ValueType],
+				"value_type":    pgValueTypeCvt.mustConvert(item.ValueType),
 				"allowed_value": item.AllowedVal,
 			})
 		}
 
 		arr := strings.Split(parameterGroup.DBTypeId, "-")
 		data = append(data, map[string]interface{}{
-			"id":               strconv.Itoa(parameterGroup.GroupId),
-			"name":             parameterGroup.GroupName,
-			"engine":           arr[0],
-			"engine_version":   arr[1],
-			"description":      parameterGroup.Description,
-			"modifiable":       parameterGroup.Modifiable,
-			"parameter_member": parameterMember,
+			"id":             strconv.Itoa(parameterGroup.GroupId),
+			"name":           parameterGroup.GroupName,
+			"engine":         arr[0],
+			"engine_version": arr[1],
+			"description":    parameterGroup.Description,
+			"modifiable":     parameterGroup.Modifiable,
+			"parameter_set":  parameterMember,
 		})
 	}
 

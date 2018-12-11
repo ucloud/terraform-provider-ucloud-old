@@ -119,7 +119,6 @@ data "ucloud_zones" "default" {
 }
 
 data "ucloud_db_parameter_groups" "default" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	region_flag = "false"
 	engine = "mysql"
 	engine_version = "5.7"
@@ -137,7 +136,6 @@ resource "ucloud_db_instance" "foo" {
 }
 
 resource "ucloud_db_slave" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-slave"
 	instance_storage = 20
 	instance_type = "mysql-basic-1"
@@ -169,7 +167,6 @@ resource "ucloud_db_instance" "foo" {
 }
 
 resource "ucloud_db_slave" "foo" {
-	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name = "tf-testDBInstance-slave-update"
 	instance_storage = 30
 	instance_type = "mysql-basic-2"

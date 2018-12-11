@@ -46,4 +46,4 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation of subnet.
+* `create_time` - The time of creation of subnet, formatted by RFC3339 time string.

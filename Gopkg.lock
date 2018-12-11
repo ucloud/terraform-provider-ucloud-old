@@ -262,7 +262,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:99e121142722ee300eab3fa2d261a70f7a6de45970b9a9034638ab5b4d8c7b2c"
+  digest = "1:0b597dfae5e2d5efe9530330baf4234107afd02febc3a85dae873f493a492f5c"
   name = "github.com/hashicorp/terraform"
   packages = [
     "config",
@@ -278,6 +278,8 @@
     "helper/mutexkv",
     "helper/resource",
     "helper/schema",
+    "helper/structure",
+    "helper/validation",
     "httpclient",
     "moduledeps",
     "plugin",
@@ -420,11 +422,11 @@
   version = "v1.1.2"
 
 [[projects]]
-  digest = "1:0ce6ff81b440a3743851c25bceed56bc71502e4a4ca90ba6839ee7c5eb4e5861"
+  digest = "1:650983a9272deb31180b0714437fa6dc2106d1ac9bd8019890e210d69e700aa9"
   name = "github.com/ucloud/ucloud-sdk-go"
   packages = [
-    ".",
     "private/protocol/http",
+    "private/services/udb",
     "private/services/umem",
     "private/utils",
     "services/uaccount",
@@ -445,8 +447,8 @@
     "ucloud/version",
   ]
   pruneopts = "UT"
-  revision = "044f0881be93b7fb6e6cfa5fbe8082b687168ece"
-  version = "v0.6.5"
+  revision = "76e32e9c57ca9eac2a33d64225cc36e91b781ab8"
+  version = "v0.6.6"
 
 [[projects]]
   digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
@@ -600,9 +602,10 @@
     "github.com/hashicorp/terraform/helper/mutexkv",
     "github.com/hashicorp/terraform/helper/resource",
     "github.com/hashicorp/terraform/helper/schema",
+    "github.com/hashicorp/terraform/helper/validation",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
-    "github.com/ucloud/ucloud-sdk-go",
+    "github.com/ucloud/ucloud-sdk-go/private/services/udb",
     "github.com/ucloud/ucloud-sdk-go/private/services/umem",
     "github.com/ucloud/ucloud-sdk-go/services/uaccount",
     "github.com/ucloud/ucloud-sdk-go/services/udb",
