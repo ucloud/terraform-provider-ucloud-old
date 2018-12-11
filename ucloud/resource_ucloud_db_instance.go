@@ -186,15 +186,15 @@ func resourceUCloudDBInstanceCreate(d *schema.ResourceData, meta interface{}) er
 	// skip error because it has been validated by schema
 	dbType, _ := parseDBInstanceType(d.Get("instance_type").(string))
 	if dbType.Engine != engine {
-		return fmt.Errorf("error in create db instance, engine of instance type %s must be same as engine %s", dbType.Engine, engine)
+		return fmt.Errorf("engine of instance type %s must be same as engine %s", dbType.Engine, engine)
 	}
 
 	if dbType.Engine == "postgresql" && dbType.Type == "ha" {
-		return fmt.Errorf("error in create db instance, high availability postgresql is not supported at this time")
+		return fmt.Errorf("high availability postgresql is not supported at this time")
 	}
 
 	if dbType.Engine == "mysql" && dbType.Type == "basic" {
-		return fmt.Errorf("error in create db instance, basic mysql is no longer supported")
+		return fmt.Errorf("basic mysql is no longer supported")
 	}
 
 	req := conn.NewCreateUDBInstanceRequest()
@@ -358,11 +358,11 @@ func resourceUCloudDBInstanceUpdate(d *schema.ResourceData, meta interface{}) er
 		newType, _ := parseDBInstanceType(new.(string))
 
 		if newType.Engine != engine {
-			return fmt.Errorf("error in update db instance, engine of instance type %s must be same as engine %s", newType.Engine, engine)
+			return fmt.Errorf("engine of instance type %s must be same as engine %s", newType.Engine, engine)
 		}
 
 		if newType.Type != oldType.Type {
-			return fmt.Errorf("error in update db instance, db instance is not supported update the type of %q", "instance_type")
+			return fmt.Errorf("db instance is not supported update the type of %q", "instance_type")
 		}
 
 		sizeReq.MemoryLimit = ucloud.Int(memory)
