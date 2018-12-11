@@ -22,8 +22,7 @@ func resourceUCloudKVStoreSlave() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"availability_zone": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed: true,
 			},
 
 			"name": &schema.Schema{
@@ -51,6 +50,18 @@ func resourceUCloudKVStoreSlave() *schema.Resource {
 				ValidateFunc: validateKVStoreInstancePassword,
 			},
 
+			"vpc_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"subnet_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"parameter_group_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -60,16 +71,6 @@ func resourceUCloudKVStoreSlave() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
-			},
-
-			"vpc_id": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"subnet_id": &schema.Schema{
-				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -123,9 +124,17 @@ func resourceUCloudKVStoreSlaveCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*UCloudClient)
 	conn := client.umemconn
 
+	master, err := client.describeActiveStandbyRedisById(d.Id())
+	if err != nil {
+		if isNotFoundError(err) {
+			return fmt.Errorf("master of kvstore instance %s is not found", d.Id())
+		}
+		return fmt.Errorf("do %s failed in create kvstore instance %s, %s", "DescribeURedisGroup", d.Id(), err)
+	}
+
 	req := conn.NewCreateURedisGroupRequest()
+	req.Zone = ucloud.String(master.Zone)
 	req.Name = ucloud.String(d.Get("name").(string))
-	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.Size = ucloud.Int(getKVStoreCapability(d.Get("instance_type").(string)))
 	req.HighAvailability = ucloud.String("enable")
 
@@ -143,6 +152,14 @@ func resourceUCloudKVStoreSlaveCreate(d *schema.ResourceData, meta interface{}) 
 
 	if v, ok := d.GetOk("master_id"); ok {
 		req.MasterGroupId = ucloud.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("vpc_id"); ok {
+		req.VPCId = ucloud.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		req.SubnetId = ucloud.String(v.(string))
 	}
 
 	resp, err := conn.CreateURedisGroup(req)

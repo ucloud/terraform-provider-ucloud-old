@@ -63,3 +63,12 @@ var pgValueTypeCvt = newIntConverter(map[int]string{
 	20: "string",
 	30: "bool",
 })
+
+// eg. LOCAL_SSD -> local_ssd
+var upperCvt = newUpperConverter(nil)
+
+// eg. localSSD -> local_ssd
+var lowerCamelCvt = newLowerCamelConverter(nil)
+
+// eg. LocalSSD -> local_ssd
+var upperCamelCvt = newUpperCamelConverter(nil)

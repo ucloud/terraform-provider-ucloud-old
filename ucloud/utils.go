@@ -119,3 +119,11 @@ func stringToTimestamp(ts string) (int, error) {
 func isEmptyString(s string) bool {
 	return len(strings.TrimSpace(s)) == 0
 }
+
+func buildReversedStringMap(input map[string]string) map[string]string {
+	reversed := make(map[string]string)
+	for k, v := range input {
+		reversed[v] = k
+	}
+	return reversed
+}

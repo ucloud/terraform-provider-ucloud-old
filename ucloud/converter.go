@@ -2,6 +2,9 @@ package ucloud
 
 import "fmt"
 
+const EnumUnknownString = "unknown"
+const EnumUnknownInt = -1
+
 type intConverter struct {
 	c map[int]string
 	r map[string]int
@@ -32,14 +35,14 @@ func (c intConverter) convert(src int) (string, error) {
 	if dst, ok := c.c[src]; ok {
 		return dst, nil
 	}
-	return "unknown", fmt.Errorf("")
+	return EnumUnknownString, fmt.Errorf("")
 }
 
 func (c intConverter) unconvert(dst string) (int, error) {
 	if src, ok := c.r[dst]; ok {
 		return src, nil
 	}
-	return -1, fmt.Errorf("")
+	return EnumUnknownInt, fmt.Errorf("")
 }
 
 type boolConverter struct {
@@ -72,7 +75,7 @@ func (c boolConverter) convert(src bool) (string, error) {
 	if dst, ok := c.c[src]; ok {
 		return dst, nil
 	}
-	return "", fmt.Errorf("")
+	return EnumUnknownString, fmt.Errorf("")
 }
 
 func (c boolConverter) unconvert(dst string) (bool, error) {
