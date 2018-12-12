@@ -107,7 +107,7 @@ resource "ucloud_instance" "web" {
 
   subnet_id = "${ucloud_subnet.default.id}"
 
-  # this ecurity group to allow HTTP and HTTPS access
+  # this security group allows HTTP and HTTPS access
   security_group = "${ucloud_security_group.default.id}"
 
   count = "${var.count}"

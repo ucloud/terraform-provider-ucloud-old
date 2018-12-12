@@ -54,7 +54,6 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"ucloud_instances":      dataSourceUCloudInstances(),
 			"ucloud_projects":       dataSourceUCloudProjects(),
 			"ucloud_images":         dataSourceUCloudImages(),
 			"ucloud_zones":          dataSourceUCloudZones(),

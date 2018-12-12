@@ -16,7 +16,6 @@ func dataSourceUCloudEips() *schema.Resource {
 			"ids": &schema.Schema{
 				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},

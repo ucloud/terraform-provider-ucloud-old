@@ -31,7 +31,7 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 					testAccCheckEIPAttributes(&eip),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "1"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "testAcc"),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "Bandwidth"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "bandwidth"),
 				),
 			},
 
@@ -41,7 +41,7 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEIPExists("ucloud_eip.foo", &eip),
 					testAccCheckEIPAttributes(&eip),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "Traffic"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "traffic"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "2"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "testAccTwo"),
 				),
@@ -116,13 +116,13 @@ const testAccEIPConfig = `
 resource "ucloud_eip" "foo" {
 	name = "testAcc"
 	bandwidth = 1
-	internet_charge_mode = "Bandwidth"
+	internet_charge_mode = "bandwidth"
 }
 `
 const testAccEIPConfigTwo = `
 resource "ucloud_eip" "foo" {
 	name = "testAccTwo"
 	bandwidth = 2
-	internet_charge_mode = "Traffic"
+	internet_charge_mode = "traffic"
 }
 `

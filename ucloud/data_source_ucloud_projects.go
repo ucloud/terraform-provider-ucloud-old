@@ -15,7 +15,6 @@ func dataSourceUCloudProjects() *schema.Resource {
 			"is_finance": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"output_file": {

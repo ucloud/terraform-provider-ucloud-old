@@ -6,7 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
+	"github.com/ucloud/ucloud-sdk-go/ucloud/request"
 )
 
 func resourceUCloudEIP() *schema.Resource {
@@ -21,42 +24,45 @@ func resourceUCloudEIP() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"bandwidth": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 800),
 			},
 
 			"internet_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Bgp",
-				ValidateFunc: validateStringInChoices([]string{"Bgp", "International"}),
+				Default:      "bgp",
+				ValidateFunc: validateStringInChoices([]string{"bgp", "international"}),
 			},
 
 			"internet_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
-				Default:      "Month",
+				Default:      "month",
 				Optional:     true,
-				ValidateFunc: validateStringInChoices([]string{"Month", "Year", "Dynamic"}),
+				ValidateFunc: validateStringInChoices([]string{"month", "year", "dynamic"}),
 			},
 
 			"internet_charge_mode": &schema.Schema{
 				Type:         schema.TypeString,
-				Default:      "Bandwidth",
+				Default:      "bandwidth",
 				Optional:     true,
-				ValidateFunc: validateStringInChoices([]string{"Traffic", "Bandwidth"}),
+				ValidateFunc: validateStringInChoices([]string{"traffic", "bandwidth"}),
 			},
 
 			"eip_duration": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntBetween(1, 9),
 			},
 
 			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateName,
 			},
 
 			"remark": &schema.Schema{
@@ -66,9 +72,10 @@ func resourceUCloudEIP() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateName,
 			},
 
 			"status": &schema.Schema{
@@ -109,11 +116,6 @@ func resourceUCloudEIP() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-
-						"eip_id": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -140,7 +142,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	req.Quantity = ucloud.Int(d.Get("eip_duration").(int))
 	req.ChargeType = ucloud.String(d.Get("internet_charge_type").(string))
 	req.PayMode = ucloud.String(d.Get("internet_charge_mode").(string))
-	req.OperatorName = ucloud.String(d.Get("internet_type").(string))
+	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
 
 	if val, ok := d.GetOk("name"); ok {
 		req.Name = ucloud.String(val.(string))
@@ -156,11 +158,14 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.AllocateEIP(req)
 	if err != nil {
-		return fmt.Errorf("error in create eip, %s", err)
+		query, err := request.ToQueryMap(req)
+		fmt.Printf("[DEBUG] %s %s", d.Get("internet_type").(string), upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
+		fmt.Printf("[DEBUG] allocate eip arguments %+v\n", query)
+		return fmt.Errorf("error on creating eip, %s", err)
 	}
 
 	if len(resp.EIPSet) != 1 {
-		return fmt.Errorf("error in create eip, expect extactly one eip, got %v", len(resp.EIPSet))
+		return fmt.Errorf("error on creating eip, expected exactly one eip, got %v", len(resp.EIPSet))
 	}
 
 	eip := resp.EIPSet[0]
@@ -171,7 +176,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("wait for eip initialize failed in create eip %s, %s", d.Id(), err)
+		return fmt.Errorf("error on waiting for eip is initialized when creating %s, %s", d.Id(), err)
 	}
 
 	return resourceUCloudEIPUpdate(d, meta)
@@ -184,45 +189,45 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 
 	if d.HasChange("bandwidth") && !d.IsNewResource() {
-		d.SetPartial("bandwidth")
 		reqBand := conn.NewModifyEIPBandwidthRequest()
 		reqBand.EIPId = ucloud.String(d.Id())
 		reqBand.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 
 		_, err := conn.ModifyEIPBandwidth(reqBand)
-
 		if err != nil {
-			return fmt.Errorf("do %s failed in update eip %s, %s", "ModifyEIPBandwidth", d.Id(), err)
+			return fmt.Errorf("error on %s to eip %s, %s", "ModifyEIPBandwidth", d.Id(), err)
 		}
+
+		d.SetPartial("bandwidth")
 
 		// after update eip bandwidth, we need to wait it completed
 		stateConf := eipWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for update eip bandwidth failed in update eip %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
 		}
 	}
 
 	if d.HasChange("internet_charge_mode") && !d.IsNewResource() {
-		d.SetPartial("internet_charge_mode")
 		reqCharge := conn.NewSetEIPPayModeRequest()
 		reqCharge.EIPId = ucloud.String(d.Id())
 		reqCharge.PayMode = ucloud.String(d.Get("internet_charge_mode").(string))
 		reqCharge.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 
 		_, err := conn.SetEIPPayMode(reqCharge)
-
 		if err != nil {
-			return fmt.Errorf("do %s failed in update eip %s, %s", "SetEIPPayMode", d.Id(), err)
+			return fmt.Errorf("error on %s to eip %s, %s", "SetEIPPayMode", d.Id(), err)
 		}
+
+		d.SetPartial("internet_charge_mode")
 
 		// after update eip internet charge mode, we need to wait it completed
 		stateConf := eipWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for update eip internet charge mode failed in update eip %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
 		}
 	}
 
@@ -231,36 +236,36 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	reqAttribute.EIPId = ucloud.String(d.Id())
 
 	if d.HasChange("name") && !d.IsNewResource() {
-		d.SetPartial("name")
 		reqAttribute.Name = ucloud.String(d.Get("name").(string))
 		isChanged = true
 	}
 
 	if d.HasChange("tag") && !d.IsNewResource() {
-		d.SetPartial("tag")
 		reqAttribute.Tag = ucloud.String(d.Get("tag").(string))
 		isChanged = true
 	}
 
 	if d.HasChange("remark") && !d.IsNewResource() {
-		d.SetPartial("remark")
 		reqAttribute.Remark = ucloud.String(d.Get("remark").(string))
 		isChanged = true
 	}
 
 	if isChanged {
 		_, err := conn.UpdateEIPAttribute(reqAttribute)
-
 		if err != nil {
-			return fmt.Errorf("do %s failed in update eip %s, %s", "UpdateEIPAttribute", d.Id(), err)
+			return fmt.Errorf("error on %s to eip %s, %s", "UpdateEIPAttribute", d.Id(), err)
 		}
+
+		d.SetPartial("name")
+		d.SetPartial("tag")
+		d.SetPartial("remark")
 
 		// after eip update eip attribute, we need to wait it completed
 		stateConf := eipWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for update eip attribute failed in update eip %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
 		}
 	}
 
@@ -278,7 +283,7 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read eip %s, %s", "DescribeEIP", d.Id(), err)
+		return fmt.Errorf("error on reading eip %s, %s", d.Id(), err)
 	}
 
 	d.Set("bandwidth", eip.Bandwidth)
@@ -298,13 +303,16 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 			"internet_type": item.OperatorName,
 		})
 	}
-	d.Set("ip_set", eipAddr)
+	if err := d.Set("ip_set", eipAddr); err != nil {
+		return fmt.Errorf("...")
+	}
 
-	d.Set("resource", map[string]string{
-		"resource_type": ulbMap.unconvert(uhostMap.unconvert(eip.Resource.ResourceType)),
+	if err := d.Set("resource", map[string]string{
+		"resource_type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
 		"resource_id":   eip.Resource.ResourceId,
-		"eip_id":        eip.EIPId, //TODO:[API-ERROR] UnetEIPResourceSet don't have EIPId
-	})
+	}); err != nil {
+		return fmt.Errorf("...")
+	}
 
 	return nil
 }
@@ -318,23 +326,22 @@ func resourceUCloudEIPDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		if _, err := conn.ReleaseEIP(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete eip %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on deleting eip %s, %s", d.Id(), err))
 		}
 
 		_, err := client.describeEIPById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete eip %s, %s", "DescribeEIP", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading eip when deleting %s, %s", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete eip but it still exists"))
+		return resource.RetryableError(fmt.Errorf("the specified eip %s has not been deleted due to unknown error", d.Id()))
 	})
 }
 
-func eipWaitForState(client *UCloudClient, eipId string) *resource.StateChangeConf {
+func eipWaitForState(client *UCloudClient, eipID string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"free"},
@@ -342,7 +349,7 @@ func eipWaitForState(client *UCloudClient, eipId string) *resource.StateChangeCo
 		Delay:      2 * time.Second,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			eip, err := client.describeEIPById(eipId)
+			eip, err := client.describeEIPById(eipID)
 			if err != nil {
 				if isNotFoundError(err) {
 					return nil, "pending", nil

@@ -13,16 +13,16 @@ func dataSourceUCloudInstanceTypes() *schema.Resource {
 		Read: dataSourceUCloudInstanceTypesRead,
 		Schema: map[string]*schema.Schema{
 			"cpu": &schema.Schema{
-				Type:         schema.TypeInt,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeInt,
+				Required: true,
+
 				ValidateFunc: validateIntegerInRange(1, 32),
 			},
 
 			"memory": &schema.Schema{
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
+				Type:     schema.TypeInt,
+				Optional: true,
+
 				ValidateFunc: validateIntegerInRange(1, 128),
 			},
 

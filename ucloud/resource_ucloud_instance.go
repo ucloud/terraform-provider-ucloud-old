@@ -109,9 +109,10 @@ func resourceUCloudInstance() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateName,
+				Computed:     true,
 			},
 
 			"security_group": &schema.Schema{
@@ -277,7 +278,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(resp.UHostIds) != 1 {
-		return fmt.Errorf("error in create instance, expect extactly one instance, got %v", len(resp.UHostIds))
+		return fmt.Errorf("error in create instance, expect exactly one instance, got %v", len(resp.UHostIds))
 	}
 
 	d.SetId(resp.UHostIds[0])
@@ -500,25 +501,27 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("wait for instance update failed in update instance %s, %s", d.Id(), err)
 		}
 
-		// after instance update, we need to wait it started
-		startReq := conn.NewStartUHostInstanceRequest()
-		startReq.UHostId = ucloud.String(d.Id())
+		if instance.State == "Running" {
+			// after instance update, we need to wait it started
+			startReq := conn.NewStartUHostInstanceRequest()
+			startReq.UHostId = ucloud.String(d.Id())
 
-		if _, err := conn.StartUHostInstance(startReq); err != nil {
-			return fmt.Errorf("do %s failed in update instance %s, %s", "StartUHostInstance", d.Id(), err)
-		}
+			if _, err := conn.StartUHostInstance(startReq); err != nil {
+				return fmt.Errorf("do %s failed in update instance %s, %s", "StartUHostInstance", d.Id(), err)
+			}
 
-		stateConf = &resource.StateChangeConf{
-			Pending:    []string{"pending"},
-			Target:     []string{"running"},
-			Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
-			Timeout:    d.Timeout(schema.TimeoutUpdate),
-			Delay:      5 * time.Second,
-			MinTimeout: 3 * time.Second,
-		}
+			stateConf = &resource.StateChangeConf{
+				Pending:    []string{"pending"},
+				Target:     []string{"running"},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
+				Timeout:    d.Timeout(schema.TimeoutUpdate),
+				Delay:      5 * time.Second,
+				MinTimeout: 3 * time.Second,
+			}
 
-		if _, err = stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for instance start failed in update instance %s, %s", d.Id(), err)
+			if _, err = stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("wait for instance start failed in update instance %s, %s", d.Id(), err)
+			}
 		}
 	}
 

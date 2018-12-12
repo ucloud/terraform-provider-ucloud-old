@@ -35,8 +35,8 @@ The following arguments are supported:
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for VPC.
-* `update_time` - The time whenever there is a change made to VPC.
+* `create_time` - The time of creation for VPC, formatted by RFC3339 time string.
+* `update_time` - The time whenever there is a change made to VPC, formatted by RFC3339 time string.
 * `network_info` - network_info is a nested type. network_info documented below.
 
 The attribute (`network_info`) support the following:
