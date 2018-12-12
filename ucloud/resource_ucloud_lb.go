@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -40,22 +41,28 @@ func resourceUCloudLB() *schema.Resource {
 			},
 
 			"internet_charge_type": &schema.Schema{
-				Type:         schema.TypeString,
-				Default:      "Month",
-				Optional:     true,
-				ValidateFunc: validateStringInChoices([]string{"Month", "Year", "Dynamic"}),
+				Type:     schema.TypeString,
+				Default:  "Month",
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Month",
+					"Year",
+					"Dynamic",
+				}, false),
 			},
 
 			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "LB",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "lb",
+				ValidateFunc: validateName,
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateTag,
 			},
 
 			"remark": &schema.Schema{

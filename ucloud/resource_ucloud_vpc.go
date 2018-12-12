@@ -21,8 +21,9 @@ func resourceUCloudVPC() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateName,
 			},
 
 			"cidr_blocks": &schema.Schema{
@@ -36,9 +37,10 @@ func resourceUCloudVPC() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateTag,
 			},
 
 			"remark": &schema.Schema{

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/services/uhost"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
@@ -55,28 +56,29 @@ func resourceUCloudInstance() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Instance",
-				ValidateFunc: validateInstanceName,
+				Default:      "tf-instance",
+				ValidateFunc: validateName,
 			},
 
 			"instance_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "Month",
-				ValidateFunc: validateStringInChoices([]string{"Year", "Month", "Dynamic"}),
+				ValidateFunc: validation.StringInSlice([]string{"Year", "Month", "Dynamic"}, false),
 			},
 
 			"instance_duration": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validateDuration,
 			},
 
 			"boot_disk_size": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateDataDiskSize(20, 100),
+				ValidateFunc: validation.IntBetween(20, 100),
 			},
 
 			"boot_disk_type": &schema.Schema{
@@ -84,14 +86,14 @@ func resourceUCloudInstance() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "LOCAL_NORMAL",
-				ValidateFunc: validateStringInChoices([]string{"LOCAL_NORMAL", "LOCAL_SSD", "CLOUD_NORMAL", "CLOUD_SSD"}),
+				ValidateFunc: validation.StringInSlice([]string{"LOCAL_NORMAL", "LOCAL_SSD", "CLOUD_NORMAL", "CLOUD_SSD"}, false),
 			},
 
 			"data_disk_size": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateDataDiskSize(0, 2000),
+				ValidateFunc: validation.IntBetween(0, 2000),
 			},
 
 			"data_disk_type": &schema.Schema{
@@ -99,7 +101,7 @@ func resourceUCloudInstance() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "LOCAL_NORMAL",
-				ValidateFunc: validateStringInChoices([]string{"LOCAL_NORMAL", "LOCAL_SSD"}),
+				ValidateFunc: validation.StringInSlice([]string{"LOCAL_NORMAL", "LOCAL_SSD"}, false),
 			},
 
 			"remark": &schema.Schema{
@@ -111,8 +113,8 @@ func resourceUCloudInstance() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateName,
 				Computed:     true,
+				ValidateFunc: validateTag,
 			},
 
 			"security_group": &schema.Schema{

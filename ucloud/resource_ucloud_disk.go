@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -36,32 +37,35 @@ func resourceUCloudDisk() *schema.Resource {
 			"disk_size": &schema.Schema{
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validateDataDiskSize(1, 4000),
+				ValidateFunc: validation.IntBetween(1, 4000),
 			},
 
 			"disk_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "DataDisk",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "DataDisk",
+				ValidateFunc: validation.StringInSlice([]string{"DataDisk", "SSDDataDisk"}, false),
 			},
 
 			"disk_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "Dynamic",
-				ValidateFunc: validateStringInChoices([]string{"Year", "Month", "Dynamic"}),
+				ValidateFunc: validation.StringInSlice([]string{"Year", "Month", "Dynamic"}, false),
 			},
 
 			"disk_duration": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validateDuration,
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateTag,
 			},
 
 			"create_time": &schema.Schema{

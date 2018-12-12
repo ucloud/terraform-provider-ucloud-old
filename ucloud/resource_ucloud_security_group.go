@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -30,8 +31,8 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "SecurityGroup",
-				ValidateFunc: validateSecurityGroupName,
+				Default:      "tf-security-group",
+				ValidateFunc: validateName,
 			},
 
 			"rules": {
@@ -52,31 +53,43 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 						},
 
 						"protocol": &schema.Schema{
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "TCP",
-							ValidateFunc: validateStringInChoices([]string{"TCP", "UDP", "GRE", "ICMP"}),
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "TCP",
+							ValidateFunc: validation.StringInSlice([]string{
+								"TCP",
+								"UDP",
+								"GRE",
+								"ICMP",
+							}, false),
 						},
 
 						"cidr_block": &schema.Schema{
 							Type:         schema.TypeString,
 							Optional:     true,
 							Default:      "0.0.0.0/0",
-							ValidateFunc: validateCidrBlock,
+							ValidateFunc: validation.CIDRNetwork(0, 32),
 						},
 
 						"policy": &schema.Schema{
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "ACCEPT",
-							ValidateFunc: validateStringInChoices([]string{"ACCEPT", "DROP"}),
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "ACCEPT",
+							ValidateFunc: validation.StringInSlice([]string{
+								"ACCEPT",
+								"DROP",
+							}, false),
 						},
 
 						"priority": &schema.Schema{
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "HIGH",
-							ValidateFunc: validateStringInChoices([]string{"HIGH", "MEDIUM", "LOW"}),
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "HIGH",
+							ValidateFunc: validation.StringInSlice([]string{
+								"HIGH",
+								"MEDIUM",
+								"LOW",
+							}, false),
 						},
 					},
 				},
@@ -84,9 +97,10 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 			},
 
 			"tag": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateTag,
 			},
 
 			"remark": &schema.Schema{

@@ -28,7 +28,7 @@ output "normal" {
 The following arguments are supported:
 
 * `cpu` - (Required) The number of cores of virtual CPU, measured in "core", range from 1 to 32.
-* `memory` - (Required) The size of memory, measured in MB, range from 1 to 128.
+* `memory` - (Required) The size of memory, measured in MB, range from 1 to 256.
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
 
 ## Attributes Reference

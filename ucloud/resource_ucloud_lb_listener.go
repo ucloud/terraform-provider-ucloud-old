@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -24,46 +25,69 @@ func resourceUCloudLBListener() *schema.Resource {
 			},
 
 			"protocol": &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateStringInChoices([]string{"HTTP", "HTTPS", "TCP", "UDP"}),
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"HTTP",
+					"HTTPS",
+					"TCP",
+					"UDP",
+				}, false),
 			},
 
 			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Listener",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "listener",
+				ValidateFunc: validateName,
 			},
 
 			"listen_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "RequestProxy",
+				ValidateFunc: validation.StringInSlice([]string{
+					"RequestProxy",
+					"PacketsTransmit",
+				}, false),
 			},
 
 			"port": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      80,
-				ValidateFunc: validateIntegerInRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
 			"idle_timeout": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 86400),
 			},
 
 			"method": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "Roundrobin",
+				ValidateFunc: validation.StringInSlice([]string{
+					"Roundrobin",
+					"Path",
+					"SourcePort",
+					"ConsistentHash",
+					"ConsistentHashPort",
+				}, false),
 			},
 
 			"persistence_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "None",
+				ValidateFunc: validation.StringInSlice([]string{
+					"ServerInsert",
+					"UserDefined",
+					"None",
+				}, false),
 			},
 
 			"persistence": &schema.Schema{
@@ -76,6 +100,10 @@ func resourceUCloudLBListener() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Port",
+					"Path",
+				}, false),
 			},
 
 			"domain": &schema.Schema{

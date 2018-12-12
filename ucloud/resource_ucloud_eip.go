@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
-	"github.com/ucloud/ucloud-sdk-go/ucloud/request"
 )
 
 func resourceUCloudEIP() *schema.Resource {
@@ -34,21 +33,21 @@ func resourceUCloudEIP() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "bgp",
-				ValidateFunc: validateStringInChoices([]string{"bgp", "international"}),
+				ValidateFunc: validation.StringInSlice([]string{"bgp", "international"}, false),
 			},
 
 			"internet_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Default:      "month",
 				Optional:     true,
-				ValidateFunc: validateStringInChoices([]string{"month", "year", "dynamic"}),
+				ValidateFunc: validation.StringInSlice([]string{"month", "year", "dynamic"}, false),
 			},
 
 			"internet_charge_mode": &schema.Schema{
 				Type:         schema.TypeString,
 				Default:      "bandwidth",
 				Optional:     true,
-				ValidateFunc: validateStringInChoices([]string{"traffic", "bandwidth"}),
+				ValidateFunc: validation.StringInSlice([]string{"traffic", "bandwidth"}, false),
 			},
 
 			"eip_duration": &schema.Schema{
@@ -75,7 +74,7 @@ func resourceUCloudEIP() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateName,
+				ValidateFunc: validateTag,
 			},
 
 			"status": &schema.Schema{
@@ -158,9 +157,6 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.AllocateEIP(req)
 	if err != nil {
-		query, err := request.ToQueryMap(req)
-		fmt.Printf("[DEBUG] %s %s", d.Get("internet_type").(string), upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
-		fmt.Printf("[DEBUG] allocate eip arguments %+v\n", query)
 		return fmt.Errorf("error on creating eip, %s", err)
 	}
 

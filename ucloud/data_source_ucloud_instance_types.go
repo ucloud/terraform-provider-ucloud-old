@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceUCloudInstanceTypes() *schema.Resource {
@@ -13,17 +14,15 @@ func dataSourceUCloudInstanceTypes() *schema.Resource {
 		Read: dataSourceUCloudInstanceTypesRead,
 		Schema: map[string]*schema.Schema{
 			"cpu": &schema.Schema{
-				Type:     schema.TypeInt,
-				Required: true,
-
-				ValidateFunc: validateIntegerInRange(1, 32),
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntBetween(1, 32),
 			},
 
 			"memory": &schema.Schema{
-				Type:     schema.TypeInt,
-				Optional: true,
-
-				ValidateFunc: validateIntegerInRange(1, 128),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 256),
 			},
 
 			"output_file": {

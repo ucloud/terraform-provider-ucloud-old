@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
@@ -30,9 +31,10 @@ func resourceUCloudLBAttachment() *schema.Resource {
 			},
 
 			"resource_type": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"instance"}, false),
 			},
 
 			"resource_id": &schema.Schema{
@@ -45,7 +47,7 @@ func resourceUCloudLBAttachment() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      80,
-				ValidateFunc: validateIntegerInRange(1, 65535),
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
 			"private_ip": &schema.Schema{
