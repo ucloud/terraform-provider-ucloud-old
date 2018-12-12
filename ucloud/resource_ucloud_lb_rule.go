@@ -15,6 +15,9 @@ func resourceUCloudLBRule() *schema.Resource {
 		Update: resourceUCloudLBRuleUpdate,
 		Read:   resourceUCloudLBRuleRead,
 		Delete: resourceUCloudLBRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": &schema.Schema{

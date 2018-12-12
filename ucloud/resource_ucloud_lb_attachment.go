@@ -16,6 +16,9 @@ func resourceUCloudLBAttachment() *schema.Resource {
 		Read:   resourceUCloudLBAttachmentRead,
 		Update: resourceUCloudLBAttachmentUpdate,
 		Delete: resourceUCloudLBAttachmentDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": &schema.Schema{

@@ -16,6 +16,9 @@ func resourceUCloudLBListener() *schema.Resource {
 		Update: resourceUCloudLBListenerUpdate,
 		Read:   resourceUCloudLBListenerRead,
 		Delete: resourceUCloudLBListenerDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"load_balancer_id": &schema.Schema{

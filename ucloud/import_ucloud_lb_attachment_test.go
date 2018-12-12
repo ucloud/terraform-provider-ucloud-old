@@ -1,0 +1,28 @@
+package ucloud
+
+import (
+	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
+)
+
+func TestAccUCloudLBAttachment_import(t *testing.T) {
+	resourceName := "ucloud_lb_attachment.foo"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckLBAttachmentDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				Config: testAccLBAttachmentConfig,
+			},
+
+			resource.TestStep{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
