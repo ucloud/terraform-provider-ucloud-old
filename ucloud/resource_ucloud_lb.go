@@ -151,24 +151,7 @@ func resourceUCloudLBCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(resp.ULBId)
 
 	// after create lb, we need to wait it initialized
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"initialized"},
-		Timeout:    5 * time.Minute,
-		Delay:      2 * time.Second,
-		MinTimeout: 1 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			eip, err := client.describeLBById(d.Id())
-			if err != nil {
-				if isNotFoundError(err) {
-					return nil, "pending", nil
-				}
-				return nil, "", err
-			}
-
-			return eip, "initialized", nil
-		},
-	}
+	stateConf := lbWaitForState(client, d.Id())
 	_, err = stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("wait for lb initialize failed in create lb %s, %s", d.Id(), err)
@@ -238,7 +221,7 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vpc_id", lbSet.VPCId)
 	d.Set("subnet_id", lbSet.SubnetId)
 
-	//TODO: [API-ERROR]need ulbSet.ChargeType
+	// TODO: [API-ERROR] need ulbSet.ChargeType
 	d.Set("internet_charge_type", d.Get("internet_charge_type").(string))
 	d.Set("private_ip", lbSet.PrivateIP)
 
@@ -278,4 +261,25 @@ func resourceUCloudLBDelete(d *schema.ResourceData, meta interface{}) error {
 
 		return resource.RetryableError(fmt.Errorf("delete lb but it still exists"))
 	})
+}
+
+func lbWaitForState(client *UCloudClient, id string) *resource.StateChangeConf {
+	return &resource.StateChangeConf{
+		Pending:    []string{statusPending},
+		Target:     []string{statusInitialized},
+		Timeout:    5 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 1 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			eip, err := client.describeLBById(id)
+			if err != nil {
+				if isNotFoundError(err) {
+					return nil, statusPending, nil
+				}
+				return nil, "", err
+			}
+
+			return eip, statusInitialized, nil
+		},
+	}
 }

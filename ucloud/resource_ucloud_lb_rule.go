@@ -209,8 +209,8 @@ func resourceUCloudLBRuleDelete(d *schema.ResourceData, meta interface{}) error 
 
 func lbRuleWaitForState(client *UCloudClient, lbId, listenerId, policyId string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"initialized"},
+		Pending:    []string{statusPending},
+		Target:     []string{statusInitialized},
 		Timeout:    5 * time.Minute,
 		Delay:      2 * time.Second,
 		MinTimeout: 1 * time.Second,
@@ -218,12 +218,12 @@ func lbRuleWaitForState(client *UCloudClient, lbId, listenerId, policyId string)
 			policySet, err := client.describePolicyById(lbId, listenerId, policyId)
 			if err != nil {
 				if isNotFoundError(err) {
-					return nil, "pending", nil
+					return nil, statusPending, nil
 				}
 				return nil, "", err
 			}
 
-			return policySet, "initialized", nil
+			return policySet, statusInitialized, nil
 		},
 	}
 }

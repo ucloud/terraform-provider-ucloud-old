@@ -28,6 +28,17 @@ func ifaceToStringSlice(iface interface{}) []string {
 	return s
 }
 
+// ifaceToStringSlice used for converting terraform schema set to a string slice
+func setToStringSlice(s *schema.Set) []string {
+	vL := []string{}
+
+	for _, v := range s.List() {
+		vL = append(vL, v.(string))
+	}
+
+	return vL
+}
+
 func hashStringArray(arr []string) string {
 	var buf bytes.Buffer
 
@@ -136,5 +147,5 @@ func hashCIDR(v interface{}) int {
 		return 0
 	}
 
-	return schema.HashString(network.Network())
+	return hashcode.String(network.Network())
 }

@@ -43,7 +43,7 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validateSecurityGroupPort,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								if v, ok := d.GetOk("protocol"); ok && isPortIndependentProtocol(v.(string)) {
+								if v, ok := d.GetOk("protocol"); ok && shouldIgnorePort(v.(string)) {
 									return true
 								}
 								return false
@@ -201,6 +201,7 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("error on %s to eip %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
 
+		// partial success
 		d.SetPartial("name")
 		d.SetPartial("tag")
 		d.SetPartial("remark")
@@ -239,10 +240,10 @@ func resourceUCloudSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 	for _, item := range sgSet.Rule {
 		rules = append(rules, map[string]interface{}{
 			"port_range": item.DstPort,
-			"protocol":   upperCamelCvt.mustConvert(item.ProtocolType),
+			"protocol":   upperCvt.mustConvert(item.ProtocolType),
 			"cidr_block": item.SrcIP,
-			"policy":     upperCamelCvt.mustConvert(item.RuleAction),
-			"priority":   upperCamelCvt.mustConvert(item.Priority),
+			"policy":     upperCvt.mustConvert(item.RuleAction),
+			"priority":   upperCvt.mustConvert(item.Priority),
 		})
 	}
 
@@ -282,7 +283,7 @@ func resourceucloudSecurityGroupRuleHash(v interface{}) int {
 	m := v.(map[string]interface{})
 
 	protocol := m["protocol"].(string)
-	if !isPortIndependentProtocol(protocol) {
+	if !shouldIgnorePort(protocol) {
 		buf.WriteString(fmt.Sprintf("%s-", m["port_range"].(string)))
 	}
 
@@ -308,7 +309,7 @@ func buildRuleParameter(iface interface{}) []string {
 	for _, item := range iface.(*schema.Set).List() {
 		rule := item.(map[string]interface{})
 		port := rule["port_range"]
-		if v := rule["protocol"].(string); isPortIndependentProtocol(v) {
+		if v := rule["protocol"].(string); shouldIgnorePort(v) {
 			port = ""
 		}
 		s := fmt.Sprintf(
@@ -345,6 +346,6 @@ func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChan
 	}
 }
 
-func isPortIndependentProtocol(protocol string) bool {
+func shouldIgnorePort(protocol string) bool {
 	return checkStringIn(protocol, portIndependentProtocols) == nil
 }

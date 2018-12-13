@@ -171,7 +171,6 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	resp, err := conn.CreateVServer(req)
-
 	if err != nil {
 		return fmt.Errorf("error in create lb listener, %s", err)
 	}
@@ -179,33 +178,9 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(resp.VServerId)
 
 	// after create lb listener, we need to wait it initialized
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"initialized"},
-		Timeout:    10 * time.Minute,
-		Delay:      5 * time.Second,
-		MinTimeout: 3 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			vserverSet, err := client.describeVServerById(lbId, d.Id())
-			if err != nil {
-				if isNotFoundError(err) {
-					return nil, "pending", nil
-				}
-				return nil, "", err
-			}
+	stateConf := lbListenerWaitForState(client, lbId, d.Id())
 
-			state := listenerStatusCvt.mustConvert(vserverSet.Status)
-			if state != "allNormal" {
-				state = "pending"
-			} else {
-				state = "initialized"
-			}
-
-			return vserverSet, state, nil
-		},
-	}
 	_, err = stateConf.WaitForState()
-
 	if err != nil {
 		return fmt.Errorf("wait for lb listener initialize failed in create lb listener %s, %s", d.Id(), err)
 	}
@@ -226,63 +201,63 @@ func resourceUCloudLBListenerUpdate(d *schema.ResourceData, meta interface{}) er
 	if d.HasChange("name") && !d.IsNewResource() {
 		isChanged = true
 		req.VServerName = ucloud.String(d.Get("name").(string))
-		d.SetPartial("name")
 	}
 
 	if d.HasChange("protocol") && !d.IsNewResource() {
 		isChanged = true
 		req.Protocol = ucloud.String(d.Get("protocol").(string))
-		d.SetPartial("protocol")
 	}
 
 	if d.HasChange("method") && !d.IsNewResource() {
 		isChanged = true
 		req.Method = ucloud.String(d.Get("method").(string))
-		d.SetPartial("method")
 	}
 
 	if d.HasChange("persistence_type") && !d.IsNewResource() {
 		isChanged = true
 		req.PersistenceType = ucloud.String(d.Get("persistence_type").(string))
-		d.SetPartial("persistence_type")
 	}
 
 	if d.HasChange("persistence") && !d.IsNewResource() {
 		isChanged = true
 		req.PersistenceInfo = ucloud.String(d.Get("persistence").(string))
-		d.SetPartial("persistence")
 	}
 
 	if d.HasChange("idle_timeout") && !d.IsNewResource() {
 		isChanged = true
 		req.ClientTimeout = ucloud.Int(d.Get("idle_timeout").(int))
-		d.SetPartial("idle_timeout")
 	}
 
 	if d.HasChange("health_check_type") && !d.IsNewResource() {
 		isChanged = true
 		req.MonitorType = ucloud.String(d.Get("health_check_type").(string))
-		d.SetPartial("health_check_type")
 	}
 
 	if d.HasChange("domain") && !d.IsNewResource() {
 		isChanged = true
 		req.Domain = ucloud.String(d.Get("domain").(string))
-		d.SetPartial("domain")
 	}
 
 	if d.HasChange("path") && !d.IsNewResource() {
 		isChanged = true
 		req.Path = ucloud.String(d.Get("path").(string))
-		d.SetPartial("path")
 	}
 
 	if isChanged {
 		_, err := conn.UpdateVServerAttribute(req)
-
 		if err != nil {
 			return fmt.Errorf("do %s failed in update lb listener %s, %s", "UpdateVServerAttribute", d.Id(), err)
 		}
+
+		d.SetPartial("name")
+		d.SetPartial("protocol")
+		d.SetPartial("method")
+		d.SetPartial("persistence_type")
+		d.SetPartial("persistence")
+		d.SetPartial("idle_timeout")
+		d.SetPartial("health_check_type")
+		d.SetPartial("domain")
+		d.SetPartial("path")
 	}
 
 	d.Partial(false)
@@ -345,4 +320,32 @@ func resourceUCloudLBListenerDelete(d *schema.ResourceData, meta interface{}) er
 
 		return resource.RetryableError(fmt.Errorf("delete lb listener but it still exists"))
 	})
+}
+
+func lbListenerWaitForState(client *UCloudClient, lbId, id string) *resource.StateChangeConf {
+	return &resource.StateChangeConf{
+		Pending:    []string{statusPending},
+		Target:     []string{statusInitialized},
+		Timeout:    10 * time.Minute,
+		Delay:      5 * time.Second,
+		MinTimeout: 3 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			vserverSet, err := client.describeVServerById(lbId, id)
+			if err != nil {
+				if isNotFoundError(err) {
+					return nil, statusPending, nil
+				}
+				return nil, "", err
+			}
+
+			state := listenerStatusCvt.mustConvert(vserverSet.Status)
+			if state != "allNormal" {
+				state = statusPending
+			} else {
+				state = statusInitialized
+			}
+
+			return vserverSet, state, nil
+		},
+	}
 }

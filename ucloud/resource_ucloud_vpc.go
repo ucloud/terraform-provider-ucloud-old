@@ -84,14 +84,14 @@ func resourceUCloudVPCCreate(d *schema.ResourceData, meta interface{}) error {
 
 	req := conn.NewCreateVPCRequest()
 	req.Name = ucloud.String(d.Get("name").(string))
-	req.Network = ifaceToStringSlice(d.Get("cidr_blocks"))
+	req.Network = setToStringSlice(d.Get("cidr_blocks").(*schema.Set))
 
-	if val, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(val.(string))
+	if v, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("remark"); ok {
-		req.Remark = ucloud.String(val.(string))
+	if v, ok := d.GetOk("remark"); ok {
+		req.Remark = ucloud.String(v.(string))
 	}
 
 	resp, err := conn.CreateVPC(req)
@@ -138,7 +138,10 @@ func resourceUCloudVPCRead(d *schema.ResourceData, meta interface{}) error {
 			"cidr_block": item.Network,
 		})
 	}
-	d.Set("network_info", networkInfo)
+	
+	if err := d.Set("network_info", networkInfo); err != nil {
+		return err
+	}
 
 	return nil
 }
