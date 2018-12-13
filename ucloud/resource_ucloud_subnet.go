@@ -99,7 +99,7 @@ func resourceUCloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("error on waiting for subnet %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudSubnetUpdate(d, meta)
+	return resourceUCloudSubnetRead(d, meta)
 }
 
 func resourceUCloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error {

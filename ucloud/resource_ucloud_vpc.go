@@ -13,7 +13,6 @@ func resourceUCloudVPC() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceUCloudVPCCreate,
 		Read:   resourceUCloudVPCRead,
-		Update: resourceUCloudVPCUpdate,
 		Delete: resourceUCloudVPCDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -108,11 +107,6 @@ func resourceUCloudVPCCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error on waiting for vpc %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudVPCRead(d, meta)
-}
-
-func resourceUCloudVPCUpdate(d *schema.ResourceData, meta interface{}) error {
-	// TODO: [API-ERROR] no api for updating, should be checked!
 	return resourceUCloudVPCRead(d, meta)
 }
 

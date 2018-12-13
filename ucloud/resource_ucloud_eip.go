@@ -174,7 +174,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error on waiting for eip %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudEIPUpdate(d, meta)
+	return resourceUCloudEIPRead(d, meta)
 }
 
 func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {

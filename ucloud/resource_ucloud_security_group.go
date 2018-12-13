@@ -146,7 +146,7 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("error on waiting for security group %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudSecurityGroupUpdate(d, meta)
+	return resourceUCloudSecurityGroupRead(d, meta)
 }
 
 func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{}) error {
