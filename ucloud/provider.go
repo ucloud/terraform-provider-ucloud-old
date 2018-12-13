@@ -41,14 +41,14 @@ func Provider() terraform.ResourceProvider {
 			"max_retries": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				Default:     DefaultMaxRetries,
+				Default:     defaultMaxRetries,
 				Description: descriptions["max_retries"],
 			},
 
 			"insecure": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     DefaultInSecure,
+				Default:     defaultInSecure,
 				Description: descriptions["insecure"],
 			},
 		},

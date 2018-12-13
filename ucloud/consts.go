@@ -5,25 +5,25 @@ import (
 )
 
 const (
-	// DefaultMaxRetries is default max retry attempts number
-	DefaultMaxRetries = 3
+	// defaultMaxRetries is default max retry attempts number
+	defaultMaxRetries = 3
 
-	// DefaultInSecure is a default value to enable https
-	DefaultInSecure = false
+	// defaultInSecure is a default value to enable https
+	defaultInSecure = false
 
-	// DefaultWaitInterval is the inteval to wait for state changed after resource is created
-	DefaultWaitInterval = 10 * time.Second
+	// defaultWaitInterval is the inteval to wait for state changed after resource is created
+	defaultWaitInterval = 10 * time.Second
 
-	// DefaultWaitMaxAttempts is the max attempts number to wait for state changed after resource is created
-	DefaultWaitMaxAttempts = 10
+	// defaultWaitMaxAttempts is the max attempts number to wait for state changed after resource is created
+	defaultWaitMaxAttempts = 10
 
-	// DefaultWaitIgnoreError is if it will ignore error during wait for state changed after resource is created
-	DefaultWaitIgnoreError = false
+	// defaultWaitIgnoreError is if it will ignore error during wait for state changed after resource is created
+	defaultWaitIgnoreError = false
 )
 
 const (
-	// StatusPending is status defined by provider, only use to wrap remote resource status as string representation for state waiter
-	StatusPending = "pending"
+	// statusPending is status defined by provider, only use to wrap remote resource status as string representation for state waiter
+	statusPending = "pending"
 )
 
 // listenerStatusCvt is used to covert int to string for status after read lb listener

@@ -299,15 +299,16 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 			"internet_type": item.OperatorName,
 		})
 	}
+
 	if err := d.Set("ip_set", eipAddr); err != nil {
-		return fmt.Errorf("...")
+		return err
 	}
 
 	if err := d.Set("resource", map[string]string{
 		"resource_type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
 		"resource_id":   eip.Resource.ResourceId,
 	}); err != nil {
-		return fmt.Errorf("...")
+		return err
 	}
 
 	return nil
@@ -339,7 +340,7 @@ func resourceUCloudEIPDelete(d *schema.ResourceData, meta interface{}) error {
 
 func eipWaitForState(client *UCloudClient, eipID string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
-		Pending:    []string{"pending"},
+		Pending:    []string{statusPending},
 		Target:     []string{"free"},
 		Timeout:    5 * time.Minute,
 		Delay:      2 * time.Second,
@@ -348,14 +349,14 @@ func eipWaitForState(client *UCloudClient, eipID string) *resource.StateChangeCo
 			eip, err := client.describeEIPById(eipID)
 			if err != nil {
 				if isNotFoundError(err) {
-					return nil, "pending", nil
+					return nil, statusPending, nil
 				}
 				return nil, "", err
 			}
 
 			state := eip.Status
 			if state != "free" {
-				state = "pending"
+				state = statusPending
 			}
 
 			return eip, state, nil
