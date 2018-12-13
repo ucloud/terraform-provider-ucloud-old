@@ -60,7 +60,7 @@ func resourceUCloudEIP() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      resource.PrefixedUniqueId("tf-eip-"),
 				ValidateFunc: validateName,
 			},
 

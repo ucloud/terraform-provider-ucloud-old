@@ -41,7 +41,7 @@ func resourceUCloudLBListener() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "listener",
+				Default:      resource.PrefixedUniqueId("tf-listener-"),
 				ValidateFunc: validateName,
 			},
 

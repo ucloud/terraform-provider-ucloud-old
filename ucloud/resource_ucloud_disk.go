@@ -30,7 +30,8 @@ func resourceUCloudDisk() *schema.Resource {
 
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Default:      resource.PrefixedUniqueId("tf-disk-"),
 				ValidateFunc: validateDiskName,
 			},
 

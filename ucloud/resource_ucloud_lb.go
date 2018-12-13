@@ -54,7 +54,7 @@ func resourceUCloudLB() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "lb",
+				Default:      resource.PrefixedUniqueId("tf-lb-"),
 				ValidateFunc: validateName,
 			},
 

@@ -610,7 +610,6 @@
     "github.com/ucloud/ucloud-sdk-go/ucloud/auth",
     "github.com/ucloud/ucloud-sdk-go/ucloud/error",
     "github.com/ucloud/ucloud-sdk-go/ucloud/log",
-    "github.com/ucloud/ucloud-sdk-go/ucloud/request",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

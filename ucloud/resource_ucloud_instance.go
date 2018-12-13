@@ -56,7 +56,7 @@ func resourceUCloudInstance() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "tf-instance",
+				Default:      resource.PrefixedUniqueId("tf-instance-"),
 				ValidateFunc: validateName,
 			},
 

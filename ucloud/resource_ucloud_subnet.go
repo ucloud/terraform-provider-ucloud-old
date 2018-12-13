@@ -34,7 +34,7 @@ func resourceUCloudSubnet() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      resource.PrefixedUniqueId("tf-subnet-"),
 				ValidateFunc: validateName,
 			},
 

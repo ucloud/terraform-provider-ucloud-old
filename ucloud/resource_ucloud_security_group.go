@@ -31,7 +31,7 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 			"name": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "tf-security-group",
+				Default:      resource.PrefixedUniqueId("tf-security-group-"),
 				ValidateFunc: validateName,
 			},
 
