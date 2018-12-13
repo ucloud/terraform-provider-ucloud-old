@@ -31,7 +31,7 @@ func TestAccUCloudSecurityGroup_basic(t *testing.T) {
 					testAccCheckSecurityGroupAttributes(&sgSet),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", "tf-acc-security-group"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.port_range", "80"),
-					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.protocol", "TCP"),
+					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.protocol", "tcp"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.cidr_block", "192.168.0.0/16"),
 				),
 			},
@@ -44,7 +44,7 @@ func TestAccUCloudSecurityGroup_basic(t *testing.T) {
 					testAccCheckSecurityGroupAttributes(&sgSet),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", "tf-acc-security-group-two"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.port_range", "20-80"),
-					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.protocol", "TCP"),
+					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.protocol", "tcp"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.cidr_block", "0.0.0.0/0"),
 				),
 			},
@@ -120,19 +120,24 @@ resource "ucloud_security_group" "foo" {
 	tag  = "tf-acc"
 	rules {
 		port_range = "80"
-		protocol   = "TCP"
+		protocol   = "tcp"
 		cidr_block = "192.168.0.0/16"
+		policy     = "accept"
+		priority   = "high"
 	}
 }
 `
+
 const testAccSecurityGroupConfigTwo = `
 resource "ucloud_security_group" "foo" {
 	name = "tf-acc-security-group-two"
 	tag  = "tf-acc"
 	rules {
 		port_range = "20-80"
-		protocol   = "TCP"
+		protocol   = "tcp"
 		cidr_block = "0.0.0.0/0"
+		policy     = "accept"
+		priority   = "high"
 	}
 }
 `
