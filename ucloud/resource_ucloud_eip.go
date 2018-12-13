@@ -172,7 +172,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("error on waiting for eip is initialized when creating %s, %s", d.Id(), err)
+		return fmt.Errorf("error on waiting for eip %s complete creating, %s", d.Id(), err)
 	}
 
 	return resourceUCloudEIPUpdate(d, meta)
@@ -201,7 +201,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for bandwidth of eip %s complete updating, %s", d.Id(), err)
 		}
 	}
 
@@ -223,7 +223,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for internet_charge_mode of eip %s complete updating, %s", d.Id(), err)
 		}
 	}
 
@@ -261,7 +261,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for eip is completed when updating %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for attributes of eip %s complete updating, %s", d.Id(), err)
 		}
 	}
 
@@ -338,7 +338,7 @@ func resourceUCloudEIPDelete(d *schema.ResourceData, meta interface{}) error {
 	})
 }
 
-func eipWaitForState(client *UCloudClient, eipID string) *resource.StateChangeConf {
+func eipWaitForState(client *UCloudClient, eipId string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
 		Pending:    []string{statusPending},
 		Target:     []string{"free"},
@@ -346,7 +346,7 @@ func eipWaitForState(client *UCloudClient, eipID string) *resource.StateChangeCo
 		Delay:      2 * time.Second,
 		MinTimeout: 1 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-			eip, err := client.describeEIPById(eipID)
+			eip, err := client.describeEIPById(eipId)
 			if err != nil {
 				if isNotFoundError(err) {
 					return nil, statusPending, nil

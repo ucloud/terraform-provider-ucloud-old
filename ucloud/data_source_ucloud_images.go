@@ -29,13 +29,13 @@ func dataSourceUCloudImages() *schema.Resource {
 			"image_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Base", "Business", "Custom"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"base", "business", "custom"}, false),
 			},
 
 			"os_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Linux", "Windows"}, false),
+				ValidateFunc: validation.StringInSlice([]string{"linux", "windows"}, false),
 			},
 
 			"image_id": &schema.Schema{
@@ -134,11 +134,11 @@ func dataSourceUCloudImagesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if v, ok := d.GetOk("image_type"); ok {
-		req.ImageType = ucloud.String(v.(string))
+		req.ImageType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
 	}
 
 	if v, ok := d.GetOk("os_type"); ok {
-		req.OsType = ucloud.String(v.(string))
+		req.OsType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
 	}
 
 	if v, ok := d.GetOk("image_id"); ok {
@@ -146,15 +146,15 @@ func dataSourceUCloudImagesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	var images []uhost.UHostImageSet
-	var limit int = 100
 	var totalCount int
 	var offset int
+	limit := 100
 	for {
 		req.Limit = ucloud.Int(limit)
 		req.Offset = ucloud.Int(offset)
 		resp, err := conn.DescribeImage(req)
 		if err != nil {
-			return fmt.Errorf("error in read image list, %s", err)
+			return fmt.Errorf("error on reading image list, %s", err)
 		}
 
 		if resp == nil || len(resp.ImageSet) < 1 {
@@ -189,7 +189,7 @@ func dataSourceUCloudImagesRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("total_count", totalCount)
 	err := dataSourceUCloudImagesSave(d, filteredImages)
 	if err != nil {
-		return fmt.Errorf("error in read image list, %s", err)
+		return fmt.Errorf("error on reading image list, %s", err)
 	}
 
 	return nil

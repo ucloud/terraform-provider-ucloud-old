@@ -30,6 +30,6 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 `

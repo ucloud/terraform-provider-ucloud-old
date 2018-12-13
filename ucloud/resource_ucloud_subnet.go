@@ -180,7 +180,6 @@ func resourceUCloudSubnetDelete(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		_, err := client.describeSubnetById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil

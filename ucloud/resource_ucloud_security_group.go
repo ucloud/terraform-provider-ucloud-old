@@ -12,10 +12,8 @@ import (
 	"github.com/ucloud/ucloud-sdk-go/ucloud"
 )
 
-var (
-	// security policy use ICMP, GRE packet with port is not supported
-	portIndependentProtocols = []string{"icmp", "gre"}
-)
+// security policy use ICMP, GRE packet with port is not supported
+var portIndependentProtocols = []string{"icmp", "gre"}
 
 func resourceUCloudSecurityGroup() *schema.Resource {
 	return &schema.Resource{
@@ -123,6 +121,7 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 
 	req := conn.NewCreateFirewallRequest()
 	req.Name = ucloud.String(d.Get("name").(string))
+	req.Rule = buildRuleParameter(d.Get("rules"))
 
 	if val, ok := d.GetOk("tag"); ok {
 		req.Tag = ucloud.String(val.(string))
@@ -132,11 +131,9 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 		req.Remark = ucloud.String(val.(string))
 	}
 
-	req.Rule = buildRuleParameter(d.Get("rules"))
-
 	resp, err := conn.CreateFirewall(req)
 	if err != nil {
-		return fmt.Errorf("error in create security group, %s", err)
+		return fmt.Errorf("error on creating security group, %s", err)
 	}
 
 	d.SetId(resp.FWId)
@@ -146,7 +143,7 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("wait for security group initialize failed in create security group %s, %s", d.Id(), err)
+		return fmt.Errorf("error on waiting for security group %s complete creating, %s", d.Id(), err)
 	}
 
 	return resourceUCloudSecurityGroupUpdate(d, meta)
@@ -159,22 +156,23 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 	d.Partial(true)
 
 	if d.HasChange("rules") && !d.IsNewResource() {
-		d.SetPartial("rules")
 		req := conn.NewUpdateFirewallRequest()
 		req.FWId = ucloud.String(d.Id())
 		req.Rule = buildRuleParameter(d.Get("rules"))
 		_, err := conn.UpdateFirewall(req)
 
 		if err != nil {
-			return fmt.Errorf("do %s failed in update security group %s, %s", "UpdateFirewall", d.Id(), err)
+			return fmt.Errorf("error on %s to security group %s, %s", "UpdateFirewall", d.Id(), err)
 		}
+
+		d.SetPartial("rules")
 
 		// after update security group rule, we need to wait it completed
 		stateConf := securityWaitForState(client, d.Id())
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for security group rule failed in update security group %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for rules of security group %s complete updating, %s", d.Id(), err)
 		}
 	}
 
@@ -185,34 +183,33 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("name") && !d.IsNewResource() {
 		isChanged = true
 		req.Name = ucloud.String(d.Get("name").(string))
-		d.SetPartial("name")
 	}
 
 	if d.HasChange("tag") && !d.IsNewResource() {
 		isChanged = true
 		req.Tag = ucloud.String(d.Get("tag").(string))
-		d.SetPartial("tag")
 	}
 
 	if d.HasChange("remark") && !d.IsNewResource() {
 		isChanged = true
 		req.Tag = ucloud.String(d.Get("remark").(string))
-		d.SetPartial("remark")
 	}
 
 	if isChanged {
 		_, err := conn.UpdateFirewallAttribute(req)
-
 		if err != nil {
-			return fmt.Errorf("do %s failed in update security group %s, %s", "UpdateFirewallAttribute", d.Id(), err)
+			return fmt.Errorf("error on %s to eip %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
+
+		d.SetPartial("name")
+		d.SetPartial("tag")
+		d.SetPartial("remark")
 
 		// after update security group attribute, we need to wait it completed
 		stateConf := securityWaitForState(client, d.Id())
-
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("wait for security group attribute failed in update security group %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for attributes of security group %s complete updating, %s", d.Id(), err)
 		}
 	}
 
@@ -230,7 +227,7 @@ func resourceUCloudSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read security group %s, %s", "DescribeFirewall", d.Id(), err)
+		return fmt.Errorf("error on reading eip %s, %s", d.Id(), err)
 	}
 
 	d.Set("name", sgSet.Name)
@@ -242,13 +239,16 @@ func resourceUCloudSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 	for _, item := range sgSet.Rule {
 		rules = append(rules, map[string]interface{}{
 			"port_range": item.DstPort,
-			"protocol":   item.ProtocolType,
+			"protocol":   upperCamelCvt.mustConvert(item.ProtocolType),
 			"cidr_block": item.SrcIP,
-			"policy":     item.RuleAction,
-			"priority":   item.Priority,
+			"policy":     upperCamelCvt.mustConvert(item.RuleAction),
+			"priority":   upperCamelCvt.mustConvert(item.Priority),
 		})
 	}
-	d.Set("rules", rules)
+
+	if err := d.Set("rules", rules); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -262,19 +262,18 @@ func resourceUCloudSecurityGroupDelete(d *schema.ResourceData, meta interface{})
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		if _, err := conn.DeleteFirewall(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete security group %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on deleting security group %s, %s", d.Id(), err))
 		}
 
 		_, err := client.describeFirewallById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete security group %s, %s", "DescribeFirewall", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading security group when deleting %s, %s", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete security group but it still exists"))
+		return resource.RetryableError(fmt.Errorf("the specified security group %s has not been deleted due to unknown error", d.Id()))
 	})
 }
 
@@ -327,8 +326,8 @@ func buildRuleParameter(iface interface{}) []string {
 
 func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"initialized"},
+		Pending:    []string{statusPending},
+		Target:     []string{statusInitialized},
 		Timeout:    5 * time.Minute,
 		Delay:      2 * time.Second,
 		MinTimeout: 1 * time.Second,
@@ -336,12 +335,12 @@ func securityWaitForState(client *UCloudClient, sgId string) *resource.StateChan
 			sgSet, err := client.describeFirewallById(sgId)
 			if err != nil {
 				if isNotFoundError(err) {
-					return nil, "pending", nil
+					return nil, statusPending, nil
 				}
 				return nil, "", err
 			}
 
-			return sgSet, "initialized", nil
+			return sgSet, statusInitialized, nil
 		},
 	}
 }

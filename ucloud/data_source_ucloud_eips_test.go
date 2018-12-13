@@ -27,8 +27,7 @@ func TestAccUCloudEipsDataSource_basic(t *testing.T) {
 const testAccDataEipsConfig = `
 resource "ucloud_eip" "foo" {
 	count = 2
-
-	name = "testAcc"
+	name = "tf-test-acc-eip"
 	bandwidth = 1
 	eip_duration = 1
 }
