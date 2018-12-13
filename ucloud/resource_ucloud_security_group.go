@@ -14,7 +14,7 @@ import (
 
 var (
 	// security policy use ICMP, GRE packet with port is not supported
-	portIndependentProtocols = []string{"ICMP", "GRE"}
+	portIndependentProtocols = []string{"icmp", "gre"}
 )
 
 func resourceUCloudSecurityGroup() *schema.Resource {
@@ -55,12 +55,12 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 						"protocol": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "TCP",
+							Default:  "tcp",
 							ValidateFunc: validation.StringInSlice([]string{
-								"TCP",
-								"UDP",
-								"GRE",
-								"ICMP",
+								"tcp",
+								"udp",
+								"gre",
+								"icmp",
 							}, false),
 						},
 
@@ -74,21 +74,21 @@ func resourceUCloudSecurityGroup() *schema.Resource {
 						"policy": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "ACCEPT",
+							Default:  "accept",
 							ValidateFunc: validation.StringInSlice([]string{
-								"ACCEPT",
-								"DROP",
+								"accept",
+								"drop",
 							}, false),
 						},
 
 						"priority": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "HIGH",
+							Default:  "high",
 							ValidateFunc: validation.StringInSlice([]string{
-								"HIGH",
-								"MEDIUM",
-								"LOW",
+								"high",
+								"medium",
+								"low",
 							}, false),
 						},
 					},
@@ -309,10 +309,17 @@ func buildRuleParameter(iface interface{}) []string {
 	for _, item := range iface.(*schema.Set).List() {
 		rule := item.(map[string]interface{})
 		port := rule["port_range"]
-		if isPortIndependentProtocol(rule["protocol"].(string)) {
+		if v := rule["protocol"].(string); isPortIndependentProtocol(v) {
 			port = ""
 		}
-		s := fmt.Sprintf("%s|%s|%s|%s|%s", rule["protocol"], port, rule["cidr_block"], rule["policy"], rule["priority"])
+		s := fmt.Sprintf(
+			"%s|%s|%s|%s|%s",
+			upperCvt.mustUnconvert(rule["protocol"].(string)),
+			port,
+			rule["cidr_block"],
+			upperCvt.mustUnconvert(rule["policy"].(string)),
+			upperCvt.mustUnconvert(rule["priority"].(string)),
+		)
 		rules = append(rules, s)
 	}
 	return rules

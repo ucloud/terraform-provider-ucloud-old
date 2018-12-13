@@ -22,8 +22,11 @@ const (
 )
 
 const (
-	// statusPending is status defined by provider, only use to wrap remote resource status as string representation for state waiter
+	// statusPending is general status when remote resource is not completed
 	statusPending = "pending"
+
+	// statusInitialized is general status when remote resource is completed
+	statusInitialized = "initialized"
 )
 
 // listenerStatusCvt is used to covert int to string for status after read lb listener

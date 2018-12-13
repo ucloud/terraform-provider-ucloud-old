@@ -139,8 +139,8 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	req := conn.NewAllocateEIPRequest()
 	req.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 	req.Quantity = ucloud.Int(d.Get("eip_duration").(int))
-	req.ChargeType = ucloud.String(d.Get("internet_charge_type").(string))
-	req.PayMode = ucloud.String(d.Get("internet_charge_mode").(string))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_type").(string)))
+	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
 	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
 
 	if val, ok := d.GetOk("name"); ok {
@@ -208,7 +208,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("internet_charge_mode") && !d.IsNewResource() {
 		reqCharge := conn.NewSetEIPPayModeRequest()
 		reqCharge.EIPId = ucloud.String(d.Id())
-		reqCharge.PayMode = ucloud.String(d.Get("internet_charge_mode").(string))
+		reqCharge.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
 		reqCharge.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 
 		_, err := conn.SetEIPPayMode(reqCharge)
@@ -283,8 +283,8 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("bandwidth", eip.Bandwidth)
-	d.Set("internet_charge_type", eip.ChargeType)
-	d.Set("internet_charge_mode", eip.PayMode)
+	d.Set("internet_charge_type", upperCamelCvt.mustConvert(eip.ChargeType))
+	d.Set("internet_charge_mode", upperCamelCvt.mustConvert(eip.PayMode))
 	d.Set("name", eip.Name)
 	d.Set("remark", eip.Remark)
 	d.Set("tag", eip.Tag)
