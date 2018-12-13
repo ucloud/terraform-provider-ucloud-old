@@ -31,8 +31,7 @@ func resourceUCloudEIP() *schema.Resource {
 
 			"internet_type": &schema.Schema{
 				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "bgp",
+				Required:     true,
 				ValidateFunc: validation.StringInSlice([]string{"bgp", "international"}, false),
 			},
 
@@ -143,16 +142,16 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
 	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
 
-	if val, ok := d.GetOk("name"); ok {
-		req.Name = ucloud.String(val.(string))
+	if v, ok := d.GetOk("name"); ok {
+		req.Name = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(val.(string))
+	if v, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("remark"); ok {
-		req.Remark = ucloud.String(val.(string))
+	if v, ok := d.GetOk("remark"); ok {
+		req.Remark = ucloud.String(v.(string))
 	}
 
 	resp, err := conn.AllocateEIP(req)

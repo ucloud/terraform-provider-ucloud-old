@@ -72,16 +72,16 @@ func resourceUCloudSubnetCreate(d *schema.ResourceData, meta interface{}) error 
 	req.Subnet = ucloud.String(cidr.Network)
 	req.Netmask = ucloud.Int(cidr.Mask)
 
-	if val, ok := d.GetOk("name"); ok {
-		req.SubnetName = ucloud.String(val.(string))
+	if v, ok := d.GetOk("name"); ok {
+		req.SubnetName = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(val.(string))
+	if v, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("remark"); ok {
-		req.Remark = ucloud.String(val.(string))
+	if v, ok := d.GetOk("remark"); ok {
+		req.Remark = ucloud.String(v.(string))
 	}
 
 	resp, err := conn.CreateSubnet(req)

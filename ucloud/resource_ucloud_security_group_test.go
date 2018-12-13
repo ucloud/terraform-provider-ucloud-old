@@ -147,8 +147,8 @@ func Test_resourceucloudSecurityGroupRuleHash(t *testing.T) {
 		"port_range": "80",
 		"protocol":   "tcp",
 		"cidr_block": "192.168.0.0/16",
-		"priority":   "high",
 		"policy":     "accept",
+		"priority":   "high",
 	}
 
 	want := 2629295509

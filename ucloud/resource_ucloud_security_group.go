@@ -123,12 +123,12 @@ func resourceUCloudSecurityGroupCreate(d *schema.ResourceData, meta interface{})
 	req.Name = ucloud.String(d.Get("name").(string))
 	req.Rule = buildRuleParameter(d.Get("rules"))
 
-	if val, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(val.(string))
+	if v, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("remark"); ok {
-		req.Remark = ucloud.String(val.(string))
+	if v, ok := d.GetOk("remark"); ok {
+		req.Remark = ucloud.String(v.(string))
 	}
 
 	resp, err := conn.CreateFirewall(req)
