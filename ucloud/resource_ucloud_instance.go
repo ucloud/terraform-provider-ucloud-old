@@ -60,7 +60,7 @@ func resourceUCloudInstance() *schema.Resource {
 				ValidateFunc: validateName,
 			},
 
-			"instance_charge_type": &schema.Schema{
+			"charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "month",
@@ -227,7 +227,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.ImageId = ucloud.String(imageId)
 	req.Password = ucloud.String(d.Get("root_password").(string))
-	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("instance_charge_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_type").(string)))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
 	req.Name = ucloud.String(d.Get("name").(string))
 
@@ -558,7 +558,7 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", instance.Name)
-	d.Set("instance_charge_type", upperCamelCvt.mustConvert(instance.ChargeType))
+	d.Set("charge_type", upperCamelCvt.mustConvert(instance.ChargeType))
 	d.Set("availability_zone", instance.Zone)
 	d.Set("instance_type", d.Get("instance_type").(string))
 	d.Set("root_password", d.Get("root_password").(string))

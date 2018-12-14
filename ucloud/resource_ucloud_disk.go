@@ -49,7 +49,7 @@ func resourceUCloudDisk() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"data_disk", "ssd_data_disk"}, false),
 			},
 
-			"disk_charge_type": &schema.Schema{
+			"charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -99,7 +99,7 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.Size = ucloud.Int(d.Get("disk_size").(int))
 	req.DiskType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("disk_type").(string)))
-	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("disk_charge_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_type").(string)))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
 
 	if val, ok := d.GetOk("tag"); ok {
@@ -187,7 +187,7 @@ func resourceUCloudDiskRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", diskSet.Name)
 	d.Set("tag", diskSet.Tag)
 	d.Set("disk_size", diskSet.Size)
-	d.Set("disk_charge_type", upperCamelCvt.mustConvert(diskSet.ChargeType))
+	d.Set("charge_type", upperCamelCvt.mustConvert(diskSet.ChargeType))
 	d.Set("create_time", timestampToString(diskSet.CreateTime))
 	d.Set("expire_time", timestampToString(diskSet.ExpiredTime))
 	d.Set("status", diskSet.Status)

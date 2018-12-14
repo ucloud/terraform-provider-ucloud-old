@@ -31,7 +31,7 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 					testAccCheckEIPAttributes(&eip),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "1"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "tf-acc-eip"),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "bandwidth"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "charge_mode", "bandwidth"),
 				),
 			},
 
@@ -43,7 +43,7 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 					testAccCheckEIPAttributes(&eip),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "2"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "tf-acc-eip-two"),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "traffic"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "charge_mode", "traffic"),
 				),
 			},
 		},
@@ -117,7 +117,7 @@ resource "ucloud_eip" "foo" {
 	name                 = "tf-acc-eip"
 	bandwidth            = 1
 	internet_type        = "bgp"
-	internet_charge_mode = "bandwidth"
+	charge_mode = "bandwidth"
 }
 `
 const testAccEIPConfigTwo = `
@@ -125,6 +125,6 @@ resource "ucloud_eip" "foo" {
 	name                 = "tf-acc-eip-two"
 	bandwidth            = 2
 	internet_type        = "bgp"
-	internet_charge_mode = "traffic"
+	charge_mode = "traffic"
 }
 `

@@ -39,7 +39,7 @@ func resourceUCloudEIP() *schema.Resource {
 				}, false),
 			},
 
-			"internet_charge_type": &schema.Schema{
+			"charge_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "month",
@@ -51,7 +51,7 @@ func resourceUCloudEIP() *schema.Resource {
 				}, false),
 			},
 
-			"internet_charge_mode": &schema.Schema{
+			"charge_mode": &schema.Schema{
 				Type:     schema.TypeString,
 				Default:  "bandwidth",
 				Optional: true,
@@ -151,8 +151,8 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	req := conn.NewAllocateEIPRequest()
 	req.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
-	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_type").(string)))
-	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_type").(string)))
+	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_mode").(string)))
 	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
 
 	if v, ok := d.GetOk("name"); ok {
@@ -217,10 +217,10 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	if d.HasChange("internet_charge_mode") && !d.IsNewResource() {
+	if d.HasChange("charge_mode") && !d.IsNewResource() {
 		reqCharge := conn.NewSetEIPPayModeRequest()
 		reqCharge.EIPId = ucloud.String(d.Id())
-		reqCharge.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
+		reqCharge.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_mode").(string)))
 		reqCharge.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 
 		_, err := conn.SetEIPPayMode(reqCharge)
@@ -228,7 +228,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("error on %s to eip %s, %s", "SetEIPPayMode", d.Id(), err)
 		}
 
-		d.SetPartial("internet_charge_mode")
+		d.SetPartial("charge_mode")
 
 		// after update eip internet charge mode, we need to wait it completed
 		stateConf := eipWaitForState(client, d.Id())
@@ -295,8 +295,8 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("bandwidth", eip.Bandwidth)
-	d.Set("internet_charge_type", upperCamelCvt.mustConvert(eip.ChargeType))
-	d.Set("internet_charge_mode", upperCamelCvt.mustConvert(eip.PayMode))
+	d.Set("charge_type", upperCamelCvt.mustConvert(eip.ChargeType))
+	d.Set("charge_mode", upperCamelCvt.mustConvert(eip.PayMode))
 	d.Set("name", eip.Name)
 	d.Set("remark", eip.Remark)
 	d.Set("tag", eip.Tag)

@@ -61,12 +61,12 @@ func dataSourceUCloudEips() *schema.Resource {
 							Computed: true,
 						},
 
-						"internet_charge_type": &schema.Schema{
+						"charge_type": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"internet_charge_mode": &schema.Schema{
+						"charge_mode": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -112,7 +112,7 @@ func dataSourceUCloudEipsRead(d *schema.ResourceData, meta interface{}) error {
 
 	req := conn.NewDescribeEIPRequest()
 
-	if ids, ok := d.GetOk("ids"); ok && len(ids.([]interface{})) > 0 {
+	if ids, ok := d.GetOk("ids"); ok {
 		req.EIPIds = schemaSetToStringSlice(ids)
 	}
 
@@ -169,8 +169,8 @@ func dataSourceUCloudEipsSave(d *schema.ResourceData, eips []unet.UnetEIPSet) er
 
 		data = append(data, map[string]interface{}{
 			"bandwidth":            item.Bandwidth,
-			"internet_charge_type": item.ChargeType,
-			"internet_charge_mode": item.PayMode,
+			"charge_type": item.ChargeType,
+			"charge_mode": item.PayMode,
 			"name":                 item.Name,
 			"remark":               item.Remark,
 			"tag":                  item.Tag,

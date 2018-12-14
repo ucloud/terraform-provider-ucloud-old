@@ -40,7 +40,7 @@ func resourceUCloudLB() *schema.Resource {
 				Computed: true,
 			},
 
-			"internet_charge_type": &schema.Schema{
+			"charge_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
@@ -118,7 +118,7 @@ func resourceUCloudLBCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := client.ulbconn
 
 	req := conn.NewCreateULBRequest()
-	req.ChargeType = ucloud.String(upperCamelCvt.mustConvert(d.Get("internet_charge_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustConvert(d.Get("charge_type").(string)))
 	req.ULBName = ucloud.String(d.Get("name").(string))
 
 	if val, ok := d.GetOk("tag"); ok {
@@ -223,7 +223,7 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("subnet_id", lbSet.SubnetId)
 
 	// TODO: [API-BLUE-PRINT] need ulbSet.ChargeType for importer
-	d.Set("internet_charge_type", d.Get("internet_charge_type").(string))
+	d.Set("charge_type", d.Get("charge_type").(string))
 	d.Set("private_ip", lbSet.PrivateIP)
 
 	ipSet := []map[string]interface{}{}

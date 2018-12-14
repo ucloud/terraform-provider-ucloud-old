@@ -124,7 +124,7 @@ resource "ucloud_instance" "foo" {
 	root_password     = "wA123456"
 
 	duration             = 1
-	instance_charge_type = "month"
+	charge_type = "month"
 }
 
 resource "ucloud_eip_association" "foo" {
