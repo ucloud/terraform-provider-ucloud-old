@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-// ifaceToStringSlice used for converting terraform attribute of TypeString embedded in TypeList to a string slice.
+// schemaListToStringSlice used for converting terraform attribute of TypeString embedded in TypeList to a string slice.
 // it expected interface{} type as []interface{}, usually get the value from `d.Get` of terraform resource data.
-func ifaceToStringSlice(iface interface{}) []string {
+func schemaListToStringSlice(iface interface{}) []string {
 	s := []string{}
 
 	for _, i := range iface.([]interface{}) {
@@ -28,11 +28,11 @@ func ifaceToStringSlice(iface interface{}) []string {
 	return s
 }
 
-// ifaceToStringSlice used for converting terraform schema set to a string slice
-func setToStringSlice(s *schema.Set) []string {
+// schemaSetToStringSlice used for converting terraform schema set to a string slice
+func schemaSetToStringSlice(s interface{}) []string {
 	vL := []string{}
 
-	for _, v := range s.List() {
+	for _, v := range s.(*schema.Set).List() {
 		vL = append(vL, v.(string))
 	}
 

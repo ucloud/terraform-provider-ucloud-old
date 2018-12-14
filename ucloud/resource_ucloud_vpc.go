@@ -84,7 +84,7 @@ func resourceUCloudVPCCreate(d *schema.ResourceData, meta interface{}) error {
 
 	req := conn.NewCreateVPCRequest()
 	req.Name = ucloud.String(d.Get("name").(string))
-	req.Network = setToStringSlice(d.Get("cidr_blocks").(*schema.Set))
+	req.Network = schemaSetToStringSlice(d.Get("cidr_blocks"))
 
 	if v, ok := d.GetOk("tag"); ok {
 		req.Tag = ucloud.String(v.(string))

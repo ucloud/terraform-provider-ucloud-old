@@ -67,7 +67,7 @@ func resourceUCloudLBRuleCreate(d *schema.ResourceData, meta interface{}) error 
 	req := conn.NewCreatePolicyRequest()
 	req.ULBId = ucloud.String(lbId)
 	req.VServerId = ucloud.String(listenerId)
-	req.BackendId = ifaceToStringSlice(d.Get("backend_ids"))
+	req.BackendId = schemaSetToStringSlice(d.Get("backend_ids"))
 
 	if val, ok := d.GetOk("domain"); ok {
 		req.Type = ucloud.String("Domain")
@@ -111,7 +111,7 @@ func resourceUCloudLBRuleUpdate(d *schema.ResourceData, meta interface{}) error 
 	req := conn.NewUpdatePolicyRequest()
 	req.ULBId = ucloud.String(lbId)
 	req.VServerId = ucloud.String(listenerId)
-	req.BackendId = ifaceToStringSlice(d.Get("backend_ids"))
+	req.BackendId = schemaSetToStringSlice(d.Get("backend_ids"))
 	req.PolicyId = ucloud.String(d.Id())
 
 	if d.HasChange("domain") && !d.IsNewResource() {

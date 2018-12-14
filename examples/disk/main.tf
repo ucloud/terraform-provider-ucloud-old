@@ -10,7 +10,7 @@ data "ucloud_zones" "default" {}
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
   name_regex        = "^CentOS 7.[1-2] 64"
-  image_type        = "Base"
+  image_type        = "base"
 }
 
 # Create security group
@@ -21,9 +21,9 @@ resource "ucloud_security_group" "default" {
   # allow all access from WAN
   rules {
     port_range = "1-65535"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "0.0.0.0/0"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 }
 
