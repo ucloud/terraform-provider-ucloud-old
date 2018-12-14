@@ -128,7 +128,6 @@ func resourceUCloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("error on %s to subnet %s, %s", "UpdateSubnetAttribute", d.Id(), err)
 		}
 
-		// partial success
 		d.SetPartial("name")
 		d.SetPartial("tag")
 
@@ -136,7 +135,7 @@ func resourceUCloudSubnetUpdate(d *schema.ResourceData, meta interface{}) error 
 		stateConf := subnetWaitForState(client, d.Id())
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for attributes of subnet %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to subnet %s, %s", "UpdateSubnetAttribute", d.Id(), err)
 		}
 	}
 
@@ -154,7 +153,7 @@ func resourceUCloudSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error on reading eip %s, %s", d.Id(), err)
+		return fmt.Errorf("error on reading subnet %s, %s", d.Id(), err)
 	}
 
 	d.Set("name", subnetSet.SubnetName)

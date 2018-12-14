@@ -200,7 +200,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for bandwidth of eip %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to eip %s, %s", "ModifyEIPBandwidth", d.Id(), err)
 		}
 	}
 
@@ -222,7 +222,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for internet_charge_mode of eip %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to eip %s, %s", "SetEIPPayMode", d.Id(), err)
 		}
 	}
 
@@ -260,7 +260,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for attributes of eip %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to eip %s, %s", "UpdateEIPAttribute", d.Id(), err)
 		}
 	}
 

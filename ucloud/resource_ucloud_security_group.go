@@ -172,7 +172,7 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for rules of security group %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to security group %s, %s", "UpdateFirewall", d.Id(), err)
 		}
 	}
 
@@ -198,10 +198,9 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 	if isChanged {
 		_, err := conn.UpdateFirewallAttribute(req)
 		if err != nil {
-			return fmt.Errorf("error on %s to eip %s, %s", "UpdateFirewallAttribute", d.Id(), err)
+			return fmt.Errorf("error on %s to security group %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
 
-		// partial success
 		d.SetPartial("name")
 		d.SetPartial("tag")
 		d.SetPartial("remark")
@@ -210,7 +209,7 @@ func resourceUCloudSecurityGroupUpdate(d *schema.ResourceData, meta interface{})
 		stateConf := securityWaitForState(client, d.Id())
 		_, err = stateConf.WaitForState()
 		if err != nil {
-			return fmt.Errorf("error on waiting for attributes of security group %s complete updating, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to security group %s, %s", "UpdateFirewallAttribute", d.Id(), err)
 		}
 	}
 
@@ -228,7 +227,7 @@ func resourceUCloudSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("error on reading eip %s, %s", d.Id(), err)
+		return fmt.Errorf("error on reading security group %s, %s", d.Id(), err)
 	}
 
 	d.Set("name", sgSet.Name)

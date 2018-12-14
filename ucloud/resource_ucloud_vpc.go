@@ -138,7 +138,7 @@ func resourceUCloudVPCRead(d *schema.ResourceData, meta interface{}) error {
 			"cidr_block": item.Network,
 		})
 	}
-	
+
 	if err := d.Set("network_info", networkInfo); err != nil {
 		return err
 	}
