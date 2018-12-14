@@ -262,7 +262,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:d107ca2da43996e6ecd00c6dcb329ca8bfeceab19fea9d2fdfc25a244df1f9b0"
+  digest = "1:b8b7d649612662c195ce4426e12645edee2b2d12333287538d1a69b6b6661a6c"
   name = "github.com/hashicorp/terraform"
   packages = [
     "config",
@@ -271,6 +271,7 @@
     "config/module",
     "dag",
     "flatmap",
+    "helper/acctest",
     "helper/config",
     "helper/hashcode",
     "helper/hilmapstructure",
@@ -475,18 +476,25 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d850fee4ca504d04d76f899a13a7fd25e67248b38eb228eb5276c12ffd81fd2d"
+  digest = "1:906718e7c8b23e40edfaf7250a384b0b3b7a3aaddf8d98e8e774057452127669"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
     "blowfish",
     "cast5",
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "internal/subtle",
     "openpgp",
     "openpgp/armor",
     "openpgp/elgamal",
     "openpgp/errors",
     "openpgp/packet",
     "openpgp/s2k",
+    "poly1305",
+    "ssh",
     "ssh/terminal",
   ]
   pruneopts = "UT"
@@ -593,6 +601,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/hashicorp/terraform/helper/acctest",
     "github.com/hashicorp/terraform/helper/hashcode",
     "github.com/hashicorp/terraform/helper/mutexkv",
     "github.com/hashicorp/terraform/helper/resource",
