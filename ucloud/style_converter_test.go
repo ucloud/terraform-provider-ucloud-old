@@ -21,13 +21,13 @@ func Test_upperConverter_convert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.convert(tt.args.input)
+			got, err := tt.cvt.convertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("upperConverter.convert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("upperConverter.convertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("upperConverter.convert() = %v, want %v", got, tt.want)
+				t.Errorf("upperConverter.convertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -50,13 +50,13 @@ func Test_upperConverter_unconvert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.unconvert(tt.args.input)
+			got, err := tt.cvt.unconvertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("upperConverter.unconvert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("upperConverter.unconvertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("upperConverter.unconvert() = %v, want %v", got, tt.want)
+				t.Errorf("upperConverter.unconvertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -84,13 +84,13 @@ func Test_lowerCamelConverter_convert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.convert(tt.args.input)
+			got, err := tt.cvt.convertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("lowerCamelConverter.convert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("lowerCamelConverter.convertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("lowerCamelConverter.convert() = %v, want %v", got, tt.want)
+				t.Errorf("lowerCamelConverter.convertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -117,13 +117,13 @@ func Test_lowerCamelConverter_unconvert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.unconvert(tt.args.input)
+			got, err := tt.cvt.unconvertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("lowerCamelConverter.unconvert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("lowerCamelConverter.unconvertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("lowerCamelConverter.unconvert() = %v, want %v", got, tt.want)
+				t.Errorf("lowerCamelConverter.unconvertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -149,13 +149,13 @@ func Test_upperCamelConverter_convert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.convert(tt.args.input)
+			got, err := tt.cvt.convertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("upperCamelConverter.convert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("upperCamelConverter.convertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("upperCamelConverter.convert() = %v, want %v", got, tt.want)
+				t.Errorf("upperCamelConverter.convertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -181,13 +181,13 @@ func Test_upperCamelConverter_unconvert(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.cvt.unconvert(tt.args.input)
+			got, err := tt.cvt.unconvertWithErr(tt.args.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("upperCamelConverter.unconvert() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("upperCamelConverter.unconvertWithErr() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("upperCamelConverter.unconvert() = %v, want %v", got, tt.want)
+				t.Errorf("upperCamelConverter.unconvertWithErr() = %v, want %v", got, tt.want)
 			}
 		})
 	}

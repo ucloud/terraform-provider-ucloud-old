@@ -21,24 +21,24 @@ func newIntConverter(input map[int]string) intConverter {
 	}
 }
 
-func (c intConverter) mustConvert(src int) string {
-	v, _ := c.convert(src)
+func (c intConverter) convert(src int) string {
+	v, _ := c.convertWithErr(src)
 	return v
 }
 
-func (c intConverter) mustUnconvert(dst string) int {
-	v, _ := c.unconvert(dst)
+func (c intConverter) unconvert(dst string) int {
+	v, _ := c.unconvertWithErr(dst)
 	return v
 }
 
-func (c intConverter) convert(src int) (string, error) {
+func (c intConverter) convertWithErr(src int) (string, error) {
 	if dst, ok := c.c[src]; ok {
 		return dst, nil
 	}
 	return EnumUnknownString, fmt.Errorf("")
 }
 
-func (c intConverter) unconvert(dst string) (int, error) {
+func (c intConverter) unconvertWithErr(dst string) (int, error) {
 	if src, ok := c.r[dst]; ok {
 		return src, nil
 	}
@@ -61,24 +61,24 @@ func newBoolConverter(input map[bool]string) boolConverter {
 	}
 }
 
-func (c boolConverter) mustConvert(src bool) string {
-	v, _ := c.convert(src)
+func (c boolConverter) convert(src bool) string {
+	v, _ := c.convertWithErr(src)
 	return v
 }
 
-func (c boolConverter) mustUnconvert(dst string) bool {
-	v, _ := c.unconvert(dst)
+func (c boolConverter) unconvert(dst string) bool {
+	v, _ := c.unconvertWithErr(dst)
 	return v
 }
 
-func (c boolConverter) convert(src bool) (string, error) {
+func (c boolConverter) convertWithErr(src bool) (string, error) {
 	if dst, ok := c.c[src]; ok {
 		return dst, nil
 	}
 	return EnumUnknownString, fmt.Errorf("")
 }
 
-func (c boolConverter) unconvert(dst string) (bool, error) {
+func (c boolConverter) unconvertWithErr(dst string) (bool, error) {
 	if src, ok := c.r[dst]; ok {
 		return src, nil
 	}
@@ -101,14 +101,14 @@ func newStringConverter(input map[string]string) stringConverter {
 	}
 }
 
-func (c stringConverter) mustConvert(src string) string {
+func (c stringConverter) convert(src string) string {
 	if dst, ok := c.c[src]; ok {
 		return dst
 	}
 	return src
 }
 
-func (c stringConverter) mustUnconvert(dst string) string {
+func (c stringConverter) unconvert(dst string) string {
 	if src, ok := c.r[dst]; ok {
 		return src
 	}

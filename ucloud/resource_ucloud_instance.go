@@ -229,7 +229,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.ImageId = ucloud.String(imageId)
 	req.Password = ucloud.String(d.Get("root_password").(string))
-	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.unconvert(d.Get("charge_type").(string)))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
 	req.Name = ucloud.String(d.Get("name").(string))
 
@@ -250,19 +250,19 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		bootDisk.IsBoot = ucloud.String("True")
 		bootDisk.Size = ucloud.Int(v.(int))
-		bootDisk.Type = ucloud.String(upperCvt.mustUnconvert(bootDiskType))
+		bootDisk.Type = ucloud.String(upperCvt.unconvert(bootDiskType))
 		req.Disks = append(req.Disks, bootDisk)
 	} else {
 		bootDisk.IsBoot = ucloud.String("True")
 		bootDisk.Size = ucloud.Int(imageResp.ImageSize)
-		bootDisk.Type = ucloud.String(upperCvt.mustUnconvert(bootDiskType))
+		bootDisk.Type = ucloud.String(upperCvt.unconvert(bootDiskType))
 		req.Disks = append(req.Disks, bootDisk)
 	}
 
 	if v, ok := d.GetOk("data_disk_size"); ok {
 		dataDisk := uhost.UHostDisk{}
 		dataDisk.IsBoot = ucloud.String("False")
-		dataDisk.Type = ucloud.String(upperCvt.mustUnconvert(d.Get("data_disk_type").(string)))
+		dataDisk.Type = ucloud.String(upperCvt.unconvert(d.Get("data_disk_type").(string)))
 		dataDisk.Size = ucloud.Int(v.(int))
 
 		req.Disks = append(req.Disks, dataDisk)
@@ -560,7 +560,7 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", instance.Name)
-	d.Set("charge_type", upperCamelCvt.mustConvert(instance.ChargeType))
+	d.Set("charge_type", upperCamelCvt.convert(instance.ChargeType))
 	d.Set("availability_zone", instance.Zone)
 	d.Set("instance_type", d.Get("instance_type").(string))
 	d.Set("root_password", d.Get("root_password").(string))
@@ -568,10 +568,10 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("tag", instance.Tag)
 	d.Set("cpu", instance.CPU)
 	d.Set("memory", instance.Memory)
-	d.Set("state", instance.State)
+	d.Set("status", strings.Replace(instance.State, " ", "", -1))
 	d.Set("create_time", timestampToString(instance.CreateTime))
 	d.Set("expire_time", timestampToString(instance.ExpireTime))
-	d.Set("auto_renew", boolCamelCvt.mustUnconvert(instance.AutoRenew))
+	d.Set("auto_renew", boolCamelCvt.unconvert(instance.AutoRenew))
 	d.Set("remark", instance.Remark)
 
 	ipSet := []map[string]interface{}{}
@@ -594,18 +594,18 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	diskSet := []map[string]interface{}{}
 	for _, item := range instance.DiskSet {
 		diskSet = append(diskSet, map[string]interface{}{
-			"type":    upperCvt.mustConvert(item.DiskType),
+			"type":    upperCvt.convert(item.DiskType),
 			"size":    item.Size,
 			"id":      item.DiskId,
-			"is_boot": boolValueCvt.mustUnconvert(item.IsBoot),
+			"is_boot": boolValueCvt.unconvert(item.IsBoot),
 		})
 
-		isBoot := boolValueCvt.mustUnconvert(item.IsBoot)
+		isBoot := boolValueCvt.unconvert(item.IsBoot)
 		if isBoot {
 			d.Set("boot_disk_size", item.Size)
 		}
 
-		if !isBoot && checkStringIn(upperCvt.mustConvert(item.DiskType), []string{"local_normal", "local_ssd"}) == nil {
+		if !isBoot && checkStringIn(upperCvt.convert(item.DiskType), []string{"local_normal", "local_ssd"}) == nil {
 			d.Set("data_disk_size", item.Size)
 		}
 	}

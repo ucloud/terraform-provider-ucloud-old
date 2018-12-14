@@ -8,10 +8,10 @@ import (
 
 // Converter is use for converting string to another string with specifical style
 type styleConverter interface {
-	convert(string) (string, error)
-	unconvert(string) (string, error)
-	mustConvert(string) string
-	mustUnconvert(string) string
+	convertWithErr(string) (string, error)
+	unconvertWithErr(string) (string, error)
+	convert(string) string
+	unconvert(string) string
 }
 
 type upperConverter struct{}
@@ -21,26 +21,26 @@ func newUpperConverter(specials map[string]string) *upperConverter {
 }
 
 // convert is an utils used for converting upper case name with underscore into lower case with underscore.
-func (cvt *upperConverter) convert(input string) (string, error) {
+func (cvt *upperConverter) convertWithErr(input string) (string, error) {
 	if input != strings.ToUpper(input) {
 		return "", fmt.Errorf("excepted input string is uppercase with underscore, got %s", input)
 	}
-	return cvt.mustConvert(input), nil
+	return cvt.convert(input), nil
 }
 
-func (cvt *upperConverter) mustConvert(input string) string {
+func (cvt *upperConverter) convert(input string) string {
 	return strings.ToLower(input)
 }
 
 // unconvert is an utils used for converting lower case with underscore into upper case name with underscore.
-func (cvt *upperConverter) unconvert(input string) (string, error) {
+func (cvt *upperConverter) unconvertWithErr(input string) (string, error) {
 	if input != strings.ToLower(input) {
 		return "", fmt.Errorf("excepted input string is lowercase with underscore, got %s", input)
 	}
 	return strings.ToUpper(input), nil
 }
 
-func (cvt *upperConverter) mustUnconvert(input string) string {
+func (cvt *upperConverter) unconvert(input string) string {
 	return strings.ToUpper(input)
 }
 
@@ -50,7 +50,7 @@ func newLowerCamelConverter(specials map[string]string) *lowerCamelConverter {
 	return &lowerCamelConverter{}
 }
 
-func (cvt *lowerCamelConverter) convert(input string) (string, error) {
+func (cvt *lowerCamelConverter) convertWithErr(input string) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -62,12 +62,12 @@ func (cvt *lowerCamelConverter) convert(input string) (string, error) {
 	return lowerCamelToLower(input), nil
 }
 
-func (cvt *lowerCamelConverter) mustConvert(input string) string {
-	output, _ := cvt.convert(input)
+func (cvt *lowerCamelConverter) convert(input string) string {
+	output, _ := cvt.convertWithErr(input)
 	return output
 }
 
-func (cvt *lowerCamelConverter) unconvert(input string) (string, error) {
+func (cvt *lowerCamelConverter) unconvertWithErr(input string) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -76,10 +76,10 @@ func (cvt *lowerCamelConverter) unconvert(input string) (string, error) {
 		return "", fmt.Errorf("excepted input string is lowercase with underscore, got %s", input)
 	}
 
-	return cvt.mustUnconvert(input), nil
+	return cvt.unconvert(input), nil
 }
 
-func (cvt *lowerCamelConverter) mustUnconvert(input string) string {
+func (cvt *lowerCamelConverter) unconvert(input string) string {
 	return lowerToLowerCamel(input)
 }
 
@@ -89,7 +89,7 @@ func newUpperCamelConverter(specials map[string]string) *upperCamelConverter {
 	return &upperCamelConverter{}
 }
 
-func (cvt *upperCamelConverter) convert(input string) (string, error) {
+func (cvt *upperCamelConverter) convertWithErr(input string) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -101,12 +101,12 @@ func (cvt *upperCamelConverter) convert(input string) (string, error) {
 	return lowerCamelToLower(strings.ToLower(input[:1]) + input[1:]), nil
 }
 
-func (cvt *upperCamelConverter) mustConvert(input string) string {
-	output, _ := cvt.convert(input)
+func (cvt *upperCamelConverter) convert(input string) string {
+	output, _ := cvt.convertWithErr(input)
 	return output
 }
 
-func (cvt *upperCamelConverter) unconvert(input string) (string, error) {
+func (cvt *upperCamelConverter) unconvertWithErr(input string) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -119,8 +119,8 @@ func (cvt *upperCamelConverter) unconvert(input string) (string, error) {
 	return strings.ToUpper(output[:1]) + output[1:], nil
 }
 
-func (cvt *upperCamelConverter) mustUnconvert(input string) string {
-	output, _ := cvt.unconvert(input)
+func (cvt *upperCamelConverter) unconvert(input string) string {
+	output, _ := cvt.unconvertWithErr(input)
 	return output
 }
 

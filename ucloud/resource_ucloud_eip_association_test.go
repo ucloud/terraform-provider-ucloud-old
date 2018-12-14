@@ -55,7 +55,7 @@ func testAccCheckEIPAssociationExists(n string, eip *unet.UnetEIPSet, instance *
 
 		eipId := rs.Primary.Attributes["eip_id"]
 		resourceId := rs.Primary.Attributes["resource_id"]
-		resourceType := lowerCaseProdCvt.mustConvert(rs.Primary.Attributes["resource_type"])
+		resourceType := lowerCaseProdCvt.convert(rs.Primary.Attributes["resource_type"])
 
 		return resource.Retry(3*time.Minute, func() *resource.RetryError {
 			d, err := client.describeEIPResourceById(eipId, resourceType, resourceId)

@@ -113,7 +113,7 @@ func resourceUCloudLBCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := client.ulbconn
 
 	req := conn.NewCreateULBRequest()
-	req.ChargeType = ucloud.String(upperCamelCvt.mustConvert(d.Get("charge_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.convert(d.Get("charge_type").(string)))
 	req.ULBName = ucloud.String(d.Get("name").(string))
 
 	if val, ok := d.GetOk("tag"); ok {

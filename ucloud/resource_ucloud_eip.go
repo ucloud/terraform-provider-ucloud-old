@@ -151,9 +151,9 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 	req := conn.NewAllocateEIPRequest()
 	req.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
-	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_type").(string)))
-	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_mode").(string)))
-	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.unconvert(d.Get("charge_type").(string)))
+	req.PayMode = ucloud.String(upperCamelCvt.unconvert(d.Get("charge_mode").(string)))
+	req.OperatorName = ucloud.String(upperCamelCvt.unconvert(d.Get("internet_type").(string)))
 
 	if v, ok := d.GetOk("name"); ok {
 		req.Name = ucloud.String(v.(string))
@@ -220,7 +220,7 @@ func resourceUCloudEIPUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("charge_mode") && !d.IsNewResource() {
 		reqCharge := conn.NewSetEIPPayModeRequest()
 		reqCharge.EIPId = ucloud.String(d.Id())
-		reqCharge.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("charge_mode").(string)))
+		reqCharge.PayMode = ucloud.String(upperCamelCvt.unconvert(d.Get("charge_mode").(string)))
 		reqCharge.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
 
 		_, err := conn.SetEIPPayMode(reqCharge)
@@ -295,8 +295,8 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("bandwidth", eip.Bandwidth)
-	d.Set("charge_type", upperCamelCvt.mustConvert(eip.ChargeType))
-	d.Set("charge_mode", upperCamelCvt.mustConvert(eip.PayMode))
+	d.Set("charge_type", upperCamelCvt.convert(eip.ChargeType))
+	d.Set("charge_mode", upperCamelCvt.convert(eip.PayMode))
 	d.Set("name", eip.Name)
 	d.Set("remark", eip.Remark)
 	d.Set("tag", eip.Tag)
@@ -317,7 +317,7 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err := d.Set("resource", map[string]string{
-		"type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
+		"type": lowerCaseProdCvt.unconvert(eip.Resource.ResourceType),
 		"id":   eip.Resource.ResourceId,
 	}); err != nil {
 		return err

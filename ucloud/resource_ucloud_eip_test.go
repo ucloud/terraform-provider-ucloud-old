@@ -114,17 +114,17 @@ func testAccCheckEIPDestroy(s *terraform.State) error {
 
 const testAccEIPConfig = `
 resource "ucloud_eip" "foo" {
-	name                 = "tf-acc-eip"
-	bandwidth            = 1
-	internet_type        = "bgp"
-	charge_mode = "bandwidth"
+	name          = "tf-acc-eip"
+	bandwidth     = 1
+	internet_type = "bgp"
+	charge_mode   = "bandwidth"
 }
 `
 const testAccEIPConfigTwo = `
 resource "ucloud_eip" "foo" {
-	name                 = "tf-acc-eip-two"
-	bandwidth            = 2
-	internet_type        = "bgp"
-	charge_mode = "traffic"
+	name          = "tf-acc-eip-two"
+	bandwidth     = 2
+	internet_type = "bgp"
+	charge_mode   = "traffic"
 }
 `

@@ -239,10 +239,10 @@ func resourceUCloudSecurityGroupRead(d *schema.ResourceData, meta interface{}) e
 	for _, item := range sgSet.Rule {
 		rules = append(rules, map[string]interface{}{
 			"port_range": item.DstPort,
-			"protocol":   upperCvt.mustConvert(item.ProtocolType),
+			"protocol":   upperCvt.convert(item.ProtocolType),
 			"cidr_block": item.SrcIP,
-			"policy":     upperCvt.mustConvert(item.RuleAction),
-			"priority":   upperCvt.mustConvert(item.Priority),
+			"policy":     upperCvt.convert(item.RuleAction),
+			"priority":   upperCvt.convert(item.Priority),
 		})
 	}
 
@@ -313,11 +313,11 @@ func buildRuleParameter(iface interface{}) []string {
 		}
 		s := fmt.Sprintf(
 			"%s|%s|%s|%s|%s",
-			upperCvt.mustUnconvert(rule["protocol"].(string)),
+			upperCvt.unconvert(rule["protocol"].(string)),
 			port,
 			rule["cidr_block"],
-			upperCvt.mustUnconvert(rule["policy"].(string)),
-			upperCvt.mustUnconvert(rule["priority"].(string)),
+			upperCvt.unconvert(rule["policy"].(string)),
+			upperCvt.unconvert(rule["priority"].(string)),
 		)
 		rules = append(rules, s)
 	}

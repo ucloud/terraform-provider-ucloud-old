@@ -78,7 +78,6 @@ func resourceUCloudLBListener() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"roundrobin",
 					"weight_roundrobin",
-					"path",
 					"source",
 					"source_port",
 					"consistent_hash",
@@ -142,10 +141,10 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 
 	req := conn.NewCreateVServerRequest()
 	req.ULBId = ucloud.String(lbId)
-	req.Protocol = ucloud.String(upperCvt.mustUnconvert(d.Get("protocol").(string)))
-	req.ListenType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("listen_type").(string)))
+	req.Protocol = ucloud.String(upperCvt.unconvert(d.Get("protocol").(string)))
+	req.ListenType = ucloud.String(upperCamelCvt.unconvert(d.Get("listen_type").(string)))
 	req.FrontendPort = ucloud.Int(d.Get("port").(int))
-	req.Method = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("method").(string)))
+	req.Method = ucloud.String(upperCamelCvt.unconvert(d.Get("method").(string)))
 	req.VServerName = ucloud.String(d.Get("name").(string))
 
 	if v, ok := d.GetOk("idle_timeout"); ok {
@@ -153,7 +152,7 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if v, ok := d.GetOk("persistence_type"); ok {
-		req.PersistenceType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
+		req.PersistenceType = ucloud.String(upperCamelCvt.unconvert(v.(string)))
 	}
 
 	if v, ok := d.GetOk("persistence"); ok {
@@ -162,7 +161,7 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("health_check_type"); ok {
 		checkType := v.(string)
-		req.MonitorType = ucloud.String(upperCamelCvt.mustUnconvert(checkType))
+		req.MonitorType = ucloud.String(upperCamelCvt.unconvert(checkType))
 		if checkType == "path" {
 			if v, ok := d.GetOk("domain"); ok {
 				req.Domain = ucloud.String(v.(string))
@@ -209,17 +208,17 @@ func resourceUCloudLBListenerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("protocol") && !d.IsNewResource() {
 		isChanged = true
-		req.Protocol = ucloud.String(upperCvt.mustUnconvert(d.Get("protocol").(string)))
+		req.Protocol = ucloud.String(upperCvt.unconvert(d.Get("protocol").(string)))
 	}
 
 	if d.HasChange("method") && !d.IsNewResource() {
 		isChanged = true
-		req.Method = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("method").(string)))
+		req.Method = ucloud.String(upperCamelCvt.unconvert(d.Get("method").(string)))
 	}
 
 	if d.HasChange("persistence_type") && !d.IsNewResource() {
 		isChanged = true
-		req.PersistenceType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("persistence_type").(string)))
+		req.PersistenceType = ucloud.String(upperCamelCvt.unconvert(d.Get("persistence_type").(string)))
 	}
 
 	if d.HasChange("persistence") && !d.IsNewResource() {
@@ -234,7 +233,7 @@ func resourceUCloudLBListenerUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("health_check_type") && !d.IsNewResource() {
 		isChanged = true
-		req.MonitorType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("health_check_type").(string)))
+		req.MonitorType = ucloud.String(upperCamelCvt.unconvert(d.Get("health_check_type").(string)))
 	}
 
 	if d.HasChange("domain") && !d.IsNewResource() {
@@ -284,17 +283,17 @@ func resourceUCloudLBListenerRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", vserverSet.VServerName)
-	d.Set("protocol", upperCvt.mustConvert(vserverSet.Protocol))
-	d.Set("listen_type", upperCamelCvt.mustConvert(vserverSet.ListenType))
+	d.Set("protocol", upperCvt.convert(vserverSet.Protocol))
+	d.Set("listen_type", upperCamelCvt.convert(vserverSet.ListenType))
 	d.Set("port", vserverSet.FrontendPort)
 	d.Set("idle_timeout", vserverSet.ClientTimeout)
-	d.Set("method", upperCamelCvt.mustConvert(vserverSet.Method))
-	d.Set("persistence_type", upperCamelCvt.mustConvert(vserverSet.PersistenceType))
+	d.Set("method", upperCamelCvt.convert(vserverSet.Method))
+	d.Set("persistence_type", upperCamelCvt.convert(vserverSet.PersistenceType))
 	d.Set("persistence", vserverSet.PersistenceInfo)
-	d.Set("health_check_type", upperCamelCvt.mustConvert(vserverSet.MonitorType))
+	d.Set("health_check_type", upperCamelCvt.convert(vserverSet.MonitorType))
 	d.Set("domain", vserverSet.Domain)
 	d.Set("path", vserverSet.Path)
-	d.Set("status", listenerStatusCvt.mustConvert(vserverSet.Status))
+	d.Set("status", listenerStatusCvt.convert(vserverSet.Status))
 
 	return nil
 }
@@ -341,7 +340,7 @@ func lbListenerWaitForState(client *UCloudClient, lbId, id string) *resource.Sta
 				return nil, "", err
 			}
 
-			state := listenerStatusCvt.mustConvert(vserverSet.Status)
+			state := listenerStatusCvt.convert(vserverSet.Status)
 			if state != "allNormal" {
 				state = statusPending
 			} else {

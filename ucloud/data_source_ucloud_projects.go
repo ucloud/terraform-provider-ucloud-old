@@ -79,11 +79,7 @@ func dataSourceUCloudProjectsRead(d *schema.ResourceData, meta interface{}) erro
 	req := conn.NewGetProjectListRequest()
 
 	if v, ok := d.GetOk("is_finance"); ok {
-		isFinanceTranslateMap := map[bool]string{
-			true:  "yes",
-			false: "no",
-		}
-		req.IsFinance = ucloud.String(isFinanceTranslateMap[v.(bool)])
+		req.IsFinance = ucloud.String(boolLowerCvt.convert(v.(bool)))
 	}
 
 	resp, err := conn.GetProjectList(req)

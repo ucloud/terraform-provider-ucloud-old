@@ -134,11 +134,11 @@ func dataSourceUCloudImagesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if v, ok := d.GetOk("image_type"); ok {
-		req.ImageType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
+		req.ImageType = ucloud.String(upperCamelCvt.unconvert(v.(string)))
 	}
 
 	if v, ok := d.GetOk("os_type"); ok {
-		req.OsType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
+		req.OsType = ucloud.String(upperCamelCvt.unconvert(v.(string)))
 	}
 
 	if v, ok := d.GetOk("image_id"); ok {
@@ -204,9 +204,9 @@ func dataSourceUCloudImagesSave(d *schema.ResourceData, projects []uhost.UHostIm
 		data = append(data, map[string]interface{}{
 			"id":                item.ImageId,
 			"name":              item.ImageName,
-			"type":              item.ImageType,
 			"availability_zone": item.Zone,
-			"os_type":           item.OsType,
+			"type":              upperCamelCvt.convert(item.ImageType),
+			"os_type":           upperCamelCvt.convert(item.OsType),
 			"os_name":           item.OsName,
 			"features":          item.Features,
 			"create_time":       timestampToString(item.CreateTime),

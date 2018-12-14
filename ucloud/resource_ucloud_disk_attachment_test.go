@@ -116,8 +116,8 @@ resource "ucloud_instance" "foo" {
   instance_type        = "n-highcpu-1"
   availability_zone    = "${data.ucloud_zones.default.zones.0.id}"
   image_id             = "${data.ucloud_images.default.images.0.id}"
-  charge_type = "month"
-  duration    = 1
+  charge_type          = "month"
+  duration             = 1
   root_password        = "wA123456"
 }
 
