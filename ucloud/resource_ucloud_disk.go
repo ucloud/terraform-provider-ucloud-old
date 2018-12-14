@@ -184,6 +184,7 @@ func resourceUCloudDiskRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error on reading disk %s, %s", d.Id(), err)
 	}
 
+	d.Set("availability_zone", diskSet.Zone)
 	d.Set("name", diskSet.Name)
 	d.Set("tag", diskSet.Tag)
 	d.Set("disk_size", diskSet.Size)

@@ -80,10 +80,16 @@ var pgValueTypeCvt = newIntConverter(map[int]string{
 	30: "bool",
 })
 
-// boolCvt is used to transform bool value to Yes/No
-var boolCvt = newBoolConverter(map[bool]string{
+// boolCamelCvt is used to transform bool value to Yes/No
+var boolCamelCvt = newBoolConverter(map[bool]string{
 	true:  "Yes",
 	false: "No",
+})
+
+// boolLowerCvt is used to transform bool value to yes/no
+var boolLowerCvt = newBoolConverter(map[bool]string{
+	true:  "yes",
+	false: "no",
 })
 
 // boolValueCvt is used to transform bool value to True/False

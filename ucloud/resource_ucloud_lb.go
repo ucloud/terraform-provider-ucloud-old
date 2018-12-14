@@ -187,7 +187,6 @@ func resourceUCloudLBUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if isChanged {
 		_, err := conn.UpdateULBAttribute(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to lb %s, %s", "UpdateULBAttribute", d.Id(), err)
 		}

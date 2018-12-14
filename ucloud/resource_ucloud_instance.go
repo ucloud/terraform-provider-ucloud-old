@@ -172,7 +172,7 @@ func resourceUCloudInstance() *schema.Resource {
 						},
 
 						"is_boot": &schema.Schema{
-							Type:     schema.TypeString,
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},
@@ -208,7 +208,7 @@ func resourceUCloudInstance() *schema.Resource {
 			},
 
 			"auto_renew": &schema.Schema{
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 		},
@@ -569,7 +569,7 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("state", instance.State)
 	d.Set("create_time", timestampToString(instance.CreateTime))
 	d.Set("expire_time", timestampToString(instance.ExpireTime))
-	d.Set("auto_renew", boolCvt.mustUnconvert(instance.AutoRenew))
+	d.Set("auto_renew", boolCamelCvt.mustUnconvert(instance.AutoRenew))
 	d.Set("remark", instance.Remark)
 
 	ipSet := []map[string]interface{}{}
@@ -578,6 +578,11 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 			"ip":            item.IP,
 			"internet_type": item.Type,
 		})
+
+		if item.Type == "Private" {
+			d.Set("vpc_id", item.VPCId)
+			d.Set("subnet_id", item.SubnetId)
+		}
 	}
 
 	if err := d.Set("ip_set", ipSet); err != nil {
@@ -590,7 +595,7 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 			"type":    upperCvt.mustConvert(item.DiskType),
 			"size":    item.Size,
 			"id":      item.DiskId,
-			"is_boot": item.IsBoot,
+			"is_boot": boolValueCvt.mustUnconvert(item.IsBoot),
 		})
 
 		isBoot := boolValueCvt.mustUnconvert(item.IsBoot)

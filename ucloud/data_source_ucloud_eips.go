@@ -168,16 +168,16 @@ func dataSourceUCloudEipsSave(d *schema.ResourceData, eips []unet.UnetEIPSet) er
 		}
 
 		data = append(data, map[string]interface{}{
-			"bandwidth":            item.Bandwidth,
+			"bandwidth":   item.Bandwidth,
 			"charge_type": item.ChargeType,
 			"charge_mode": item.PayMode,
-			"name":                 item.Name,
-			"remark":               item.Remark,
-			"tag":                  item.Tag,
-			"status":               item.Status,
-			"create_time":          timestampToString(item.CreateTime),
-			"expire_time":          timestampToString(item.ExpireTime),
-			"ip_set":               eipAddr,
+			"name":        item.Name,
+			"remark":      item.Remark,
+			"tag":         item.Tag,
+			"status":      item.Status,
+			"create_time": timestampToString(item.CreateTime),
+			"expire_time": timestampToString(item.ExpireTime),
+			"ip_set":      eipAddr,
 		})
 	}
 
