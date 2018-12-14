@@ -50,7 +50,7 @@ func validateInstancePassword(v interface{}, k string) (ws []string, errors []er
 	}
 
 	if categoryCount < 3 {
-		errors = append(errors, fmt.Errorf("%q is invalid, should have least 3 items of Capital letters, small letter, numbers and special characters, got %q", k, value))
+		errors = append(errors, fmt.Errorf("%q is invalid, should have least 3 items of capital letters, lower case letters, numbers and special characters, got %q", k, value))
 	}
 
 	return
