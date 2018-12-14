@@ -57,4 +57,4 @@ The following arguments are supported:
 
 * `eip_id` - (Required) The ID of EIP.
 * `resource_id` - (Required) The ID of resource with EIP attached.
-* `resource_type` - (Required) The type of resource with EIP attached, possible values are "instance" as instance, "vrouter" as virtual router, "lb" as load balancer, "upm" as physical server, "hadoophost" as hadoop cluster, "fortresshost" as fortress host server, "udockhost" as docker host, "udhost" as dedicated host, "natgw" as NAT GateWay host, "udb" as data base host, "vpngw" as ipsec vpn host, "ucdr" as cloud diaster recovery host, "dbaudit" as data base auditing host.
+* `resource_type` - (Required) The type of resource with EIP attached. The current possible values are `"instance"` as instance, `"vrouter"` as virtual router, `"lb"` as load balancer.

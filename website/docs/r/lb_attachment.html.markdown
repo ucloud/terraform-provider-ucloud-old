@@ -62,13 +62,13 @@ The following arguments are supported:
 
 * `load_balancer_id` - (Required) The ID of load balancer instance.
 * `listener_id` - (Required) The ID of listener servers.
-* `resource_type` - (Required) The types of backend servers, possible values are: "instance" as Elastic computing host, "UPM" as physical sever, "UDHost" as dedicated server, "UDocker" as docker host.
+* `resource_type` - (Required) The types of backend servers. The current possible values are: `"instance"` as Elastic computing host.
 * `resource_id` - (Required) The ID of backend servers.
-* `port` - (Optional) Port opened on the backend server to receive requests, range [from 1 to 65535], and default is 80.
+* `port` - (Optional) Port opened on the backend server to receive requests, range: 1-65535, (Default: `"80"`).
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
 * `private_ip` - The private ip address for backend servers.
-* `status` - The status of backend servers. Possible values are: "normalRunning", "exceptionRunning".
+* `status` - The status of backend servers. Possible values are: `"normalRunning"`, `"exceptionRunning"`.
