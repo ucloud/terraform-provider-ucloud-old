@@ -44,15 +44,15 @@ func resourceUCloudDisk() *schema.Resource {
 			"disk_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "DataDisk",
-				ValidateFunc: validation.StringInSlice([]string{"DataDisk", "SSDDataDisk"}, false),
+				Default:      "data_disk",
+				ValidateFunc: validation.StringInSlice([]string{"data_disk", "ssd_data_disk"}, false),
 			},
 
 			"disk_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Dynamic",
-				ValidateFunc: validation.StringInSlice([]string{"Year", "Month", "Dynamic"}, false),
+				Default:      "dynamic",
+				ValidateFunc: validation.StringInSlice([]string{"year", "month", "dynamic"}, false),
 			},
 
 			"disk_duration": &schema.Schema{
@@ -95,8 +95,8 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	req.Name = ucloud.String(d.Get("name").(string))
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.Size = ucloud.Int(d.Get("disk_size").(int))
-	req.DiskType = ucloud.String(d.Get("disk_type").(string))
-	req.ChargeType = ucloud.String(d.Get("disk_charge_type").(string))
+	req.DiskType = ucloud.String(upperCvt.mustUnconvert(d.Get("disk_type").(string)))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("disk_charge_type").(string)))
 	req.Quantity = ucloud.Int(d.Get("disk_duration").(int))
 
 	if val, ok := d.GetOk("tag"); ok {
@@ -105,7 +105,7 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := conn.CreateUDisk(req)
 	if err != nil {
-		return fmt.Errorf("error in create disk, %s", err)
+		return fmt.Errorf("error on creating disk, %s", err)
 	}
 
 	if len(resp.UDiskId) > 0 {
@@ -116,10 +116,10 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	stateConf := diskWaitForState(client, d.Id())
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("wait for disk initialize failed in create disk %s, %s", d.Id(), err)
+		return fmt.Errorf("error on waiting for disk %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudDiskUpdate(d, meta)
+	return resourceUCloudDiskRead(d, meta)
 }
 
 func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -129,7 +129,6 @@ func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	d.Partial(true)
 
 	if d.HasChange("name") && !d.IsNewResource() {
-		d.SetPartial("name")
 		req := conn.NewRenameUDiskRequest()
 		req.Zone = ucloud.String(d.Get("availability_zone").(string))
 		req.UDiskId = ucloud.String(d.Id())
@@ -138,12 +137,12 @@ func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err := conn.RenameUDisk(req)
 
 		if err != nil {
-			return fmt.Errorf("do %s failed in update disk %s, %s", "RenameUDisk", d.Id(), err)
+			return fmt.Errorf("error on %s to disk %s, %s", "RenameUDisk", d.Id(), err)
 		}
+		d.SetPartial("name")
 	}
 
 	if d.HasChange("disk_size") && !d.IsNewResource() {
-		d.SetPartial("disk_size")
 		req := conn.NewResizeUDiskRequest()
 		req.Zone = ucloud.String(d.Get("availability_zone").(string))
 		req.UDiskId = ucloud.String(d.Id())
@@ -152,14 +151,15 @@ func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		_, err := conn.ResizeUDisk(req)
 
 		if err != nil {
-			return fmt.Errorf("do %s failed in update disk %s, %s", "ResizeUDisk", d.Id(), err)
+			return fmt.Errorf("error on %s to disk %s, %s", "ResizeUDisk", d.Id(), err)
 		}
 
+		d.SetPartial("disk_size")
 		// after update disk size, we need to wait it completed
 		stateConf := diskWaitForState(client, d.Id())
 
 		if _, err = stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("wait for disk update size failed in update disk %s, %s", d.Id(), err)
+			return fmt.Errorf("error on waiting for %s complete to disk %s, %s", "ResizeUDisk", d.Id(), err)
 		}
 	}
 
@@ -178,14 +178,13 @@ func resourceUCloudDiskRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read disk %s, %s", "DescribeUDisk", d.Id(), err)
+		return fmt.Errorf("error on reading disk %s, %s", d.Id(), err)
 	}
 
 	d.Set("name", diskSet.Name)
 	d.Set("tag", diskSet.Tag)
 	d.Set("disk_size", diskSet.Size)
-	d.Set("disk_type", diskSet.DiskType)
-	d.Set("disk_charge_type", diskSet.ChargeType)
+	d.Set("disk_charge_type", upperCamelCvt.mustConvert(diskSet.ChargeType))
 	d.Set("create_time", timestampToString(diskSet.CreateTime))
 	d.Set("expire_time", timestampToString(diskSet.ExpiredTime))
 	d.Set("status", diskSet.Status)
@@ -203,7 +202,7 @@ func resourceUCloudDiskDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		if _, err := conn.DeleteUDisk(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete disk %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on deleting disk %s, %s", d.Id(), err))
 		}
 
 		_, err := client.describeDiskById(d.Id())
@@ -212,16 +211,16 @@ func resourceUCloudDiskDelete(d *schema.ResourceData, meta interface{}) error {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete disk %s, %s", "DescribeUDisk", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading disk when deleting %s, %s", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete disk but it still exists"))
+		return resource.RetryableError(fmt.Errorf("the specified disk %s has not been deleted due to unknown error", d.Id()))
 	})
 }
 
 func diskWaitForState(client *UCloudClient, diskId string) *resource.StateChangeConf {
 	return &resource.StateChangeConf{
-		Pending:    []string{"pending"},
+		Pending:    []string{statusPending},
 		Target:     []string{"available"},
 		Timeout:    10 * time.Minute,
 		Delay:      5 * time.Second,
@@ -230,14 +229,14 @@ func diskWaitForState(client *UCloudClient, diskId string) *resource.StateChange
 			diskSet, err := client.describeDiskById(diskId)
 			if err != nil {
 				if isNotFoundError(err) {
-					return nil, "pending", nil
+					return nil, statusPending, nil
 				}
 				return nil, "", err
 			}
 
 			state := strings.ToLower(diskSet.Status)
 			if state != "available" {
-				state = "pending"
+				state = statusPending
 			}
 
 			return diskSet, state, nil

@@ -28,7 +28,7 @@ func TestAccUCloudInstance_basic(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-testAccInstanceConfigBasic"),
+					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-basic"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "instance_type", "n-highcpu-1"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "cpu", "1"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "memory", "1024"),
@@ -39,7 +39,7 @@ func TestAccUCloudInstance_basic(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-testAccInstanceConfigBasicUpdate"),
+					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-basic-update"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "instance_type", "n-basic-2"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "cpu", "2"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "memory", "4096"),
@@ -67,7 +67,7 @@ func TestAccUCloudInstance_vpc(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-testAccInstanceConfigVPC"),
+					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-vpc"),
 				),
 			},
 		},
@@ -92,7 +92,7 @@ func TestAccUCloudInstance_size(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-testAccInstanceConfigSize"),
+					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-size"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "data_disk_size", "50"),
 				),
 			},
@@ -101,7 +101,7 @@ func TestAccUCloudInstance_size(t *testing.T) {
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-testAccInstanceConfigSize"),
+					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-size-update"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "data_disk_size", "100"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "boot_disk_size", "30"),
 				),
@@ -159,7 +159,7 @@ func testAccCheckInstanceDestroy(s *terraform.State) error {
 		}
 
 		if instance.UHostId != "" {
-			return fmt.Errorf("UHostId still exist")
+			return fmt.Errorf("instance still exist")
 		}
 	}
 
@@ -173,18 +173,18 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 
 resource "ucloud_security_group" "default" {
-    name = "tf-testAccInstanceConfigBasic"
-    tag  = "tf-testInstance"
+    name = "tf-acc-instance-config-basic"
+    tag  = "tf-acc"
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
@@ -193,9 +193,9 @@ resource "ucloud_instance" "foo" {
 	image_id = "${data.ucloud_images.default.images.0.id}"
 	root_password = "wA1234567"
 	security_group = "${ucloud_security_group.default.id}"
-	name = "tf-testAccInstanceConfigBasic"
+	name = "tf-acc-instance-config-basic"
 	instance_type = "n-highcpu-1"
-	tag  = "tf-testInstance"
+	tag  = "tf-acc"
 }
 `
 
@@ -206,16 +206,16 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 
 resource "ucloud_security_group" "default" {
-    name = "tf-testAccInstanceConfigBasicUpdate"
-    tag  = "tf-testInstance"
+    name = "tf-acc-instance-config-basic-update"
+    tag  = "tf-acc"
 
 	rules {
 		port_range = "20-80"
-		protocol   = "TCP"
+		protocol   = "tcp"
 		cidr_block = "0.0.0.0/0"
 	}
 }
@@ -225,9 +225,9 @@ resource "ucloud_instance" "foo" {
 	image_id = "${data.ucloud_images.default.images.0.id}"
 	root_password = "wA1234567"
 	security_group = "${ucloud_security_group.default.id}"
-	name = "tf-testAccInstanceConfigBasicUpdate"
+	name = "tf-acc-instance-config-basic-update"
 	instance_type = "n-basic-2"
-	tag  = "tf-testInstanceTwo"
+	tag  = "tf-acc"
 }
 `
 const testAccInstanceConfigVPC = `
@@ -237,30 +237,30 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 
 resource "ucloud_vpc" "default" {
-	name = "tf-testAccInstanceConfigVPC"
+	name = "tf-acc-instance-config-vpc"
 	cidr_blocks = ["192.168.0.0/16"]
 }
 
 resource "ucloud_subnet" "default" {
-	name = "tf-testAccInstanceConfigVPC"
-	tag = "testTag"
+	name = "tf-acc-instance-config-vpc"
+	tag = "tf-acc"
 	cidr_block = "192.168.1.0/24"
 	vpc_id = "${ucloud_vpc.default.id}"
 }
 
 resource "ucloud_security_group" "default" {
-    name = "tf-testAccInstanceConfigVPC"
-    tag  = "tf-testInstance"
+    name = "tf-acc-instance-config-vpc"
+    tag  = "tf-acc"
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
@@ -269,7 +269,7 @@ resource "ucloud_instance" "foo" {
 	image_id = "${data.ucloud_images.default.images.0.id}"
 	root_password = "wA1234567"
 	security_group = "${ucloud_security_group.default.id}"
-	name = "tf-testAccInstanceConfigVPC"
+	name = "tf-acc-instance-config-vpc"
 	instance_type = "n-highcpu-1"
 	vpc_id    = "${ucloud_vpc.default.id}"
     subnet_id = "${ucloud_subnet.default.id}"
@@ -282,30 +282,30 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 
 resource "ucloud_vpc" "default" {
-	name = "tf-testAccInstanceConfigSize"
+	name = "tf-acc-instance-size"
 	cidr_blocks = ["192.168.0.0/16"]
 }
 
 resource "ucloud_subnet" "default" {
-	name = "tf-testAccInstanceConfigSize"
-	tag = "testTag"
+	name = "tf-acc-instance-size"
+	tag = "tf-acc"
 	cidr_block = "192.168.1.0/24"
 	vpc_id = "${ucloud_vpc.default.id}"
 }
 
 resource "ucloud_security_group" "default" {
-    name = "tf-testAccInstanceConfigSize"
-    tag  = "tf-testInstance"
+    name = "tf-acc-instance-size"
+    tag  = "tf-acc"
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
@@ -314,7 +314,7 @@ resource "ucloud_instance" "foo" {
 	image_id = "${data.ucloud_images.default.images.0.id}"
 	root_password = "wA1234567"
 	security_group = "${ucloud_security_group.default.id}"
-	name = "tf-testAccInstanceConfigSize"
+	name = "tf-acc-instance-size"
 	instance_type = "n-highcpu-1"
 	vpc_id    = "${ucloud_vpc.default.id}"
 	subnet_id = "${ucloud_subnet.default.id}"
@@ -328,30 +328,30 @@ data "ucloud_zones" "default" {
 data "ucloud_images" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name_regex = "^CentOS 7.[1-2] 64"
-	image_type =  "Base"
+	image_type =  "base"
 }
 
 resource "ucloud_vpc" "default" {
-	name = "tf-testAccInstanceConfigSize"
+	name = "tf-acc-instance-size-update"
 	cidr_blocks = ["192.168.0.0/16"]
 }
 
 resource "ucloud_subnet" "default" {
-	name = "tf-testAccInstanceConfigSize"
-	tag = "testTag"
+	name = "tf-acc-instance-size-update"
+	tag = "tf-acc"
 	cidr_block = "192.168.1.0/24"
 	vpc_id = "${ucloud_vpc.default.id}"
 }
 
 resource "ucloud_security_group" "default" {
-    name = "tf-testAccInstanceConfigSize"
-    tag  = "tf-testInstance"
+    name = "tf-acc-instance-size-update"
+    tag  = "tf-acc"
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
@@ -360,7 +360,7 @@ resource "ucloud_instance" "foo" {
 	image_id = "${data.ucloud_images.default.images.0.id}"
 	root_password = "wA1234567"
 	security_group = "${ucloud_security_group.default.id}"
-	name = "tf-testAccInstanceConfigSize"
+	name = "tf-acc-instance-size-update"
 	instance_type = "n-highcpu-1"
 	vpc_id    = "${ucloud_vpc.default.id}"
 	subnet_id = "${ucloud_subnet.default.id}"

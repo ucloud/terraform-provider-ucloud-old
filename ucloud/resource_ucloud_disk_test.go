@@ -29,18 +29,18 @@ func TestAccUCloudDisk_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDiskExists("ucloud_disk.foo", &diskSet),
 					testAccCheckDiskAttributes(&diskSet),
-					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", "testAcc"),
+					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", "tf-acc-disk-basic"),
 					resource.TestCheckResourceAttr("ucloud_disk.foo", "disk_size", "10"),
 				),
 			},
 
 			resource.TestStep{
-				Config: testAccDiskConfigTwo,
+				Config: testAccDiskConfigUpdate,
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDiskExists("ucloud_disk.foo", &diskSet),
 					testAccCheckDiskAttributes(&diskSet),
-					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", "testAccTwo"),
+					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", "tf-acc-disk-basic-update"),
 					resource.TestCheckResourceAttr("ucloud_disk.foo", "disk_size", "20"),
 				),
 			},
@@ -103,7 +103,7 @@ func testAccCheckDiskDestroy(s *terraform.State) error {
 		}
 
 		if d.UDiskId != "" {
-			return fmt.Errorf("Disk still exist")
+			return fmt.Errorf("disk still exist")
 		}
 	}
 
@@ -116,14 +116,19 @@ data "ucloud_zones" "default" {
 
 resource "ucloud_disk" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "testAcc"
+	name = "tf-acc-disk-basic"
 	disk_size = 10
+	tag  = "tf-acc"
 }
 `
-const testAccDiskConfigTwo = `
+const testAccDiskConfigUpdate = `
+data "ucloud_zones" "default" {
+}
+
 resource "ucloud_disk" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "testAccTwo"
+	name = "tf-acc-disk-basic-update"
 	disk_size = 20
+	tag  = "tf-acc"
 }
 `
