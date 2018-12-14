@@ -10,7 +10,7 @@ data "ucloud_zones" "default" {}
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
   name_regex        = "^CentOS 7.[1-2] 64"
-  image_type        = "Base"
+  image_type        = "base"
 }
 
 # Create security group
@@ -20,18 +20,19 @@ resource "ucloud_security_group" "default" {
 
   rules {
     port_range = "80"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "192.168.0.0/16"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 }
 
 # Create an eip
 resource "ucloud_eip" "default" {
   bandwidth            = 2
-  internet_charge_mode = "Bandwidth"
+  internet_charge_mode = "bandwidth"
   name                 = "tf-example-eip"
   tag                  = "tf-example"
+  internet_type        = "bgp"
 }
 
 # Create a web server

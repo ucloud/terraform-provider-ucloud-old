@@ -25,17 +25,17 @@ resource "ucloud_disk" "example" {
 The following arguments are supported:
 
 * `availability_zone` - (Required) The Zone to create the disk in.
-* `name` - (Required)  The name of disk, should have 6 - 63 characters and only support chinese, english, numbers, '-', '_'.
-* `disk_size` - (Required) Purchase the size of disk. Volume is from 1 to 8000GB as cloud disk, from 1 to 4000GB as ssd cloud disk.
-* `disk_type` - (Optional)the type of disk. Possible values are: "DataDisk" as cloud disk, "SSDDataDisk" as ssd cloud disk, the default is "DataDisk".
-* `disk_charge_type` - (Optional) Charge type of disk. Possible values are: "Year" as pay by year, "Month" as pay by month, "Dynamic" as pay by hour. The default value is "Dynamic".
-* `disk_duration` - (Optional) The duration that you will buy the resource, the default value is "1". It is not required when "Dynamic" (pay by hour), the value is "0" when pay by month and the instance will be vaild till the last day of that month.
-* `tag` - (Optional) A mapping of tags to assign to the disk, the default value is"Default"(means no tag assigned).
+* `name` - (Required)  The name of disk, should have 6-63 characters and only support Chinese, English, numbers, '-', '_'.
+* `disk_size` - (Required) Purchase the size of disk in GB. 1-8000 for a cloud disk, 1-4000 for SSD cloud disk.
+* `disk_type` - (Optional) The type of disk. Possible values are: `"DataDisk"`as cloud disk, `"SSDDataDisk"` as ssd cloud disk. (Default: `"DataDisk"`).
+* `disk_charge_type` - (Optional) Charge type of disk. Possible values are: `"Year"` as pay by year, `"Month"` as pay by month, `"Dynamic"` as pay by hour. (Default: `"Dynamic"`).
+* `disk_duration` - (Optional) The duration that you will buy the resource. (Default: `"1"`). It is not required when `"Dynamic"` (pay by hour), the value is `"0"` when `"Month"`(pay by month) and the disk will be vaild till the last day of that month.
+* `tag` - (Optional) A mapping of tags to assign to the disk. (Default: `"Default"`, means no tag assigned).
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `create_time` - The time of creation for disk, formatted by RFC3339 time string.
-* `expire_time` - The expiration time for disk, formatted by RFC3339 time string.
-* `status` -  status. Possible values are: "Available", "InUse", "Detaching", "Initializating", "Failed", "Cloning", "Restoring", "RestoreFailed".
+* `create_time` - The time of creation of disk, formatted in RFC3339 time string.
+* `expire_time` - The expiration time of disk, formatted in RFC3339 time string.
+* `status` -  The status of disk. Possible values are: `"Available"`, `"InUse"`, `"Detaching"`, `"Initializating"`, `"Failed"`, `"Cloning"`, `"Restoring"`, `"RestoreFailed"`.

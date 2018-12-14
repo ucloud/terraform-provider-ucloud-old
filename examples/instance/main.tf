@@ -16,7 +16,7 @@ data "ucloud_instance_types" "default" {
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
   name_regex        = "^CentOS 7.[1-2] 64"
-  image_type        = "Base"
+  image_type        = "base"
 }
 
 # Create security group
@@ -27,17 +27,17 @@ resource "ucloud_security_group" "default" {
   # HTTP access from LAN
   rules {
     port_range = "80"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "192.168.0.0/16"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 
   # HTTPS access from LAN
   rules {
     port_range = "443"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "192.168.0.0/16"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 }
 
@@ -72,7 +72,7 @@ resource "ucloud_instance" "web" {
 
   # use cloud disk as data disk
   data_disk_size = 50
-  data_disk_type = "LOCAL_NORMAL"
+  data_disk_type = "local_normal"
   root_password  = "${var.instance_password}"
 
   # we will put all the instances into same vpc and subnet,

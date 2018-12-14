@@ -8,7 +8,7 @@ data "ucloud_zones" "default" {}
 data "ucloud_images" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
   name_regex        = "^CentOS 7.[1-2] 64"
-  image_type        = "Base"
+  image_type        = "base"
 }
 
 resource "ucloud_security_group" "default" {
@@ -18,17 +18,17 @@ resource "ucloud_security_group" "default" {
   # HTTP access from LAN
   rules {
     port_range = "80"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "192.168.0.0/16"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 
   # HTTPS access from LAN
   rules {
     port_range = "443"
-    protocol   = "TCP"
+    protocol   = "tcp"
     cidr_block = "192.168.0.0/16"
-    policy     = "ACCEPT"
+    policy     = "accept"
   }
 }
 
@@ -39,7 +39,7 @@ resource "ucloud_lb" "default" {
 
 resource "ucloud_lb_listener" "default" {
   load_balancer_id = "${ucloud_lb.default.id}"
-  protocol         = "HTTPS"
+  protocol         = "https"
 }
 
 resource "ucloud_instance" "web" {

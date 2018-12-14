@@ -15,11 +15,12 @@ func dataSourceUCloudEips() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"ids": &schema.Schema{
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Set: schema.HashString,
 			},
 
 			"output_file": {
@@ -112,7 +113,7 @@ func dataSourceUCloudEipsRead(d *schema.ResourceData, meta interface{}) error {
 	req := conn.NewDescribeEIPRequest()
 
 	if ids, ok := d.GetOk("ids"); ok && len(ids.([]interface{})) > 0 {
-		req.EIPIds = ifaceToStringSlice(ids)
+		req.EIPIds = schemaSetToStringSlice(ids)
 	}
 
 	var eips []unet.UnetEIPSet
