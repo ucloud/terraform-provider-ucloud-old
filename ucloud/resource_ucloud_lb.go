@@ -42,12 +42,13 @@ func resourceUCloudLB() *schema.Resource {
 
 			"internet_charge_type": &schema.Schema{
 				Type:     schema.TypeString,
-				Default:  "Month",
 				Optional: true,
+				ForceNew: true,
+				Default:  "month",
 				ValidateFunc: validation.StringInSlice([]string{
-					"Month",
-					"Year",
-					"Dynamic",
+					"month",
+					"year",
+					"dynamic",
 				}, false),
 			},
 
@@ -117,7 +118,7 @@ func resourceUCloudLBCreate(d *schema.ResourceData, meta interface{}) error {
 	conn := client.ulbconn
 
 	req := conn.NewCreateULBRequest()
-	req.ChargeType = ucloud.String(d.Get("internet_charge_type").(string))
+	req.ChargeType = ucloud.String(upperCamelCvt.mustConvert(d.Get("internet_charge_type").(string)))
 	req.ULBName = ucloud.String(d.Get("name").(string))
 
 	if val, ok := d.GetOk("tag"); ok {
@@ -143,38 +144,21 @@ func resourceUCloudLBCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resp, err := conn.CreateULB(req)
-
 	if err != nil {
-		return fmt.Errorf("error in create lb, %s", err)
+		return fmt.Errorf("error on creating lb, %s", err)
 	}
 
 	d.SetId(resp.ULBId)
 
 	// after create lb, we need to wait it initialized
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"pending"},
-		Target:     []string{"initialized"},
-		Timeout:    5 * time.Minute,
-		Delay:      2 * time.Second,
-		MinTimeout: 1 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			eip, err := client.describeLBById(d.Id())
-			if err != nil {
-				if isNotFoundError(err) {
-					return nil, "pending", nil
-				}
-				return nil, "", err
-			}
+	stateConf := lbWaitForState(client, d.Id())
 
-			return eip, "initialized", nil
-		},
-	}
 	_, err = stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("wait for lb initialize failed in create lb %s, %s", d.Id(), err)
+		return fmt.Errorf("error on waiting for lb %s complete creating, %s", d.Id(), err)
 	}
 
-	return resourceUCloudLBUpdate(d, meta)
+	return resourceUCloudLBRead(d, meta)
 }
 
 func resourceUCloudLBUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -189,27 +173,28 @@ func resourceUCloudLBUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("name") && !d.IsNewResource() {
 		isChanged = true
 		req.Name = ucloud.String(d.Get("name").(string))
-		d.SetPartial("name")
 	}
 
 	if d.HasChange("tag") && !d.IsNewResource() {
 		isChanged = true
 		req.Tag = ucloud.String(d.Get("tag").(string))
-		d.SetPartial("tag")
 	}
 
 	if d.HasChange("remark") && !d.IsNewResource() {
 		isChanged = true
 		req.Tag = ucloud.String(d.Get("remark").(string))
-		d.SetPartial("remark")
 	}
 
 	if isChanged {
 		_, err := conn.UpdateULBAttribute(req)
 
 		if err != nil {
-			return fmt.Errorf("do %s failed in update lb %s, %s", "UpdateULBAttribute", d.Id(), err)
+			return fmt.Errorf("error on %s to lb %s, %s", "UpdateULBAttribute", d.Id(), err)
 		}
+
+		d.SetPartial("name")
+		d.SetPartial("tag")
+		d.SetPartial("remark")
 	}
 
 	d.Partial(false)
@@ -221,13 +206,12 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*UCloudClient)
 
 	lbSet, err := client.describeLBById(d.Id())
-
 	if err != nil {
 		if isNotFoundError(err) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("do %s failed in read lb %s, %s", "DescribeULB", d.Id(), err)
+		return fmt.Errorf("error on reading lb %s, %s", d.Id(), err)
 	}
 
 	d.Set("name", lbSet.Name)
@@ -238,7 +222,7 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("vpc_id", lbSet.VPCId)
 	d.Set("subnet_id", lbSet.SubnetId)
 
-	//TODO: [API-ERROR]need ulbSet.ChargeType
+	// TODO: [API-BLUE-PRINT] need ulbSet.ChargeType for importer
 	d.Set("internet_charge_type", d.Get("internet_charge_type").(string))
 	d.Set("private_ip", lbSet.PrivateIP)
 
@@ -250,7 +234,10 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 			"eip_id":        item.EIPId,
 		})
 	}
-	d.Set("ip_set", ipSet)
+
+	if err := d.Set("ip_set", ipSet); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -264,18 +251,38 @@ func resourceUCloudLBDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return resource.Retry(5*time.Minute, func() *resource.RetryError {
 		if _, err := conn.DeleteULB(req); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("error in delete lb %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on deleting lb %s, %s", d.Id(), err))
 		}
 
 		_, err := client.describeLBById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("do %s failed in delete lb %s, %s", "DescribeULB", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading lb when updating %s, %s", d.Id(), err))
 		}
 
-		return resource.RetryableError(fmt.Errorf("delete lb but it still exists"))
+		return resource.RetryableError(fmt.Errorf("the specified lb %s has not been deleted due to unknown error", d.Id()))
 	})
+}
+
+func lbWaitForState(client *UCloudClient, id string) *resource.StateChangeConf {
+	return &resource.StateChangeConf{
+		Pending:    []string{statusPending},
+		Target:     []string{statusInitialized},
+		Timeout:    5 * time.Minute,
+		Delay:      2 * time.Second,
+		MinTimeout: 1 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			eip, err := client.describeLBById(id)
+			if err != nil {
+				if isNotFoundError(err) {
+					return nil, statusPending, nil
+				}
+				return nil, "", err
+			}
+
+			return eip, statusInitialized, nil
+		},
+	}
 }

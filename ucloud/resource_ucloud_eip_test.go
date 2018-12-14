@@ -30,7 +30,7 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 					testAccCheckEIPExists("ucloud_eip.foo", &eip),
 					testAccCheckEIPAttributes(&eip),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "1"),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "testAcc"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "tf-acc-eip"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "bandwidth"),
 				),
 			},
@@ -41,9 +41,9 @@ func TestAccUCloudEIP_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckEIPExists("ucloud_eip.foo", &eip),
 					testAccCheckEIPAttributes(&eip),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "traffic"),
 					resource.TestCheckResourceAttr("ucloud_eip.foo", "bandwidth", "2"),
-					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "testAccTwo"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "name", "tf-acc-eip-two"),
+					resource.TestCheckResourceAttr("ucloud_eip.foo", "internet_charge_mode", "traffic"),
 				),
 			},
 		},
@@ -114,15 +114,17 @@ func testAccCheckEIPDestroy(s *terraform.State) error {
 
 const testAccEIPConfig = `
 resource "ucloud_eip" "foo" {
-	name = "testAcc"
-	bandwidth = 1
+	name                 = "tf-acc-eip"
+	bandwidth            = 1
+	internet_type        = "bgp"
 	internet_charge_mode = "bandwidth"
 }
 `
 const testAccEIPConfigTwo = `
 resource "ucloud_eip" "foo" {
-	name = "testAccTwo"
-	bandwidth = 2
+	name                 = "tf-acc-eip-two"
+	bandwidth            = 2
+	internet_type        = "bgp"
 	internet_charge_mode = "traffic"
 }
 `

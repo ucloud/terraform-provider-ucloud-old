@@ -124,7 +124,7 @@ func dataSourceUCloudEipsRead(d *schema.ResourceData, meta interface{}) error {
 		req.Offset = ucloud.Int(offset)
 		resp, err := conn.DescribeEIP(req)
 		if err != nil {
-			return fmt.Errorf("error in read eip list, %s", err)
+			return fmt.Errorf("error on reading eip list, %s", err)
 		}
 
 		if resp == nil || len(resp.EIPSet) < 1 {
@@ -145,7 +145,7 @@ func dataSourceUCloudEipsRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("total_count", totalCount)
 	err := dataSourceUCloudEipsSave(d, eips)
 	if err != nil {
-		return fmt.Errorf("error in read eip list, %s", err)
+		return fmt.Errorf("error on reading eip list, %s", err)
 	}
 
 	return nil

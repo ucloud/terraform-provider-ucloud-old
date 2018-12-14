@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 // ifaceToStringSlice used for converting terraform attribute of TypeString embedded in TypeList to a string slice.
@@ -24,6 +26,17 @@ func ifaceToStringSlice(iface interface{}) []string {
 	}
 
 	return s
+}
+
+// ifaceToStringSlice used for converting terraform schema set to a string slice
+func setToStringSlice(s *schema.Set) []string {
+	vL := []string{}
+
+	for _, v := range s.List() {
+		vL = append(vL, v.(string))
+	}
+
+	return vL
 }
 
 func hashStringArray(arr []string) string {
@@ -126,4 +139,13 @@ func buildReversedStringMap(input map[string]string) map[string]string {
 		reversed[v] = k
 	}
 	return reversed
+}
+
+func hashCIDR(v interface{}) int {
+	_, network, err := net.ParseCIDR(v.(string))
+	if err != nil {
+		return 0
+	}
+
+	return hashcode.String(network.Network())
 }

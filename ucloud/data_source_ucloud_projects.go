@@ -88,7 +88,7 @@ func dataSourceUCloudProjectsRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := conn.GetProjectList(req)
 	if err != nil {
-		return fmt.Errorf("error in read project list, %s", err)
+		return fmt.Errorf("error on reading project list, %s", err)
 	}
 
 	var projects []uaccount.ProjectListInfo
@@ -102,7 +102,7 @@ func dataSourceUCloudProjectsRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("total_count", resp.ProjectCount)
 	err = dataSourceUCloudProjectsSave(d, projects)
 	if err != nil {
-		return fmt.Errorf("error in read project list, %s", err)
+		return fmt.Errorf("error on reading project list, %s", err)
 	}
 
 	return nil
