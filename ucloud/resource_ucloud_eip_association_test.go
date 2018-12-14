@@ -122,9 +122,8 @@ resource "ucloud_instance" "foo" {
 	instance_type     = "n-highcpu-1"
 	image_id          = "${data.ucloud_images.default.images.0.id}"
 	root_password     = "wA123456"
-
-	duration             = 1
-	charge_type = "month"
+	duration          = 1
+	charge_type       = "month"
 }
 
 resource "ucloud_eip_association" "foo" {

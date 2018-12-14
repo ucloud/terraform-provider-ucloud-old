@@ -86,11 +86,6 @@ func resourceUCloudLB() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-
-						"eip_id": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -230,7 +225,6 @@ func resourceUCloudLBRead(d *schema.ResourceData, meta interface{}) error {
 		ipSet = append(ipSet, map[string]interface{}{
 			"internet_type": item.OperatorName,
 			"ip":            item.EIP,
-			"eip_id":        item.EIPId,
 		})
 	}
 
