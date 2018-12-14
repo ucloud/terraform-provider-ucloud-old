@@ -30,23 +30,35 @@ func resourceUCloudEIP() *schema.Resource {
 			},
 
 			"internet_type": &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"bgp", "international"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"bgp",
+					"international",
+				}, false),
 			},
 
 			"internet_charge_type": &schema.Schema{
-				Type:         schema.TypeString,
-				Default:      "month",
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"month", "year", "dynamic"}, false),
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "month",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"month",
+					"year",
+					"dynamic",
+				}, false),
 			},
 
 			"internet_charge_mode": &schema.Schema{
-				Type:         schema.TypeString,
-				Default:      "bandwidth",
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice([]string{"traffic", "bandwidth"}, false),
+				Type:     schema.TypeString,
+				Default:  "bandwidth",
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"traffic",
+					"bandwidth",
+				}, false),
 			},
 
 			"eip_duration": &schema.Schema{

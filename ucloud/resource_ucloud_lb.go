@@ -42,8 +42,9 @@ func resourceUCloudLB() *schema.Resource {
 
 			"internet_charge_type": &schema.Schema{
 				Type:     schema.TypeString,
-				Default:  "month",
 				Optional: true,
+				ForceNew: true,
+				Default:  "month",
 				ValidateFunc: validation.StringInSlice([]string{
 					"month",
 					"year",

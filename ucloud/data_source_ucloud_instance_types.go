@@ -78,7 +78,7 @@ func dataSourceUCloudInstanceTypesRead(d *schema.ResourceData, meta interface{})
 
 	err := dataSourceUCloudInstanceTypesSave(d, instanceTypeIds)
 	if err != nil {
-		return fmt.Errorf("error in read instance types, %s", err)
+		return fmt.Errorf("error on reading instance types, %s", err)
 	}
 
 	return nil

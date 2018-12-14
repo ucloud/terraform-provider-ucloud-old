@@ -30,6 +30,7 @@ func resourceUCloudLBListener() *schema.Resource {
 			"protocol": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"http",
 					"https",
@@ -48,6 +49,7 @@ func resourceUCloudLBListener() *schema.Resource {
 			"listen_type": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  "request_proxy",
 				ValidateFunc: validation.StringInSlice([]string{
 					"request_proxy",

@@ -23,12 +23,14 @@ func resourceUCloudSubnet() *schema.Resource {
 			"cidr_block": &schema.Schema{
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validateUCloudCidrBlock,
 			},
 
 			"vpc_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"name": &schema.Schema{
