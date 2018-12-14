@@ -14,7 +14,7 @@ This data source providers a list of projects owned by user with finance permiss
 
 ```hcl
 data "ucloud_projects" "example" {
-    is_finance = "No"
+    is_finance = false
 }
 
 output "first" {

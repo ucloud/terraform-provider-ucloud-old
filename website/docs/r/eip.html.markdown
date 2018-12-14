@@ -15,9 +15,10 @@ Provides an Elastic IP resource.
 ```hcl
 resource "ucloud_eip" "example" {
     bandwidth            = 2
-    charge_mode = "bandwidth"
+    charge_mode          = "bandwidth"
     name                 = "tf-example-eip"
     tag                  = "tf-example"
+    internet_type        = "bgp"
 }
 ```
 

@@ -14,7 +14,7 @@ Provides a Cloud Disk resource.
 
 ```hcl
 resource "ucloud_disk" "example" {
-    availability_zone = "cn-sh2-02"
+    availability_zone = "cn-bj2-02"
     name              = "tf-example-disk"
     disk_size         = 10
 }

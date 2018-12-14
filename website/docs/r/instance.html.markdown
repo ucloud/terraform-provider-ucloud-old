@@ -22,7 +22,7 @@ resource "ucloud_security_group" "default" {
         port_range = "80"
         protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 
     # https access from LAN
@@ -30,7 +30,7 @@ resource "ucloud_security_group" "default" {
         port_range = "443"
         protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
@@ -55,7 +55,7 @@ resource "ucloud_subnet" "default" {
 resource "ucloud_instance" "web" {
     name              = "tf-example-instance"
     tag               = "tf-example"
-    availability_zone = "cn-sh2-02"
+    availability_zone = "cn-bj2-02"
     image_id          = "uimage-of3pac"
     instance_type     = "n-standard-1"
 

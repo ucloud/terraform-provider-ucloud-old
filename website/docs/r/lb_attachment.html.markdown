@@ -31,13 +31,13 @@ resource "ucloud_security_group" "default" {
         port_range = "80"
         protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
-        policy     = "ACCEPT"
+        policy     = "accept"
     }
 }
 
 resource "ucloud_instance" "web" {
     instance_type     = "n-standard-1"
-    availability_zone = "cn-sh2-02"
+    availability_zone = "cn-bj2-02"
 
     root_password      = "wA1234567"
     image_id           = "uimage-of3pac"

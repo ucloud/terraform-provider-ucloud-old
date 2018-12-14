@@ -14,8 +14,8 @@ This data source providers a list of available image resources according to thei
 
 ```hcl
 data "ucloud_images" "example" {
-    availability_zone = "cn-sh2-02"
-    image_type = "Base"
+    availability_zone = "cn-bj2-02"
+    image_type = "base"
     name_regex = "^CentOS 7.[1-2] 64"
 }
 
