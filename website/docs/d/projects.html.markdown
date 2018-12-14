@@ -26,7 +26,7 @@ output "first" {
 
 The following arguments are supported:
 
-* `is_finance` - (Optional) To identify if the current account is granted with financial permission. Possible values are: `"Yes"` and `"No"`.
+* `is_finance` - (Optional) To identify if the current account is granted with financial permission.
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
 
 ## Attributes Reference

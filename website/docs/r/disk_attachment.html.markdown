@@ -25,7 +25,7 @@ resource "ucloud_security_group" "default" {
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
         policy     = "ACCEPT"
     }

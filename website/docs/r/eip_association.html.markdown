@@ -19,7 +19,7 @@ resource "ucloud_security_group" "default" {
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
         policy     = "ACCEPT"
     }
@@ -27,7 +27,7 @@ resource "ucloud_security_group" "default" {
 
 resource "ucloud_eip" "default" {
     bandwidth            = 2
-    internet_charge_mode = "Bandwidth"
+    charge_mode = "bandwidth"
     name                 = "tf-example-eip"
     tag                  = "tf-example"
 }
@@ -57,4 +57,4 @@ The following arguments are supported:
 
 * `eip_id` - (Required) The ID of EIP.
 * `resource_id` - (Required) The ID of resource with EIP attached.
-* `resource_type` - (Required) The type of resource with EIP attached. The current possible values are `"instance"` as instance, `"vrouter"` as virtual router, `"lb"` as load balancer.
+* `resource_type` - (Required) The type of resource with EIP attached. The current possible values are `"instance"` as instance, `"lb"` as load balancer.

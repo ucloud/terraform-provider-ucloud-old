@@ -24,7 +24,7 @@ output "first" {
 
 The following arguments are supported:
 
-* `ids` - (Optional) The ID of Elastic IP, all the EIPs belong to this region will be retrieved if the ID is `""`.
+* `ids` - (Optional) The IDs of Elastic IP, all the EIPs belong to this region will be retrieved if the ID is `""`.
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
 
 ## Attributes Reference
@@ -40,14 +40,14 @@ The attribute (`eips`) support the following:
 * `ip_set` - It is a nested type which documented below.
 * `create_time` - The time of creation for Elastic IP, formatted in RFC3339 time string.
 * `expire_time` - The expiration time for Elastic IP, formatted in RFC3339 time string.
-* `internet_charge_mode` - Elastic IP charge mode. Possible values are: `"Traffic"` as pay by traffic, `"Bandwidth"` as pay by bandwidth, `"ShareBandwidth"` as pay by shared bandwidth.
-* `internet_charge_type` - Elastic IP Charge type. Possible values are: `"Year"` as pay by year, `"Month"` as pay by month, `"Dynamic"` as pay by hour.
+* `charge_mode` - Elastic IP charge mode. Possible values are: `"traffic"` as pay by traffic, `"bandwidth"` as pay by bandwidth.
+* `charge_type` - Elastic IP Charge type. Possible values are: `"year"` as pay by year, `"month"` as pay by month, `"dynamic"` as pay by hour.
 * `name` - The name of Elastic IP.
 * `remark` - The remarks of Elastic IP.
 * `status` - Elastic IP status. Possible values are: `"used"` as in use, `"free"` as available and `"freeze"` as associating.
-* `tag` - A mapping of tags to assign to the Elastic IP. (Default: `"Default"`, means no tag assigned).
+* `tag` - A mapping of tags to assign to the Elastic IP.
 
 The attribute (`ip_set`) support the following:
 
-* `internet_type` - Elastic IP routes. Possible values are: `"International"` as internaltional IP and `"Bgp"` as BGP IP.
+* `internet_type` - Type of Elastic IP routes.
 * `ip` - Elastic IP address

@@ -44,7 +44,7 @@ resource "ucloud_security_group" "default" {
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
         policy     = "ACCEPT"
     }
@@ -128,9 +128,9 @@ In addition to [generic `provider` arguments](https://www.terraform.io/docs/conf
 * `project_id` - (Required) This is the UCloud project id. It must be provided, but
   it can also be sourced from the `UCLOUD_PROJECT_ID` environment variables.
 
-* `max_retries` - (Optional) This is the max retry attempts number. Default max retry attempts number is `"0"`.
+* `max_retries` - (Optional) This is the max retry attempts number. Default max retry attempts number is `0`.
 
-* `insecure` - (Optional) This is a switch to disable/enable https. (Default: `"false"`, means enable https).
+* `insecure` - (Optional) This is a switch to disable/enable https. (Default: `false`, means enable https).
 
 ## Testing
 

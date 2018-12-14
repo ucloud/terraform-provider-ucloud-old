@@ -20,7 +20,7 @@ resource "ucloud_lb" "web" {
 
 resource "ucloud_lb_listener" "default" {
     load_balancer_id = "${ucloud_lb.web.id}"
-    protocol         = "HTTPS"
+    protocol         = "https"
 }
 
 resource "ucloud_security_group" "default" {
@@ -29,7 +29,7 @@ resource "ucloud_security_group" "default" {
 
     rules {
         port_range = "80"
-        protocol   = "TCP"
+        protocol   = "tcp"
         cidr_block = "192.168.0.0/16"
         policy     = "ACCEPT"
     }
@@ -64,7 +64,7 @@ The following arguments are supported:
 * `listener_id` - (Required) The ID of listener servers.
 * `resource_type` - (Required) The types of backend servers. The current possible values are: `"instance"` as Elastic computing host.
 * `resource_id` - (Required) The ID of backend servers.
-* `port` - (Optional) Port opened on the backend server to receive requests, range: 1-65535, (Default: `"80"`).
+* `port` - (Optional) Port opened on the backend server to receive requests, range: 1-65535, (Default: `80`).
 
 ## Attributes Reference
 
