@@ -53,7 +53,7 @@ func resourceUCloudDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				Default:      "dynamic",
+				Default:      "month",
 				ValidateFunc: validation.StringInSlice([]string{"year", "month", "dynamic"}, false),
 			},
 

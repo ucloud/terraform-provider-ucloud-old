@@ -84,11 +84,11 @@ resource "ucloud_lb_rule" "default" {
 }
 
 resource "ucloud_eip" "default" {
-  bandwidth            = 2
-  internet_charge_mode = "bandwidth"
-  name                 = "tf-example-two_tier"
-  tag                  = "tf-example"
-  internet_type        = "bgp"
+  bandwidth     = 2
+  charge_mode   = "bandwidth"
+  name          = "tf-example-two_tier"
+  tag           = "tf-example"
+  internet_type = "bgp"
 }
 
 resource "ucloud_instance" "web" {

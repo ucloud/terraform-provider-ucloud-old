@@ -28,11 +28,11 @@ resource "ucloud_security_group" "default" {
 
 # Create an eip
 resource "ucloud_eip" "default" {
-  bandwidth            = 2
-  internet_charge_mode = "bandwidth"
-  name                 = "tf-example-eip"
-  tag                  = "tf-example"
-  internet_type        = "bgp"
+  bandwidth     = 2
+  charge_mode   = "bandwidth"
+  name          = "tf-example-eip"
+  tag           = "tf-example"
+  internet_type = "bgp"
 }
 
 # Create a web server

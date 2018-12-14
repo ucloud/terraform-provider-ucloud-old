@@ -61,10 +61,14 @@ func resourceUCloudInstance() *schema.Resource {
 			},
 
 			"charge_type": &schema.Schema{
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "month",
-				ValidateFunc: validation.StringInSlice([]string{"year", "month", "dynamic"}, false),
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "month",
+				ValidateFunc: validation.StringInSlice([]string{
+					"year",
+					"month",
+					"dynamic",
+				}, false),
 			},
 
 			"duration": &schema.Schema{
