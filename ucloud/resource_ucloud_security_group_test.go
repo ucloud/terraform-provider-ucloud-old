@@ -5,15 +5,18 @@ import (
 	"log"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+
 	"github.com/ucloud/ucloud-sdk-go/services/unet"
 )
 
 func TestAccUCloudSecurityGroup_basic(t *testing.T) {
+	rInt := acctest.RandInt()
 	var sgSet unet.FirewallDataSet
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -24,12 +27,12 @@ func TestAccUCloudSecurityGroup_basic(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccSecurityGroupConfig,
+				Config: testAccSecurityGroupConfig(rInt),
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSecurityGroupExists("ucloud_security_group.foo", &sgSet),
 					testAccCheckSecurityGroupAttributes(&sgSet),
-					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", "tf-acc-security-group"),
+					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", fmt.Sprintf("tf-acc-security-group-%d", rInt)),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.port_range", "80"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.protocol", "tcp"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.2629295509.cidr_block", "192.168.0.0/16"),
@@ -37,12 +40,12 @@ func TestAccUCloudSecurityGroup_basic(t *testing.T) {
 			},
 
 			resource.TestStep{
-				Config: testAccSecurityGroupConfigTwo,
+				Config: testAccSecurityGroupConfigTwo(rInt),
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckSecurityGroupExists("ucloud_security_group.foo", &sgSet),
 					testAccCheckSecurityGroupAttributes(&sgSet),
-					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", "tf-acc-security-group-two"),
+					resource.TestCheckResourceAttr("ucloud_security_group.foo", "name", fmt.Sprintf("tf-acc-security-group-%d-two", rInt)),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.port_range", "20-80"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.protocol", "tcp"),
 					resource.TestCheckResourceAttr("ucloud_security_group.foo", "rules.3266055183.cidr_block", "0.0.0.0/0"),
@@ -114,9 +117,10 @@ func testAccCheckSecurityGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-const testAccSecurityGroupConfig = `
+func testAccSecurityGroupConfig(rInt int) string {
+	return fmt.Sprintf(`
 resource "ucloud_security_group" "foo" {
-	name = "tf-acc-security-group"
+	name = "tf-acc-security-group-%d"
 	tag  = "tf-acc"
 	rules {
 		port_range = "80"
@@ -125,12 +129,13 @@ resource "ucloud_security_group" "foo" {
 		policy     = "accept"
 		priority   = "high"
 	}
+}`, rInt)
 }
-`
 
-const testAccSecurityGroupConfigTwo = `
+func testAccSecurityGroupConfigTwo(rInt int) string {
+	return fmt.Sprintf(`
 resource "ucloud_security_group" "foo" {
-	name = "tf-acc-security-group-two"
+	name = "tf-acc-security-group-%d-two"
 	tag  = "tf-acc"
 	rules {
 		port_range = "20-80"
@@ -139,8 +144,8 @@ resource "ucloud_security_group" "foo" {
 		policy     = "accept"
 		priority   = "high"
 	}
+}`, rInt)
 }
-`
 
 func Test_resourceucloudSecurityGroupRuleHash(t *testing.T) {
 	m := map[string]interface{}{

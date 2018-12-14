@@ -22,11 +22,17 @@ const (
 )
 
 const (
-	// statusPending is general status when remote resource is not completed
+	// statusPending is the general status when remote resource is not completed
 	statusPending = "pending"
 
-	// statusInitialized is general status when remote resource is completed
+	// statusInitialized is the general status when remote resource is completed
 	statusInitialized = "initialized"
+
+	// statusRunning is the general status when remote resource is running
+	statusRunning = "running"
+
+	// statusStopped is the general status when remote resource is stopped
+	statusStopped = "stopped"
 )
 
 // listenerStatusCvt is used to covert int to string for status after read lb listener
@@ -72,6 +78,18 @@ var pgValueTypeCvt = newIntConverter(map[int]string{
 	10: "int",
 	20: "string",
 	30: "bool",
+})
+
+// boolCvt is used to transform bool value to Yes/No
+var boolCvt = newBoolConverter(map[bool]string{
+	true:  "Yes",
+	false: "No",
+})
+
+// boolValueCvt is used to transform bool value to True/False
+var boolValueCvt = newBoolConverter(map[bool]string{
+	true:  "True",
+	false: "False",
 })
 
 // upperCvt is used to transform uppercase with underscore to lowercase with underscore. eg. LOCAL_SSD -> local_ssd

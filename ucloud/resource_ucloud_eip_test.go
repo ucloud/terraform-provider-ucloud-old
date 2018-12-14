@@ -13,7 +13,7 @@ import (
 func TestAccUCloudEIP_basic(t *testing.T) {
 	var eip unet.UnetEIPSet
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},

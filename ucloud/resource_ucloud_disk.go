@@ -44,6 +44,7 @@ func resourceUCloudDisk() *schema.Resource {
 			"disk_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      "data_disk",
 				ValidateFunc: validation.StringInSlice([]string{"data_disk", "ssd_data_disk"}, false),
 			},
@@ -51,13 +52,15 @@ func resourceUCloudDisk() *schema.Resource {
 			"disk_charge_type": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      "dynamic",
 				ValidateFunc: validation.StringInSlice([]string{"year", "month", "dynamic"}, false),
 			},
 
-			"disk_duration": &schema.Schema{
+			"duration": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      1,
 				ValidateFunc: validateDuration,
 			},
@@ -97,7 +100,7 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	req.Size = ucloud.Int(d.Get("disk_size").(int))
 	req.DiskType = ucloud.String(upperCvt.mustUnconvert(d.Get("disk_type").(string)))
 	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("disk_charge_type").(string)))
-	req.Quantity = ucloud.Int(d.Get("disk_duration").(int))
+	req.Quantity = ucloud.Int(d.Get("duration").(int))
 
 	if val, ok := d.GetOk("tag"); ok {
 		req.Tag = ucloud.String(val.(string))
@@ -135,10 +138,10 @@ func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		req.UDiskName = ucloud.String(d.Get("name").(string))
 
 		_, err := conn.RenameUDisk(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to disk %s, %s", "RenameUDisk", d.Id(), err)
 		}
+
 		d.SetPartial("name")
 	}
 
@@ -149,12 +152,12 @@ func resourceUCloudDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 		req.Size = ucloud.Int(d.Get("disk_size").(int))
 
 		_, err := conn.ResizeUDisk(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to disk %s, %s", "ResizeUDisk", d.Id(), err)
 		}
 
 		d.SetPartial("disk_size")
+
 		// after update disk size, we need to wait it completed
 		stateConf := diskWaitForState(client, d.Id())
 
@@ -206,7 +209,6 @@ func resourceUCloudDiskDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		_, err := client.describeDiskById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil

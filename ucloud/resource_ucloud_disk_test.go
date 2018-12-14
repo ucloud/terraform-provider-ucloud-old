@@ -13,7 +13,7 @@ import (
 func TestAccUCloudDisk_basic(t *testing.T) {
 	var diskSet udisk.UDiskDataSet
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -111,14 +111,13 @@ func testAccCheckDiskDestroy(s *terraform.State) error {
 }
 
 const testAccDiskConfig = `
-data "ucloud_zones" "default" {
-}
+data "ucloud_zones" "default" {}
 
 resource "ucloud_disk" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-acc-disk-basic"
-	disk_size = 10
-	tag  = "tf-acc"
+	name              = "tf-acc-disk-basic"
+	tag               = "tf-acc"
+	disk_size         = 10
 }
 `
 const testAccDiskConfigUpdate = `
@@ -127,8 +126,8 @@ data "ucloud_zones" "default" {
 
 resource "ucloud_disk" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	name = "tf-acc-disk-basic-update"
-	disk_size = 20
-	tag  = "tf-acc"
+	name              = "tf-acc-disk-basic-update"
+	tag               = "tf-acc"
+	disk_size         = 20
 }
 `

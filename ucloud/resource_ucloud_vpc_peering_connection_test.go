@@ -15,7 +15,7 @@ func TestAccUCloudVPCPeeringConnection_basic(t *testing.T) {
 	var vpc2 vpc.VPCInfo
 	var val vpc.VPCIntercomInfo
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},

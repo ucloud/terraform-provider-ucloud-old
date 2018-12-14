@@ -16,7 +16,7 @@ func TestAccUCloudLBAttachment_basic(t *testing.T) {
 	var vserverSet ulb.ULBVServerSet
 	var instance uhost.UHostInstanceSet
 	var backendSet ulb.ULBBackendSet
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},

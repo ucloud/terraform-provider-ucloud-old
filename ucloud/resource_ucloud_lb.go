@@ -259,7 +259,7 @@ func resourceUCloudLBDelete(d *schema.ResourceData, meta interface{}) error {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("error on reading lb when updating %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading lb when deleting %s, %s", d.Id(), err))
 		}
 
 		return resource.RetryableError(fmt.Errorf("the specified lb %s has not been deleted due to unknown error", d.Id()))

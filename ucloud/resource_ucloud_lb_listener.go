@@ -161,8 +161,9 @@ func resourceUCloudLBListenerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if v, ok := d.GetOk("health_check_type"); ok {
-		req.MonitorType = ucloud.String(upperCamelCvt.mustUnconvert(v.(string)))
-		if v == "path" {
+		checkType := v.(string)
+		req.MonitorType = ucloud.String(upperCamelCvt.mustUnconvert(checkType))
+		if checkType == "path" {
 			if v, ok := d.GetOk("domain"); ok {
 				req.Domain = ucloud.String(v.(string))
 			}
@@ -313,12 +314,11 @@ func resourceUCloudLBListenerDelete(d *schema.ResourceData, meta interface{}) er
 		}
 
 		_, err := client.describeVServerById(lbId, d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				return nil
 			}
-			return resource.NonRetryableError(fmt.Errorf("error on reading lb listener when updating %s, %s", d.Id(), err))
+			return resource.NonRetryableError(fmt.Errorf("error on reading lb listener when deleting %s, %s", d.Id(), err))
 		}
 
 		return resource.RetryableError(fmt.Errorf("the specified eip %s has not been deleted due to unknown error", d.Id()))

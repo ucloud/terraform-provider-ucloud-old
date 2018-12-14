@@ -9,7 +9,7 @@ import (
 func TestAccUCloudLBAttachment_import(t *testing.T) {
 	resourceName := "ucloud_lb_attachment.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBAttachmentDestroy,

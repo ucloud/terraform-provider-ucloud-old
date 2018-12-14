@@ -16,7 +16,7 @@ func TestAccUCloudEIPAssociation_basic(t *testing.T) {
 	var eip unet.UnetEIPSet
 	var instance uhost.UHostInstanceSet
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -108,10 +108,11 @@ data "ucloud_images" "default" {
 }
 
 resource "ucloud_eip" "foo" {
-	name         = "tf-acc-eip-association-eip"
-	tag          = "tf-acc"
-	bandwidth    = 1
-	eip_duration = 1
+	name          = "tf-acc-eip-association-eip"
+	tag           = "tf-acc"
+	internet_type = "bgp"
+	bandwidth     = 1
+	duration      = 1
 }
 
 resource "ucloud_instance" "foo" {
@@ -122,7 +123,7 @@ resource "ucloud_instance" "foo" {
 	image_id          = "${data.ucloud_images.default.images.0.id}"
 	root_password     = "wA123456"
 
-	instance_duration    = 1
+	duration             = 1
 	instance_charge_type = "month"
 }
 

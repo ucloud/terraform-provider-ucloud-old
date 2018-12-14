@@ -61,9 +61,10 @@ func resourceUCloudEIP() *schema.Resource {
 				}, false),
 			},
 
-			"eip_duration": &schema.Schema{
+			"duration": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 9),
 			},
@@ -117,12 +118,12 @@ func resourceUCloudEIP() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"resource_type": &schema.Schema{
+						"type": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 
-						"resource_id": &schema.Schema{
+						"id": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -149,7 +150,7 @@ func resourceUCloudEIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	req := conn.NewAllocateEIPRequest()
 	req.Bandwidth = ucloud.Int(d.Get("bandwidth").(int))
-	req.Quantity = ucloud.Int(d.Get("eip_duration").(int))
+	req.Quantity = ucloud.Int(d.Get("duration").(int))
 	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_type").(string)))
 	req.PayMode = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_charge_mode").(string)))
 	req.OperatorName = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("internet_type").(string)))
@@ -316,8 +317,8 @@ func resourceUCloudEIPRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err := d.Set("resource", map[string]string{
-		"resource_type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
-		"resource_id":   eip.Resource.ResourceId,
+		"type": lowerCaseProdCvt.mustUnconvert(eip.Resource.ResourceType),
+		"id":   eip.Resource.ResourceId,
 	}); err != nil {
 		return err
 	}

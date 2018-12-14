@@ -13,7 +13,7 @@ import (
 func TestAccUCloudVPC_basic(t *testing.T) {
 	var val vpc.VPCInfo
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -101,7 +101,8 @@ func testAccCheckVPCDestroy(s *terraform.State) error {
 
 const testAccVPCConfig = `
 resource "ucloud_vpc" "foo" {
-	name = "tf-acc-vpc"
+	name        = "tf-acc-vpc"
+	tag         = "tf-acc"
 	cidr_blocks = ["192.168.0.0/16"]
 }
 `

@@ -67,9 +67,10 @@ func resourceUCloudInstance() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"year", "month", "dynamic"}, false),
 			},
 
-			"instance_duration": &schema.Schema{
+			"duration": &schema.Schema{
 				Type:         schema.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      1,
 				ValidateFunc: validateDuration,
 			},
@@ -155,7 +156,7 @@ func resourceUCloudInstance() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"disk_type": &schema.Schema{
+						"type": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -165,7 +166,7 @@ func resourceUCloudInstance() *schema.Resource {
 							Computed: true,
 						},
 
-						"disk_id": &schema.Schema{
+						"id": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -188,7 +189,7 @@ func resourceUCloudInstance() *schema.Resource {
 							Computed: true,
 						},
 
-						"type": &schema.Schema{
+						"internet_type": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -220,13 +221,14 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 
 	imageId := d.Get("image_id").(string)
 	bootDiskType := d.Get("boot_disk_type").(string)
+
 	req := conn.NewCreateUHostInstanceRequest()
 	req.LoginMode = ucloud.String("Password")
 	req.Zone = ucloud.String(d.Get("availability_zone").(string))
 	req.ImageId = ucloud.String(imageId)
 	req.Password = ucloud.String(d.Get("root_password").(string))
 	req.ChargeType = ucloud.String(upperCamelCvt.mustUnconvert(d.Get("instance_charge_type").(string)))
-	req.Quantity = ucloud.Int(d.Get("instance_duration").(int))
+	req.Quantity = ucloud.Int(d.Get("duration").(int))
 	req.Name = ucloud.String(d.Get("name").(string))
 
 	// skip error because it has been validated by schema
@@ -240,12 +242,12 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error on reading image %s when creating instance, %s", imageId, err)
 	}
 
-	if val, ok := d.GetOk("boot_disk_size"); ok && (bootDiskType == "cloud_normal" || bootDiskType == "cloud_ssd") {
-		if val.(int) < imageResp.ImageSize {
+	if v, ok := d.GetOk("boot_disk_size"); ok && (bootDiskType == "cloud_normal" || bootDiskType == "cloud_ssd") {
+		if v.(int) < imageResp.ImageSize {
 			return fmt.Errorf("expected boot_disk_size to be at least %d", imageResp.ImageSize)
 		}
 		bootDisk.IsBoot = ucloud.String("True")
-		bootDisk.Size = ucloud.Int(val.(int))
+		bootDisk.Size = ucloud.Int(v.(int))
 		bootDisk.Type = ucloud.String(upperCvt.mustUnconvert(bootDiskType))
 		req.Disks = append(req.Disks, bootDisk)
 	} else {
@@ -255,25 +257,25 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 		req.Disks = append(req.Disks, bootDisk)
 	}
 
-	if val, ok := d.GetOk("data_disk_size"); ok {
+	if v, ok := d.GetOk("data_disk_size"); ok {
 		dataDisk := uhost.UHostDisk{}
 		dataDisk.IsBoot = ucloud.String("False")
 		dataDisk.Type = ucloud.String(upperCvt.mustUnconvert(d.Get("data_disk_type").(string)))
-		dataDisk.Size = ucloud.Int(val.(int))
+		dataDisk.Size = ucloud.Int(v.(int))
 
 		req.Disks = append(req.Disks, dataDisk)
 	}
 
-	if val, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(val.(string))
+	if v, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("vpc_id"); ok {
-		req.VPCId = ucloud.String(val.(string))
+	if v, ok := d.GetOk("vpc_id"); ok {
+		req.VPCId = ucloud.String(v.(string))
 	}
 
-	if val, ok := d.GetOk("subnet_id"); ok {
-		req.SubnetId = ucloud.String(val.(string))
+	if v, ok := d.GetOk("subnet_id"); ok {
+		req.SubnetId = ucloud.String(v.(string))
 	}
 
 	if val, ok := d.GetOk("security_group"); ok {
@@ -291,7 +293,7 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if len(resp.UHostIds) != 1 {
-		return fmt.Errorf("error on create instance, expected exactly one instance, got %v", len(resp.UHostIds))
+		return fmt.Errorf("error on creating instance, expected exactly one instance, got %v", len(resp.UHostIds))
 	}
 
 	d.SetId(resp.UHostIds[0])
@@ -299,8 +301,8 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 	// after create instance, we need to wait it initialized
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{statusPending},
-		Target:     []string{"running"},
-		Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
+		Target:     []string{statusRunning},
+		Refresh:    instanceStateRefreshFunc(client, d.Id(), statusRunning),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      5 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -327,10 +329,10 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		req.ResourceId = ucloud.String(d.Id())
 
 		_, err := conn.GrantFirewall(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to instance %s, %s", "GrantFirewall", d.Id(), err)
 		}
+
 		d.SetPartial("security_group")
 	}
 
@@ -340,10 +342,10 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		req.Remark = ucloud.String(d.Get("remark").(string))
 
 		_, err := conn.ModifyUHostInstanceRemark(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to instance %s, %s", "ModifyUHostInstanceRemark", d.Id(), err)
 		}
+
 		d.SetPartial("remark")
 	}
 
@@ -353,10 +355,10 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		req.Tag = ucloud.String(d.Get("tag").(string))
 
 		_, err := conn.ModifyUHostInstanceTag(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to instance %s, %s", "ModifyUHostInstanceTag", d.Id(), err)
 		}
+
 		d.SetPartial("tag")
 	}
 
@@ -366,10 +368,10 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		req.Name = ucloud.String(d.Get("name").(string))
 
 		_, err := conn.ModifyUHostInstanceName(req)
-
 		if err != nil {
 			return fmt.Errorf("error on %s to instance %s, %s", "ModifyUHostInstanceName", d.Id(), err)
 		}
+
 		d.SetPartial("name")
 	}
 
@@ -446,7 +448,6 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		stopReq.UHostId = ucloud.String(d.Id())
 
 		instance, err := client.describeInstanceById(d.Id())
-
 		if err != nil {
 			if isNotFoundError(err) {
 				d.SetId("")
@@ -455,9 +456,8 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("error on reading instance when updating %s, %s", d.Id(), err)
 		}
 
-		if instance.State != "Stopped" {
+		if strings.ToLower(instance.State) != statusStopped {
 			_, err := conn.StopUHostInstance(stopReq)
-
 			if err != nil {
 				return fmt.Errorf("error on stopping instance when updating %s, %s", d.Id(), err)
 			}
@@ -465,8 +465,8 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			// after stop instance, we need to wait it stopped
 			stateConf := &resource.StateChangeConf{
 				Pending:    []string{statusPending},
-				Target:     []string{"stopped"},
-				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
+				Target:     []string{statusStopped},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), statusStopped),
 				Timeout:    d.Timeout(schema.TimeoutUpdate),
 				Delay:      5 * time.Second,
 				MinTimeout: 3 * time.Second,
@@ -483,7 +483,6 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			reqPassword.Password = ucloud.String(d.Get("root_password").(string))
 
 			_, err := conn.ResetUHostInstancePassword(reqPassword)
-
 			if err != nil {
 				return fmt.Errorf("error on %s to instance %s, %s", "ResetUHostInstancePassword", d.Id(), err)
 			}
@@ -493,11 +492,11 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		if resizeNeedUpdate {
 			_, err := conn.ResizeUHostInstance(resizeReq)
-
 			if err != nil {
 				return fmt.Errorf("error on %s to instance %s, %s", "ResizeUHostInstance", d.Id(), err)
 			}
 		}
+
 		d.SetPartial("instance_type")
 		d.SetPartial("boot_disk_size")
 		d.SetPartial("data_disk_size")
@@ -505,8 +504,8 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 		// instance stopped means instance update complete
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{statusPending},
-			Target:     []string{"stopped"},
-			Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
+			Target:     []string{statusStopped},
+			Refresh:    instanceStateRefreshFunc(client, d.Id(), statusStopped),
 			Timeout:    d.Timeout(schema.TimeoutUpdate),
 			Delay:      5 * time.Second,
 			MinTimeout: 3 * time.Second,
@@ -516,7 +515,7 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("error on waiting for %s complete to instance %s, %s", "ResizeUHostInstance", d.Id(), err)
 		}
 
-		if instance.State == "Running" {
+		if strings.ToLower(instance.State) == statusRunning {
 			// after instance update, we need to wait it started
 			startReq := conn.NewStartUHostInstanceRequest()
 			startReq.UHostId = ucloud.String(d.Id())
@@ -527,8 +526,8 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 
 			stateConf = &resource.StateChangeConf{
 				Pending:    []string{statusPending},
-				Target:     []string{"running"},
-				Refresh:    instanceStateRefreshFunc(client, d.Id(), "running"),
+				Target:     []string{statusRunning},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), statusRunning),
 				Timeout:    d.Timeout(schema.TimeoutUpdate),
 				Delay:      5 * time.Second,
 				MinTimeout: 3 * time.Second,
@@ -570,16 +569,17 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("state", instance.State)
 	d.Set("create_time", timestampToString(instance.CreateTime))
 	d.Set("expire_time", timestampToString(instance.ExpireTime))
-	d.Set("auto_renew", instance.AutoRenew)
+	d.Set("auto_renew", boolCvt.mustUnconvert(instance.AutoRenew))
 	d.Set("remark", instance.Remark)
 
 	ipSet := []map[string]interface{}{}
 	for _, item := range instance.IPSet {
 		ipSet = append(ipSet, map[string]interface{}{
-			"ip":   item.IP,
-			"type": item.Type,
+			"ip":            item.IP,
+			"internet_type": item.Type,
 		})
 	}
+
 	if err := d.Set("ip_set", ipSet); err != nil {
 		return err
 	}
@@ -587,17 +587,18 @@ func resourceUCloudInstanceRead(d *schema.ResourceData, meta interface{}) error 
 	diskSet := []map[string]interface{}{}
 	for _, item := range instance.DiskSet {
 		diskSet = append(diskSet, map[string]interface{}{
-			"disk_type": upperCvt.mustConvert(item.DiskType),
-			"size":      item.Size,
-			"disk_id":   item.DiskId,
-			"is_boot":   item.IsBoot,
+			"type":    upperCvt.mustConvert(item.DiskType),
+			"size":    item.Size,
+			"id":      item.DiskId,
+			"is_boot": item.IsBoot,
 		})
 
-		if item.IsBoot == "True" {
+		isBoot := boolValueCvt.mustUnconvert(item.IsBoot)
+		if isBoot {
 			d.Set("boot_disk_size", item.Size)
 		}
 
-		if item.IsBoot == "False" && checkStringIn(upperCvt.mustConvert(item.DiskType), []string{"local_normal", "local_ssd"}) == nil {
+		if !isBoot && checkStringIn(upperCvt.mustConvert(item.DiskType), []string{"local_normal", "local_ssd"}) == nil {
 			d.Set("data_disk_size", item.Size)
 		}
 	}
@@ -628,15 +629,15 @@ func resourceUCloudInstanceDelete(d *schema.ResourceData, meta interface{}) erro
 			return resource.NonRetryableError(err)
 		}
 
-		if instance.State != "Stopped" {
+		if strings.ToLower(instance.State) != statusStopped {
 			if _, err := conn.StopUHostInstance(stopReq); err != nil {
 				return resource.RetryableError(fmt.Errorf("error on stopping instance when deleting %s, %s", d.Id(), err))
 			}
 
 			stateConf := &resource.StateChangeConf{
 				Pending:    []string{statusPending},
-				Target:     []string{"stopped"},
-				Refresh:    instanceStateRefreshFunc(client, d.Id(), "stopped"),
+				Target:     []string{statusStopped},
+				Refresh:    instanceStateRefreshFunc(client, d.Id(), statusStopped),
 				Timeout:    d.Timeout(schema.TimeoutDelete),
 				Delay:      5 * time.Second,
 				MinTimeout: 3 * time.Second,

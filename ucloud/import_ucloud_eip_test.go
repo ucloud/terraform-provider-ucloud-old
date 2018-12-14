@@ -9,7 +9,7 @@ import (
 func TestAccUCloudEIP_import(t *testing.T) {
 	resourceName := "ucloud_eip.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckEIPDestroy,
@@ -19,9 +19,10 @@ func TestAccUCloudEIP_import(t *testing.T) {
 			},
 
 			resource.TestStep{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"duration", "internet_type"},
 			},
 		},
 	})

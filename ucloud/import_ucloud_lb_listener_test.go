@@ -9,7 +9,7 @@ import (
 func TestAccUCloudLBListener_import(t *testing.T) {
 	resourceName := "ucloud_lb_listener.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBListenerDestroy,

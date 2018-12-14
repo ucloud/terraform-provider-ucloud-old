@@ -17,7 +17,7 @@ func TestAccUCloudLBRule_basic(t *testing.T) {
 	var instance uhost.UHostInstanceSet
 	var backendSet ulb.ULBBackendSet
 	var policySet ulb.ULBPolicySet
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},

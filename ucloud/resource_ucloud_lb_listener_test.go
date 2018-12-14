@@ -13,7 +13,7 @@ import (
 func TestAccUCloudLBListener_basic(t *testing.T) {
 	var lbSet ulb.ULBSet
 	var vserverSet ulb.ULBVServerSet
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
 		},
@@ -47,7 +47,7 @@ func TestAccUCloudLBListener_basic(t *testing.T) {
 					testAccCheckLBExists("ucloud_lb.foo", &lbSet),
 					testAccCheckLBListenerExists("ucloud_lb_listener.foo", &lbSet, &vserverSet),
 					testAccCheckLBListenerAttributes(&vserverSet),
-					resource.TestCheckResourceAttr("ucloud_lb_listener.foo", "protocol", "http"),
+					resource.TestCheckResourceAttr("ucloud_lb_listener.foo", "protocol", "https"),
 					resource.TestCheckResourceAttr("ucloud_lb_listener.foo", "method", "roundrobin"),
 					resource.TestCheckResourceAttr("ucloud_lb_listener.foo", "name", "tf-acc-lb-listener-two"),
 					resource.TestCheckResourceAttr("ucloud_lb_listener.foo", "idle_timeout", "100"),
@@ -135,9 +135,9 @@ resource "ucloud_lb_listener" "foo" {
 	idle_timeout      = 80
 	persistence_type  = "server_insert"
 	health_check_type = "path"
-
 }
 `
+
 const testAccLBListenerConfigTwo = `
 resource "ucloud_lb" "foo" {
 	name = "tf-acc-lb-listener"
@@ -146,7 +146,7 @@ resource "ucloud_lb" "foo" {
 
 resource "ucloud_lb_listener" "foo" {
 	load_balancer_id  = "${ucloud_lb.foo.id}"
-	protocol          = "http"
+	protocol          = "https"
 	method            = "roundrobin"
 	name              = "tf-acc-lb-listener-two"
 	idle_timeout      = 100

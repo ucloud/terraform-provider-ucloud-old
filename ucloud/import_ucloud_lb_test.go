@@ -9,7 +9,7 @@ import (
 func TestAccUCloudLB_import(t *testing.T) {
 	resourceName := "ucloud_lb.foo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckLBDestroy,
