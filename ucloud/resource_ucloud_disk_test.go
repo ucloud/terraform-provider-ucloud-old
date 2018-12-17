@@ -62,13 +62,13 @@ func TestAccUCloudDisk_tag(t *testing.T) {
 
 		Steps: []resource.TestStep{
 			resource.TestStep{
-				Config: testAccDiskConfig,
+				Config: testAccDiskDefaultTag,
 
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDiskExists("ucloud_disk.foo", &diskSet),
 					testAccCheckDiskAttributes(&diskSet),
 					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", "tf-acc-disk-tag"),
-					resource.TestCheckResourceAttr("ucloud_disk.foo", "name", defaultTag),
+					resource.TestCheckResourceAttr("ucloud_disk.foo", "tag", defaultTag),
 					resource.TestCheckResourceAttr("ucloud_disk.foo", "disk_size", "10"),
 				),
 			},
@@ -161,11 +161,16 @@ resource "ucloud_disk" "foo" {
 `
 
 const testAccDiskDefaultTag = `
+locals {
+	tag = ""
+}
+
 data "ucloud_zones" "default" {}
 
 resource "ucloud_disk" "foo" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
 	name              = "tf-acc-disk-tag"
+	tag               = "${local.tag}"
 	disk_size         = 10
 }
 `
