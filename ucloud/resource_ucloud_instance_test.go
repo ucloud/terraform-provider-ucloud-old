@@ -218,7 +218,7 @@ data "ucloud_images" "default" {
 
 resource "ucloud_security_group" "default" {
   name = "tf-acc-instance-config-basic-update-%d"
-  tag  = "tf-acc"
+  tag  = ""
 
   rules {
     port_range = "20-80"
