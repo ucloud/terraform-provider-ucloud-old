@@ -19,9 +19,6 @@ const (
 
 	// defaultWaitIgnoreError is if it will ignore error during wait for state changed after resource is created
 	defaultWaitIgnoreError = false
-
-	// defaultTag is the default tag for all of resources
-	defaultTag = "Default"
 )
 
 const (

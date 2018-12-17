@@ -68,10 +68,8 @@ func resourceUCloudDisk() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				Default:      defaultTag,
+				Computed:     true,
 				ValidateFunc: validateTag,
-				StateFunc:    stateFuncTag,
 			},
 
 			"create_time": &schema.Schema{
@@ -104,11 +102,8 @@ func resourceUCloudDiskCreate(d *schema.ResourceData, meta interface{}) error {
 	req.ChargeType = ucloud.String(upperCamelCvt.unconvert(d.Get("charge_type").(string)))
 	req.Quantity = ucloud.Int(d.Get("duration").(int))
 
-	// if tag is empty string, use default tag
-	if v, ok := d.GetOk("tag"); ok {
-		req.Tag = ucloud.String(v.(string))
-	} else {
-		req.Tag = ucloud.String(defaultTag)
+	if val, ok := d.GetOk("tag"); ok {
+		req.Tag = ucloud.String(val.(string))
 	}
 
 	resp, err := conn.CreateUDisk(req)

@@ -118,9 +118,8 @@ func resourceUCloudInstance() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      defaultTag,
+				Computed:     true,
 				ValidateFunc: validateTag,
-				StateFunc:    stateFuncTag,
 			},
 
 			"security_group": &schema.Schema{
@@ -273,11 +272,8 @@ func resourceUCloudInstanceCreate(d *schema.ResourceData, meta interface{}) erro
 		req.Disks = append(req.Disks, dataDisk)
 	}
 
-	// if tag is empty string, use default tag
 	if v, ok := d.GetOk("tag"); ok {
 		req.Tag = ucloud.String(v.(string))
-	} else {
-		req.Tag = ucloud.String(defaultTag)
 	}
 
 	if v, ok := d.GetOk("vpc_id"); ok {
@@ -362,13 +358,7 @@ func resourceUCloudInstanceUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("tag") && !d.IsNewResource() {
 		req := conn.NewModifyUHostInstanceTagRequest()
 		req.UHostId = ucloud.String(d.Id())
-
-		// if tag is empty string, use default tag
-		if v, ok := d.GetOk("tag"); ok {
-			req.Tag = ucloud.String(v.(string))
-		} else {
-			req.Tag = ucloud.String(defaultTag)
-		}
+		req.Tag = ucloud.String(d.Get("tag").(string))
 
 		_, err := conn.ModifyUHostInstanceTag(req)
 		if err != nil {

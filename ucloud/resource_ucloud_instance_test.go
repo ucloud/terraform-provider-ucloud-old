@@ -32,7 +32,6 @@ func TestAccUCloudInstance_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-config-basic"),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "tag", "tf-acc"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "instance_type", "n-highcpu-1"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "cpu", "1"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "memory", "1024"),
@@ -44,7 +43,6 @@ func TestAccUCloudInstance_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckInstanceExists("ucloud_instance.foo", &instance),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "name", "tf-acc-instance-config-basic-update"),
-					resource.TestCheckResourceAttr("ucloud_instance.foo", "tag", defaultTag),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "instance_type", "n-basic-2"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "cpu", "2"),
 					resource.TestCheckResourceAttr("ucloud_instance.foo", "memory", "4096"),
@@ -218,7 +216,7 @@ data "ucloud_images" "default" {
 
 resource "ucloud_security_group" "default" {
   name = "tf-acc-instance-config-basic-update-%d"
-  tag  = ""
+  tag  = "tf-acc"
 
   rules {
     port_range = "20-80"

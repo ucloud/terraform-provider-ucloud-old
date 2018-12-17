@@ -41,10 +41,9 @@ func resourceUCloudVPC() *schema.Resource {
 			"tag": &schema.Schema{
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
-				Default:      defaultTag,
 				ValidateFunc: validateTag,
-				StateFunc:    stateFuncTag,
 			},
 
 			"remark": &schema.Schema{
@@ -88,11 +87,8 @@ func resourceUCloudVPCCreate(d *schema.ResourceData, meta interface{}) error {
 	req.Name = ucloud.String(d.Get("name").(string))
 	req.Network = schemaSetToStringSlice(d.Get("cidr_blocks"))
 
-	// if tag is empty string, use default tag
 	if v, ok := d.GetOk("tag"); ok {
 		req.Tag = ucloud.String(v.(string))
-	} else {
-		req.Tag = ucloud.String(defaultTag)
 	}
 
 	if v, ok := d.GetOk("remark"); ok {
