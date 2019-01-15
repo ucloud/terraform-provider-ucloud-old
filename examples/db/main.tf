@@ -9,7 +9,7 @@ data "ucloud_zones" "default" {}
 # Create parameter group
 data "ucloud_db_parameter_groups" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-  region_flag       = "false"
+  multi_az       = "false"
   engine            = "mysql"
   engine_version    = "5.7"
 }

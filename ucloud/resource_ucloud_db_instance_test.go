@@ -222,7 +222,7 @@ data "ucloud_zones" "default" {
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
@@ -245,7 +245,7 @@ data "ucloud_zones" "default" {
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
@@ -265,7 +265,7 @@ const testAccDBInstanceConfigPgsql = `
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "cn-bj2-05"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
@@ -285,7 +285,7 @@ const testAccDBInstanceConfigPgsqlTwo = `
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone =  "cn-bj2-05"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "postgresql"
 	engine_version = "9.6"
 }
@@ -308,7 +308,7 @@ data "ucloud_zones" "default" {
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
@@ -334,7 +334,7 @@ data "ucloud_zones" "default" {
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }

@@ -44,7 +44,7 @@ func dataSourceUCloudDBParameterGroups() *schema.Resource {
 				ValidateFunc: validateStringInChoices([]string{"5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4"}),
 			},
 
-			"region_flag": &schema.Schema{
+			"multi_az": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -164,7 +164,7 @@ func dataSourceUCloudDBParameterGroupsRead(d *schema.ResourceData, meta interfac
 				req.Zone = ucloud.String(val.(string))
 			}
 
-			if val, ok := d.GetOk("region_flag"); ok {
+			if val, ok := d.GetOk("multi_az"); ok {
 				req.RegionFlag = ucloud.Bool(val.(bool))
 			}
 

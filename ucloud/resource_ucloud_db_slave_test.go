@@ -119,7 +119,7 @@ data "ucloud_zones" "default" {
 }
 
 data "ucloud_db_parameter_groups" "default" {
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }
@@ -150,7 +150,7 @@ data "ucloud_zones" "default" {
 
 data "ucloud_db_parameter_groups" "default" {
 	availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-	region_flag = "false"
+	multi_az = "false"
 	engine = "mysql"
 	engine_version = "5.7"
 }

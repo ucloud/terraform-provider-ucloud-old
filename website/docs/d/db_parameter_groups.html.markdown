@@ -21,7 +21,7 @@ The following arguments are supported:
 * `ids` - (Optional) The group of IDs of db parameter groups that require to be retrieved.
 * `engine` - Database type, possible values are: "mysql", "percona", "postgresql".
 * `engine_version` - The database engine version, possible values are: "5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4".
-* `region_flag` - (Optional) Possible values are " true" and "false"; when "availability_zone" is not included in the request, only the cross-availability zone DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and cross-availability zone).
+* `multi_az` - (Optional) Possible values are " true" and "false"; when "availability_zone" is not included in the request, only the cross-availability zone DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and cross-availability zone).
 * `output_file` - (Optional) File name where to save data source results (after running `terraform plan`).
 
 ## Attributes Reference

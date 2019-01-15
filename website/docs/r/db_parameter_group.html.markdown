@@ -19,7 +19,7 @@ data "ucloud_zones" "default" {}
 # Query parameter group
 data "ucloud_db_parameter_groups" "default" {
   availability_zone = "${data.ucloud_zones.default.zones.0.id}"
-  region_flag       = "false"
+  multi_az       = "false"
   engine            = "mysql"
   engine_version    = "5.7"
 }
@@ -54,7 +54,7 @@ The following arguments are supported:
 * `src_group_id` - (Required) The ID of source DB parameter group.
 * `engine` - (Required) Database type, possible values are: "mysql", "percona", "postgresql".
 * `engine_version` - (Required) The database engine version, possible values are: "5.1", "5.5", "5.6", "5.7", "9.4", "9.6", "10.4".
-* `region_flag` - (Optional) Possible values are " true" and "false", when "availability_zone" is not included in the request, only the multiple zones DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and multiple zones).
+* `multi_az` - (Optional) Possible values are " true" and "false", when "availability_zone" is not included in the request, only the multiple zones DB parameter groups wil be returned if this is "true" , otherwise all the DB parameter groups will be returned (including single availability zone and multiple zones).
 * `parameter_input` - (Optional) parameter input is a nested type. parameter input documented below.
 
 The attribute (`parameter_input`) support the following:
